@@ -3,35 +3,33 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SupaSesh Embed</title>
+    <title>SupaSesh | Pomodoro & Tasks</title>
     <style>
         :root {
             --bg: #0e0b1e;
             --surface: rgba(255, 255, 255, 0.05);
-            --surface-raised: rgba(255, 255, 255, 0.07);
+            --surface-raised: rgba(255, 255, 255, 0.08);
             --border: rgba(255, 255, 255, 0.08);
-            --border-light: rgba(255, 255, 255, 0.05);
+            --border-light: rgba(255, 255, 255, 0.04);
             --text: #f5f3ff;
             --muted: #a098c4;
-            --pink: #ec4899;
             --violet: #8b5cf6;
-            --blue: #6366f1;
-            --green: #10b981;
-            --amber: #f59e0b;
-            --teal: #14b8a6;
+            --pink: #ec4899;
+            --cyan: #06b6d4;
             --red: #ef4444;
-            --radius: 20px;
-            --radius-sm: 14px;
+            --radius-lg: 24px;
+            --radius-md: 16px;
+            --radius-sm: 10px;
         }
 
-        * { box-sizing: border-box; margin: 0; }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
 
         html, body {
             width: 100%; height: 100%; overflow: hidden;
-            font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", Inter, "Segoe UI", sans-serif;
+            font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", Inter, sans-serif;
             background:
-                radial-gradient(ellipse at top right, rgba(139, 92, 246, 0.2), transparent 50%),
-                radial-gradient(ellipse at bottom left, rgba(99, 102, 241, 0.12), transparent 50%),
+                radial-gradient(ellipse at top right, rgba(139, 92, 246, 0.15), transparent 50%),
+                radial-gradient(ellipse at bottom left, rgba(236, 72, 153, 0.12), transparent 50%),
                 linear-gradient(180deg, #0c0922 0%, var(--bg) 100%);
             color: var(--text);
         }
@@ -42,713 +40,446 @@
         .app {
             width: 100%; height: 100%;
             display: grid;
-            grid-template-columns: 260px minmax(0, 1fr);
-            gap: 12px;
+            grid-template-columns: minmax(280px, 1.2fr) minmax(320px, 1.8fr);
+            gap: 16px;
             min-height: 0;
         }
 
         .panel {
-            border-radius: 24px;
+            border-radius: var(--radius-lg);
             border: 1px solid var(--border);
             background: var(--surface);
             backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
             min-height: 0;
+            display: flex;
+            flex-direction: column;
             overflow: hidden;
         }
 
-        /* ── Sidebar ── */
-        .sidebar {
-            padding: 18px;
+        /* ── Pomodoro Sidebar ── */
+        .pomodoro-panel {
+            padding: 24px;
+            align-items: center;
+            justify-content: center;
+            gap: 32px;
+            text-align: center;
+        }
+
+        .brand h1 {
+            font-size: 1.6rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, var(--violet), var(--pink));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            letter-spacing: -0.02em;
+        }
+        .brand p {
+            font-size: 0.85rem;
+            color: var(--muted);
+            margin-top: 4px;
+        }
+
+        /* Timer Circle */
+        .timer-circle {
+            position: relative;
+            width: 220px;
+            height: 220px;
+            border-radius: 50%;
+            background: radial-gradient(circle, var(--surface) 0%, transparent 100%);
+            border: 4px solid var(--surface-raised);
             display: flex;
             flex-direction: column;
-            gap: 12px;
-            overflow-y: auto;
-        }
-
-        .sidebar::-webkit-scrollbar { width: 0; }
-
-        .brand {
-            display: flex;
             align-items: center;
-            gap: 10px;
+            justify-content: center;
+            box-shadow: 0 0 40px rgba(139, 92, 246, 0.1) inset, 0 10px 30px rgba(0,0,0,0.2);
         }
 
-        .brand-icon {
-            width: 38px; height: 38px;
-            border-radius: 12px;
-            background: linear-gradient(135deg, var(--violet), var(--pink));
-            display: grid; place-items: center;
-            font-size: 1.1rem;
-            font-weight: 700;
-            flex-shrink: 0;
-            box-shadow: 0 4px 16px rgba(139, 92, 246, 0.3);
+        .timer-progress {
+            position: absolute;
+            inset: -4px;
+            border-radius: 50%;
+            border: 4px solid var(--violet);
+            clip-path: polygon(50% 50%, 50% 0%, 100% 0%, 100% 100%, 0% 100%, 0% 0%, 50% 0%);
+            transition: stroke-dashoffset 0.5s linear;
         }
 
-        .brand-text h1 {
-            font-size: 1.15rem;
+        .time-display {
+            font-size: 4rem;
             font-weight: 700;
-            letter-spacing: -0.03em;
+            font-variant-numeric: tabular-nums;
+            letter-spacing: -0.04em;
             line-height: 1;
         }
 
-        .brand-text span {
-            font-size: 0.68rem;
+        .mode-label {
+            font-size: 0.85rem;
             color: var(--muted);
-            letter-spacing: 0.06em;
-            text-transform: uppercase;
-        }
-
-        /* Stats row */
-        .stats-row {
-            display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 8px;
-        }
-
-        .stat {
-            padding: 10px 12px;
-            border-radius: var(--radius-sm);
-            background: var(--surface-raised);
-            border: 1px solid var(--border-light);
-        }
-
-        .stat-label {
-            font-size: 0.62rem;
             text-transform: uppercase;
             letter-spacing: 0.1em;
-            color: var(--muted);
+            margin-top: 8px;
         }
 
-        .stat-value {
-            font-size: 1.15rem;
-            font-weight: 700;
-            margin-top: 2px;
-            letter-spacing: -0.02em;
-        }
-
-        /* Info cards */
-        .info-card {
-            padding: 12px;
-            border-radius: var(--radius-sm);
-            background: var(--surface-raised);
-            border: 1px solid var(--border-light);
-        }
-
-        .info-label {
-            font-size: 0.62rem;
-            text-transform: uppercase;
-            letter-spacing: 0.1em;
-            color: var(--muted);
-            margin-bottom: 8px;
-        }
-
-        .chip-wrap {
+        .controls {
             display: flex;
-            flex-wrap: wrap;
-            gap: 6px;
+            gap: 12px;
+            width: 100%;
         }
 
-        .chip {
-            display: inline-flex;
-            align-items: center;
-            gap: 4px;
-            padding: 5px 10px;
-            border-radius: 10px;
-            background: rgba(255, 255, 255, 0.06);
-            border: 1px solid rgba(255, 255, 255, 0.06);
-            font-size: 0.74rem;
+        .btn {
+            flex: 1;
+            padding: 14px;
+            border-radius: var(--radius-md);
+            border: 0;
+            font-family: inherit;
+            font-size: 0.95rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
             color: var(--text);
         }
 
-        .chip-icon { font-size: 0.8rem; }
+        .btn-primary {
+            background: linear-gradient(135deg, var(--violet), var(--pink));
+            box-shadow: 0 4px 15px rgba(139, 92, 246, 0.3);
+        }
+        .btn-primary:active { transform: translateY(2px); }
 
-        /* Day picker */
-        .day-picker {
+        .btn-secondary {
+            background: var(--surface-raised);
+            border: 1px solid var(--border-light);
+        }
+        .btn-secondary:hover { background: rgba(255,255,255,0.12); }
+        .btn-secondary:active { transform: translateY(2px); }
+
+        .stats {
             display: flex;
-            gap: 4px;
+            justify-content: space-around;
+            width: 100%;
+            padding-top: 16px;
+            border-top: 1px solid var(--border-light);
         }
 
-        .day-btn {
-            flex: 1;
-            border: 0; cursor: pointer;
-            background: rgba(255, 255, 255, 0.04);
-            border: 1px solid transparent;
-            border-radius: 10px;
-            padding: 6px 2px;
-            font: inherit;
-            font-size: 0.65rem;
-            font-weight: 600;
-            color: var(--muted);
-            text-align: center;
-            transition: all 0.15s ease;
+        .stat { text-align: center; }
+        .stat-val { font-size: 1.4rem; font-weight: 700; }
+        .stat-lbl { font-size: 0.7rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.05em; }
+
+        /* ── Tasks Panel ── */
+        .tasks-panel {
+            padding: 24px;
         }
 
-        .day-btn:hover { background: rgba(255, 255, 255, 0.08); }
-
-        .day-btn.active {
-            background: rgba(139, 92, 246, 0.2);
-            border-color: rgba(139, 92, 246, 0.4);
-            color: #fff;
-        }
-
-        .day-btn span {
-            display: block;
-            font-size: 0.92rem;
-            font-weight: 700;
-            margin-top: 1px;
-        }
-
-        /* Controls */
-        .controls {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 6px;
-            margin-top: auto;
-        }
-
-        .ctrl-btn {
-            border: 0; cursor: pointer;
-            border-radius: 12px;
-            padding: 9px 14px;
-            font: inherit;
-            font-size: 0.78rem;
-            font-weight: 500;
-            background: rgba(255, 255, 255, 0.07);
-            color: #fff;
-            transition: all 0.15s ease;
-            flex: 1;
-            min-width: 0;
-            text-align: center;
-        }
-
-        .ctrl-btn:hover {
-            background: rgba(255, 255, 255, 0.12);
-            transform: translateY(-1px);
-        }
-
-        .ctrl-btn.primary {
-            background: linear-gradient(135deg, rgba(139, 92, 246, 0.4), rgba(99, 102, 241, 0.3));
-            border: 1px solid rgba(139, 92, 246, 0.3);
-        }
-
-        .ctrl-btn.primary:hover {
-            background: linear-gradient(135deg, rgba(139, 92, 246, 0.55), rgba(99, 102, 241, 0.4));
-        }
-
-        /* ── Timeline ── */
-        .timeline-shell {
-            display: grid;
-            grid-template-rows: auto 1fr;
-            min-height: 0;
-        }
-
-        .timeline-bar {
-            padding: 14px 18px;
+        .tasks-header {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            border-bottom: 1px solid var(--border-light);
+            margin-bottom: 20px;
         }
 
-        .timeline-title {
-            font-size: 0.95rem;
+        .tasks-header h2 {
+            font-size: 1.35rem;
             font-weight: 600;
         }
 
-        .timeline-range {
-            font-size: 0.72rem;
-            color: var(--muted);
-            letter-spacing: 0.08em;
-            text-transform: uppercase;
-        }
-
-        .timeline-body {
-            display: grid;
-            grid-template-columns: 68px minmax(0, 1fr);
-            min-height: 0;
-            overflow: hidden;
-        }
-
-        /* Hours column */
-        .hours-col {
-            border-right: 1px solid var(--border-light);
-        }
-
-        .hour-mark {
-            height: calc(100% / 13);
+        .task-input-wrap {
             display: flex;
-            align-items: flex-start;
-            justify-content: flex-end;
-            padding: 8px 10px 0 0;
-            font-size: 0.68rem;
-            font-weight: 500;
-            color: var(--muted);
-            position: relative;
+            gap: 10px;
+            margin-bottom: 20px;
         }
 
-        .hour-mark::after {
-            content: "";
-            position: absolute;
-            top: 8px;
-            right: 0;
-            width: 8px;
-            height: 1px;
-            background: var(--border);
+        .task-input {
+            flex: 1;
+            background: var(--surface-raised);
+            border: 1px solid var(--border);
+            padding: 12px 16px;
+            border-radius: var(--radius-md);
+            color: var(--text);
+            font-family: inherit;
+            font-size: 0.95rem;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+        .task-input:focus { border-color: var(--violet); }
+        .task-input::placeholder { color: rgba(160, 152, 196, 0.5); }
+
+        .add-task-btn {
+            background: var(--surface-raised);
+            color: var(--text);
+            border: 1px solid var(--border);
+            width: 44px;
+            border-radius: var(--radius-md);
+            cursor: pointer;
+            display: grid;
+            place-items: center;
+            font-size: 1.2rem;
+            transition: background 0.2s;
+        }
+        .add-task-btn:hover { background: rgba(255,255,255,0.12); }
+
+        .tasks-list {
+            flex: 1;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            padding-right: 4px;
         }
 
-        /* Canvas */
-        .canvas-area {
-            position: relative;
-            overflow: hidden;
-        }
+        .tasks-list::-webkit-scrollbar { width: 6px; }
+        .tasks-list::-webkit-scrollbar-thumb { background: var(--border); border-radius: 6px; }
 
-        /* Hour grid lines */
-        .canvas-area::before {
-            content: "";
-            position: absolute;
-            inset: 0;
-            background: repeating-linear-gradient(
-                to bottom,
-                transparent 0,
-                transparent calc(100% / 13 - 1px),
-                rgba(255, 255, 255, 0.04) calc(100% / 13 - 1px),
-                rgba(255, 255, 255, 0.04) calc(100% / 13)
-            );
-            pointer-events: none;
-        }
-
-        /* Current time line */
-        .now-line {
-            position: absolute;
-            left: 0; right: 0;
-            height: 2px;
-            background: var(--red);
-            z-index: 5;
-            pointer-events: none;
-        }
-
-        .now-line::before {
-            content: "";
-            position: absolute;
-            left: -4px; top: -3px;
-            width: 8px; height: 8px;
-            border-radius: 50%;
-            background: var(--red);
-        }
-
-        /* Session blocks */
-        .session {
-            position: absolute;
-            left: 12px; right: 12px;
-            border-radius: 16px;
-            padding: 10px 14px 14px;
-            color: #fff;
-            cursor: grab;
-            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.25);
-            border: 1px solid rgba(255, 255, 255, 0.15);
-            transition: box-shadow 0.15s ease;
-            z-index: 2;
-            overflow: hidden;
-        }
-
-        .session:hover {
-            box-shadow: 0 12px 32px rgba(0, 0, 0, 0.35);
-        }
-
-        .session:active { cursor: grabbing; }
-
-        .session-title {
+        .task-item {
+            background: var(--surface);
+            border: 1px solid var(--border-light);
+            border-radius: var(--radius-sm);
+            padding: 12px 16px;
             display: flex;
             align-items: center;
-            gap: 6px;
-            font-size: 0.88rem;
-            font-weight: 600;
+            gap: 14px;
+            transition: transform 0.2s, opacity 0.2s;
+        }
+        .task-item:hover { background: var(--surface-raised); }
+
+        .checkbox {
+            width: 22px; height: 22px;
+            border-radius: 6px;
+            border: 2px solid var(--muted);
+            cursor: pointer;
+            display: grid;
+            place-items: center;
+            transition: all 0.2s;
         }
 
-        .session-type-dot {
-            width: 6px; height: 6px;
-            border-radius: 50%;
-            background: rgba(255, 255, 255, 0.7);
-            flex-shrink: 0;
+        .task-item.completed .checkbox {
+            background: var(--violet);
+            border-color: var(--violet);
+        }
+        
+        .task-item.completed .checkbox::after {
+            content: "✓";
+            color: white;
+            font-size: 14px;
         }
 
-        .session-time {
-            display: block;
-            margin-top: 3px;
-            font-size: 0.74rem;
-            opacity: 0.8;
-            font-weight: 500;
+        .task-content {
+            flex: 1;
+            font-size: 0.95rem;
+            color: var(--text);
+            transition: color 0.2s;
         }
 
-        .session-detail {
-            display: block;
-            margin-top: 3px;
-            font-size: 0.7rem;
-            opacity: 0.6;
+        .task-item.completed .task-content {
+            color: var(--muted);
+            text-decoration: line-through;
         }
 
-        .handle {
-            position: absolute;
-            left: 20%; right: 20%;
-            bottom: 5px;
-            height: 4px;
-            border-radius: 999px;
-            background: rgba(255, 255, 255, 0.3);
-            cursor: ns-resize;
+        .delete-btn {
+            opacity: 0;
+            background: transparent;
+            border: none;
+            color: var(--muted);
+            cursor: pointer;
+            font-size: 1.2rem;
+            padding: 4px;
+            transition: color 0.2s, opacity 0.2s;
         }
-
-        /* Session types */
-        .session.focus {
-            background: linear-gradient(145deg, rgba(139, 92, 246, 0.92), rgba(99, 102, 241, 0.85));
-        }
-        .session.sync {
-            background: linear-gradient(145deg, rgba(236, 72, 153, 0.92), rgba(168, 85, 247, 0.85));
-        }
-        .session.workout {
-            background: linear-gradient(145deg, rgba(16, 185, 129, 0.92), rgba(20, 184, 166, 0.85));
-        }
-        .session.admin {
-            background: linear-gradient(145deg, rgba(245, 158, 11, 0.92), rgba(236, 72, 153, 0.85));
-        }
-        .session.break {
-            background: linear-gradient(145deg, rgba(99, 102, 241, 0.7), rgba(59, 130, 246, 0.6));
-            border-style: dashed;
-        }
-
-        /* Overlap indicator */
-        .session.overlap-warn {
-            border-color: rgba(239, 68, 68, 0.5);
-            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.25), 0 0 0 2px rgba(239, 68, 68, 0.2);
-        }
-
-        /* ── Preview mode ── */
-        body.preview-mode { padding: 10px; }
-
-        body.preview-mode .app {
-            grid-template-columns: 210px minmax(0, 1fr);
-            gap: 10px;
-        }
-
-        body.preview-mode .sidebar { padding: 14px; gap: 8px; }
-        body.preview-mode .brand-icon { width: 32px; height: 32px; border-radius: 10px; font-size: 0.9rem; }
-        body.preview-mode .brand-text h1 { font-size: 1rem; }
-        body.preview-mode .stat { padding: 8px 10px; }
-        body.preview-mode .stat-value { font-size: 1rem; }
-        body.preview-mode .info-card { padding: 10px; }
-        body.preview-mode .chip { padding: 4px 8px; font-size: 0.68rem; }
-        body.preview-mode .day-btn { padding: 4px 2px; font-size: 0.6rem; }
-        body.preview-mode .day-btn span { font-size: 0.8rem; }
-        body.preview-mode .ctrl-btn { padding: 7px 10px; font-size: 0.72rem; }
-        body.preview-mode .timeline-bar { padding: 10px 14px; }
-        body.preview-mode .hours-col { font-size: 0.62rem; }
-        body.preview-mode .hour-mark { padding: 6px 8px 0 0; font-size: 0.62rem; }
-        body.preview-mode .session { left: 8px; right: 8px; padding: 8px 10px 12px; border-radius: 14px; }
-        body.preview-mode .session-title { font-size: 0.78rem; }
-        body.preview-mode .session-time { font-size: 0.66rem; }
-        body.preview-mode .session-detail { display: none; }
+        .task-item:hover .delete-btn { opacity: 1; }
+        .delete-btn:hover { color: var(--red); }
 
         /* ── Responsive ── */
-        @media (max-width: 940px) {
+        @media (max-width: 768px) {
             body { padding: 10px; }
             .app {
                 grid-template-columns: 1fr;
                 grid-template-rows: auto 1fr;
+                overflow-y: auto;
+                min-height: auto;
             }
-            .sidebar {
-                flex-direction: row;
-                flex-wrap: wrap;
-                align-items: flex-start;
-                gap: 10px;
-                padding: 14px;
-            }
-            .sidebar > * { min-width: 0; }
-            .brand { width: 100%; }
-            .stats-row { flex: 1; min-width: 200px; }
-            .controls { width: 100%; }
-            .info-card { flex: 1; min-width: 180px; }
-        }
-
-        @media (max-width: 700px) {
-            .timeline-body { grid-template-columns: 52px minmax(0, 1fr); }
-            .hour-mark { font-size: 0.62rem; padding: 6px 6px 0 0; }
+            .panel { overflow: visible; }
+            .pomodoro-panel { padding: 20px; gap: 24px; }
+            .timer-circle { width: 180px; height: 180px; }
+            .time-display { font-size: 3.2rem; }
+            .tasks-panel { padding: 20px; flex: 1; }
         }
     </style>
-    <link rel="icon" type="image/svg+xml" href="favicon.svg">
 </head>
 <body>
     <div class="app">
-        <aside class="panel sidebar">
+        <aside class="panel pomodoro-panel">
             <div class="brand">
-                <div class="brand-icon">S</div>
-                <div class="brand-text">
-                    <h1>SupaSesh</h1>
-                    <span>Session Planner</span>
-                </div>
+                <h1>SupaSesh</h1>
+                <p>Focus Timer</p>
             </div>
 
-            <div class="stats-row">
-                <div class="stat">
-                    <div class="stat-label">Sessions</div>
-                    <div class="stat-value" id="session-count">3</div>
-                </div>
-                <div class="stat">
-                    <div class="stat-label">Tracked</div>
-                    <div class="stat-value" id="tracked-hours">3.5h</div>
-                </div>
-                <div class="stat">
-                    <div class="stat-label">Focus</div>
-                    <div class="stat-value" id="focus-count">1</div>
-                </div>
-                <div class="stat">
-                    <div class="stat-label">Longest</div>
-                    <div class="stat-value" id="longest-block">90m</div>
-                </div>
-            </div>
-
-            <div class="day-picker">
-                <button class="day-btn"><span>M</span>7</button>
-                <button class="day-btn"><span>T</span>8</button>
-                <button class="day-btn active"><span>W</span>9</button>
-                <button class="day-btn"><span>T</span>10</button>
-                <button class="day-btn"><span>F</span>11</button>
-                <button class="day-btn"><span>S</span>12</button>
-                <button class="day-btn"><span>S</span>13</button>
-            </div>
-
-            <div class="info-card">
-                <div class="info-label">Platforms</div>
-                <div class="chip-wrap">
-                    <div class="chip"><span class="chip-icon">📱</span> iOS</div>
-                    <div class="chip"><span class="chip-icon">💻</span> macOS</div>
-                    <div class="chip"><span class="chip-icon">🥽</span> visionOS</div>
-                    <div class="chip"><span class="chip-icon">📓</span> iPadOS</div>
-                </div>
-            </div>
-
-            <div class="info-card">
-                <div class="info-label">Interactions</div>
-                <div class="chip-wrap">
-                    <div class="chip">↕ Drag to move</div>
-                    <div class="chip">⇕ Resize edge</div>
-                    <div class="chip">⟳ Auto-sort</div>
-                    <div class="chip">⊕ Snap 15m</div>
-                </div>
+            <div class="timer-circle">
+                <!-- Inner progress visualization purely CSS-based but we manipulate class or inline rotation -->
+                <svg class="timer-progress" viewBox="0 0 100 100" style="position:absolute; inset:0; width:100%; height:100%; transform: rotate(-90deg);">
+                    <circle id="progress-ring" cx="50" cy="50" r="46" fill="transparent" stroke="var(--violet)" stroke-width="4" stroke-dasharray="289.02" stroke-dashoffset="0" stroke-linecap="round"></circle>
+                </svg>
+                <div class="time-display" id="time-display">25:00</div>
+                <div class="mode-label" id="mode-label">Work</div>
             </div>
 
             <div class="controls">
-                <button class="ctrl-btn primary" id="add-focus">+ Focus block</button>
-                <button class="ctrl-btn" id="add-sync">+ Team sync</button>
-                <button class="ctrl-btn" id="organize">Auto organize</button>
+                <button class="btn btn-secondary" id="btn-mode">Switch to Break</button>
+                <button class="btn btn-primary" id="btn-toggle">Start</button>
+            </div>
+
+            <div class="stats">
+                <div class="stat">
+                    <div class="stat-val" id="stat-sessions">0</div>
+                    <div class="stat-lbl">Sessions</div>
+                </div>
+                <div class="stat">
+                    <div class="stat-val" id="stat-hours">0.0</div>
+                    <div class="stat-lbl">Focus Hrs</div>
+                </div>
             </div>
         </aside>
 
-        <section class="panel timeline-shell">
-            <div class="timeline-bar">
-                <div class="timeline-title">Wednesday, Apr 9</div>
-                <div class="timeline-range">8 AM – 8 PM</div>
+        <section class="panel tasks-panel">
+            <div class="tasks-header">
+                <h2>Today's Tasks</h2>
             </div>
+            
+            <form class="task-input-wrap" id="task-form">
+                <input type="text" id="task-input" class="task-input" placeholder="What will you focus on?" autocomplete="off">
+                <button type="submit" class="add-task-btn">+</button>
+            </form>
 
-            <div class="timeline-body">
-                <div class="hours-col" id="hours"></div>
-                <div class="canvas-area" id="canvas">
-                    <div class="now-line" id="now-line"></div>
-                </div>
+            <div class="tasks-list" id="tasks-list">
+                <!-- Initial Tasks -->
             </div>
         </section>
     </div>
 
     <script>
-        const previewMode = new URLSearchParams(window.location.search).get("mode") === "preview";
-        if (previewMode) document.body.classList.add("preview-mode");
+        // ─── Pomodoro Logic ───
+        const WORK_TIME = 25 * 60;
+        const BREAK_TIME = 5 * 60;
+        
+        let timeLeft = WORK_TIME;
+        let isRunning = false;
+        let isWork = true;
+        let timerId = null;
+        
+        let totalSessions = 0;
+        let totalFocusSeconds = 0;
 
-        const hoursEl = document.getElementById("hours");
-        const canvas = document.getElementById("canvas");
-        const nowLine = document.getElementById("now-line");
+        const timeDisplay = document.getElementById("time-display");
+        const modeLabel = document.getElementById("mode-label");
+        const btnToggle = document.getElementById("btn-toggle");
+        const btnMode = document.getElementById("btn-mode");
+        const progressRing = document.getElementById("progress-ring");
+        const circumference = 2 * Math.PI * 46; // r=46
 
-        const hours = ["8 AM","9 AM","10 AM","11 AM","12 PM","1 PM","2 PM","3 PM","4 PM","5 PM","6 PM","7 PM","8 PM"];
-        hours.forEach(label => {
-            const el = document.createElement("div");
-            el.className = "hour-mark";
-            el.textContent = label;
-            hoursEl.appendChild(el);
-        });
+        function updateDisplay() {
+            const m = Math.floor(timeLeft / 60);
+            const s = timeLeft % 60;
+            timeDisplay.textContent = `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
+            
+            const total = isWork ? WORK_TIME : BREAK_TIME;
+            const pct = timeLeft / total;
+            progressRing.style.strokeDashoffset = circumference - (pct * circumference);
+        }
 
-        const dayStart = 8 * 60;
-        const dayEnd = 21 * 60; // 8 PM + 1 for visual padding
-        const dayRange = dayEnd - dayStart;
-        const quarter = 15;
-        let nextId = 6;
+        function toggleTimer() {
+            if (isRunning) {
+                clearInterval(timerId);
+                btnToggle.textContent = "Start";
+                btnToggle.style.background = "linear-gradient(135deg, var(--violet), var(--pink))";
+            } else {
+                timerId = setInterval(() => {
+                    if (timeLeft > 0) {
+                        timeLeft--;
+                        if (isWork) totalFocusSeconds++;
+                        updateDisplay();
+                    } else {
+                        // Timer Complete
+                        clearInterval(timerId);
+                        if (isWork) totalSessions++;
+                        switchMode();
+                        updateStats();
+                        btnToggle.textContent = "Start";
+                    }
+                }, 1000);
+                btnToggle.textContent = "Pause";
+                btnToggle.style.background = "linear-gradient(135deg, var(--muted), #555)";
+            }
+            isRunning = !isRunning;
+        }
 
-        const sessions = [
-            { id: 1, title: "Deep Work", detail: "Prototype review & UI pass", start: 8*60+30, end: 10*60, type: "focus" },
-            { id: 2, title: "Team Sync", detail: "Design handoff, blockers", start: 11*60+15, end: 12*60, type: "sync" },
-            { id: 3, title: "Lunch", detail: "Break", start: 12*60+15, end: 13*60, type: "break" },
-            { id: 4, title: "Code Review", detail: "PR #42, #47 feedback", start: 14*60, end: 15*60+15, type: "admin" },
-            { id: 5, title: "Workout", detail: "Run + cooldown", start: 17*60+15, end: 18*60+15, type: "workout" }
+        function switchMode() {
+            if (isRunning) toggleTimer();
+            isWork = !isWork;
+            timeLeft = isWork ? WORK_TIME : BREAK_TIME;
+            modeLabel.textContent = isWork ? "Work" : "Break";
+            btnMode.textContent = isWork ? "Switch to Break" : "Switch to Work";
+            progressRing.style.stroke = isWork ? "var(--violet)" : "var(--cyan)";
+            updateDisplay();
+        }
+
+        function updateStats() {
+            document.getElementById("stat-sessions").textContent = totalSessions;
+            document.getElementById("stat-hours").textContent = (totalFocusSeconds / 3600).toFixed(1);
+        }
+
+        btnToggle.addEventListener("click", toggleTimer);
+        btnMode.addEventListener("click", switchMode);
+        updateDisplay();
+
+
+        // ─── Tasks Logic ───
+        const taskForm = document.getElementById("task-form");
+        const taskInput = document.getElementById("task-input");
+        const tasksList = document.getElementById("tasks-list");
+
+        let tasks = [
+            { id: 1, text: "Finish portfolio spacing", completed: true },
+            { id: 2, text: "Redesign SupaSesh layout", completed: false },
+            { id: 3, text: "Deploy to AWS Amplify", completed: false }
         ];
 
-        const clamp = (v, lo, hi) => Math.min(hi, Math.max(lo, v));
-        const snap = m => Math.round(m / quarter) * quarter;
-        const toPercent = m => ((m - dayStart) / dayRange) * 100;
-        const duration = s => s.end - s.start;
-
-        function formatTime(m) {
-            const h24 = Math.floor(m / 60);
-            const mm = m % 60;
-            const suffix = h24 >= 12 ? "PM" : "AM";
-            const h12 = ((h24 + 11) % 12) + 1;
-            return `${h12}:${String(mm).padStart(2, "0")} ${suffix}`;
-        }
-
-        function summarize() {
-            const tracked = sessions.reduce((s, b) => s + duration(b), 0);
-            const focus = sessions.filter(b => b.type === "focus").length;
-            const longest = sessions.reduce((mx, b) => Math.max(mx, duration(b)), 0);
-            document.getElementById("session-count").textContent = sessions.length;
-            document.getElementById("tracked-hours").textContent = `${(tracked / 60).toFixed(1)}h`;
-            document.getElementById("focus-count").textContent = focus;
-            document.getElementById("longest-block").textContent = `${longest}m`;
-        }
-
-        function checkOverlaps() {
-            const sorted = [...sessions].sort((a, b) => a.start - b.start);
-            const overlapping = new Set();
-            for (let i = 0; i < sorted.length - 1; i++) {
-                if (sorted[i].end > sorted[i + 1].start) {
-                    overlapping.add(sorted[i].id);
-                    overlapping.add(sorted[i + 1].id);
-                }
-            }
-            return overlapping;
-        }
-
-        function renderSessions() {
-            // Keep now-line, remove sessions
-            canvas.querySelectorAll(".session").forEach(el => el.remove());
-            const overlaps = checkOverlaps();
-
-            sessions.forEach(session => {
-                const block = document.createElement("div");
-                block.className = `session ${session.type}`;
-                if (overlaps.has(session.id)) block.classList.add("overlap-warn");
-                block.dataset.id = session.id;
-                block.style.top = `${toPercent(session.start)}%`;
-                block.style.height = `${toPercent(session.end) - toPercent(session.start)}%`;
-
-                block.innerHTML = `
-                    <div class="session-title"><div class="session-type-dot"></div>${session.title}</div>
-                    <span class="session-time">${formatTime(session.start)} – ${formatTime(session.end)}</span>
-                    <span class="session-detail">${session.detail}</span>
-                    <div class="handle"></div>
+        function renderTasks() {
+            tasksList.innerHTML = "";
+            tasks.forEach(task => {
+                const item = document.createElement("div");
+                item.className = `task-item ${task.completed ? "completed" : ""}`;
+                item.innerHTML = `
+                    <div class="checkbox"></div>
+                    <div class="task-content">${task.text}</div>
+                    <button class="delete-btn">×</button>
                 `;
-
-                setupInteractions(block, session);
-                canvas.appendChild(block);
+                
+                item.querySelector(".checkbox").addEventListener("click", () => toggleTask(task.id));
+                item.querySelector(".delete-btn").addEventListener("click", () => deleteTask(task.id));
+                
+                tasksList.appendChild(item);
             });
-
-            summarize();
         }
 
-        function setupInteractions(block, session) {
-            const handle = block.querySelector(".handle");
-            let mode = null, startVal = 0, startEnd = 0;
+        function toggleTask(id) {
+            const task = tasks.find(t => t.id === id);
+            task.completed = !task.completed;
+            renderTasks();
+        }
 
-            function toMinutes(clientY) {
-                const rect = canvas.getBoundingClientRect();
-                const pct = clamp((clientY - rect.top) / rect.height, 0, 1);
-                return snap(dayStart + pct * dayRange);
+        function deleteTask(id) {
+            tasks = tasks.filter(t => t.id !== id);
+            renderTasks();
+        }
+
+        taskForm.addEventListener("submit", (e) => {
+            e.preventDefault();
+            const text = taskInput.value.trim();
+            if (text) {
+                tasks.push({ id: Date.now(), text, completed: false });
+                taskInput.value = "";
+                renderTasks();
             }
-
-            function onMove(e) {
-                const cur = toMinutes(e.clientY);
-                if (mode === "move") {
-                    const shift = cur - startVal;
-                    const len = startEnd - startVal;
-                    session.start = clamp(snap(startVal + shift), dayStart, dayEnd - len);
-                    session.end = session.start + len;
-                } else if (mode === "resize") {
-                    session.end = clamp(snap(cur), session.start + quarter, dayEnd);
-                }
-                renderSessions();
-            }
-
-            function stop() {
-                mode = null;
-                window.removeEventListener("pointermove", onMove);
-                window.removeEventListener("pointerup", stop);
-            }
-
-            handle.addEventListener("pointerdown", e => {
-                e.stopPropagation();
-                mode = "resize";
-                startVal = session.start;
-                startEnd = session.end;
-                window.addEventListener("pointermove", onMove);
-                window.addEventListener("pointerup", stop);
-            });
-
-            block.addEventListener("pointerdown", e => {
-                if (e.target === handle) return;
-                mode = "move";
-                startVal = session.start;
-                startEnd = session.end;
-                window.addEventListener("pointermove", onMove);
-                window.addEventListener("pointerup", stop);
-            });
-        }
-
-        function addSession(type) {
-            const presets = {
-                focus: { title: "Focus Sprint", detail: "Heads-down build window", duration: 75 },
-                sync:  { title: "Product Sync", detail: "Cross-functional review", duration: 45 },
-                admin: { title: "Admin Block", detail: "Email & follow-ups", duration: 30 }
-            };
-            const p = presets[type];
-            // Find a gap
-            const sorted = [...sessions].sort((a, b) => a.start - b.start);
-            let start = dayStart + 30;
-            for (const s of sorted) {
-                if (start + p.duration <= s.start) break;
-                start = Math.max(start, s.end + quarter);
-            }
-            start = clamp(snap(start), dayStart, dayEnd - p.duration);
-
-            sessions.push({ id: nextId++, title: p.title, detail: p.detail, start, end: start + p.duration, type });
-            renderSessions();
-        }
-
-        function organizeSessions() {
-            sessions.sort((a, b) => a.start - b.start);
-            let cursor = dayStart + 30;
-            sessions.forEach(s => {
-                const len = duration(s);
-                s.start = cursor;
-                s.end = cursor + len;
-                cursor = clamp(s.end + quarter, dayStart, dayEnd);
-            });
-            renderSessions();
-        }
-
-        // Position now-line at simulated "current time" (2:30 PM)
-        function updateNowLine() {
-            const simNow = 14 * 60 + 30; // 2:30 PM
-            nowLine.style.top = `${toPercent(simNow)}%`;
-        }
-
-        // Day picker interactivity
-        document.querySelectorAll(".day-btn").forEach(btn => {
-            btn.addEventListener("click", () => {
-                document.querySelector(".day-btn.active")?.classList.remove("active");
-                btn.classList.add("active");
-            });
         });
 
-        document.getElementById("add-focus").addEventListener("click", () => addSession("focus"));
-        document.getElementById("add-sync").addEventListener("click", () => addSession("sync"));
-        document.getElementById("organize").addEventListener("click", organizeSessions);
-
-        updateNowLine();
-        renderSessions();
+        renderTasks();
     </script>
 </body>
 </html>
