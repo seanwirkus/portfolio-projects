@@ -894,30 +894,388 @@ h1, h2, h3, h4, .nav-links, .logo {
 @keyframes pulseAtom { 0% { box-shadow: 0 0 10px #10b981; } 100% { box-shadow: 0 0 25px #34d399; } }
 
 /* Pocket Scholar Styles */
-.ps-bg { background: radial-gradient(circle at center, #1e3a8a, #111827); }
-.ps-table { position: relative; width: 120px; height: 70px; background: #065f46; border-radius: 8px; border: 4px solid #92400e; box-shadow: inset 0 0 10px rgba(0,0,0,0.5), 0 10px 20px rgba(0,0,0,0.4); overflow: hidden; }
-.ps-cushion { position: absolute; inset: 2px; border-radius: 4px; border: 3px solid #047857; box-shadow: inset 0 0 8px rgba(0,0,0,0.8); }
-.ps-ball { position: absolute; width: 12px; height: 12px; border-radius: 50%; box-shadow: inset -3px -3px 6px rgba(0,0,0,0.6), inset 3px 3px 6px rgba(255,255,255,0.7), 2px 2px 4px rgba(0,0,0,0.5); }
-.ps-b1 { top: 30px; left: 80px; background: radial-gradient(circle at 3px 3px, #fca5a5, #ef4444 60%, #7f1d1d); animation: psBall1Hit 6s infinite; }
-.ps-b2 { top: 22px; left: 92px; background: radial-gradient(circle at 3px 3px, #fcd34d, #f59e0b 60%, #78350f); animation: psBall2Hit 6s infinite; }
-.ps-cue { top: 40px; left: 20px; background: radial-gradient(circle at 3px 3px, #ffffff, #e5e7eb 60%, #4b5563); animation: psHit 6s infinite cubic-bezier(0.2, 0, 0.4, 1); }
-.ps-aim-line { position: absolute; top: 46px; left: 30px; width: 45px; height: 2px; border-top: 2px dashed rgba(255,255,255,0.6); transform-origin: left center; transform: rotate(-12deg); animation: psAim 6s infinite; }
-@keyframes psHit { 
-    0%, 25% { transform: translate(0, 0); } 
-    27%, 80% { transform: translate(48px, -10px); } 
-    100% { transform: translate(0, 0); } 
+.ps-bg {
+    background:
+        radial-gradient(circle at 24% 18%, rgba(16, 185, 129, 0.2), transparent 34%),
+        radial-gradient(circle at 78% 24%, rgba(250, 204, 21, 0.12), transparent 24%),
+        linear-gradient(145deg, #08120f 0%, #0d1d17 48%, #091019 100%);
 }
-@keyframes psBall1Hit {
-    0%, 27% { transform: translate(0, 0); }
-    33%, 80% { transform: translate(40px, -4px); opacity: 0; }
-    100% { transform: translate(0, 0); }
+
+.ps-card-scene {
+    --ps-ball-size: 18px;
+    position: relative;
+    width: min(214px, 84%);
+    aspect-ratio: 16 / 10;
+    border-radius: 24px;
+    overflow: hidden;
+    background:
+        radial-gradient(circle at 50% 42%, rgba(33, 188, 118, 0.35), transparent 34%),
+        radial-gradient(circle at 50% 44%, #0d8a61 0%, #0b6a4c 48%, #073a31 100%);
+    border: 12px solid #5f3816;
+    box-shadow:
+        inset 0 0 0 1px rgba(255, 255, 255, 0.06),
+        inset 0 0 40px rgba(0, 0, 0, 0.35),
+        0 18px 40px rgba(0, 0, 0, 0.36);
+    transform: rotate(-4deg);
 }
-@keyframes psBall2Hit {
-    0%, 27% { transform: translate(0, 0); }
-    35%, 80% { transform: translate(25px, -20px); opacity: 0; }
-    100% { transform: translate(0, 0); }
+
+.ps-card-scene::before {
+    content: '';
+    position: absolute;
+    inset: 12px;
+    border-radius: 16px;
+    border: 3px solid rgba(8, 55, 42, 0.78);
+    box-shadow:
+        inset 0 0 24px rgba(0, 0, 0, 0.35),
+        inset 0 0 0 1px rgba(255, 255, 255, 0.03);
+    pointer-events: none;
 }
-@keyframes psAim { 0%, 25% { opacity: 1; } 26%, 100% { opacity: 0; } }
+
+.ps-card-scene::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background:
+        linear-gradient(125deg, rgba(255, 255, 255, 0.12), transparent 24%),
+        repeating-linear-gradient(
+            90deg,
+            transparent,
+            transparent 18px,
+            rgba(255, 255, 255, 0.02) 18px,
+            rgba(255, 255, 255, 0.02) 19px
+        );
+    mix-blend-mode: screen;
+    pointer-events: none;
+}
+
+.ps-card-scene--hero {
+    width: min(100%, 460px);
+    --ps-ball-size: 28px;
+    border-width: 16px;
+    border-radius: 30px;
+    transform: none;
+    box-shadow:
+        inset 0 0 0 1px rgba(255, 255, 255, 0.08),
+        inset 0 0 56px rgba(0, 0, 0, 0.36),
+        0 30px 70px rgba(0, 0, 0, 0.38);
+}
+
+.ps-card-scene--hero::before {
+    inset: 16px;
+    border-radius: 22px;
+}
+
+.ps-pocket {
+    position: absolute;
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    background:
+        radial-gradient(circle at 42% 40%, #111827 0%, #020617 62%, rgba(0, 0, 0, 0.98) 100%);
+    box-shadow:
+        0 0 0 3px rgba(24, 14, 6, 0.9),
+        0 0 18px rgba(0, 0, 0, 0.45);
+    z-index: 2;
+}
+
+.ps-card-scene--hero .ps-pocket {
+    width: 28px;
+    height: 28px;
+}
+
+.ps-pocket-tl { top: 6px; left: 6px; }
+.ps-pocket-tm { top: 4px; left: 50%; transform: translateX(-50%); }
+.ps-pocket-tr { top: 6px; right: 6px; }
+.ps-pocket-bl { bottom: 6px; left: 6px; }
+.ps-pocket-bm { bottom: 4px; left: 50%; transform: translateX(-50%); }
+.ps-pocket-br { bottom: 6px; right: 6px; }
+
+.ps-diamond {
+    position: absolute;
+    width: 10px;
+    height: 10px;
+    background: linear-gradient(135deg, #fcd34d, #fde68a);
+    transform: rotate(45deg);
+    top: 50%;
+    margin-top: -5px;
+    box-shadow: 0 0 10px rgba(252, 211, 77, 0.3);
+    opacity: 0.72;
+}
+
+.ps-card-scene--hero .ps-diamond {
+    width: 12px;
+    height: 12px;
+    margin-top: -6px;
+}
+
+.ps-diamond-left { left: 14px; }
+.ps-diamond-right { right: 14px; }
+
+.ps-aim-trace {
+    position: absolute;
+    left: 22%;
+    top: 66%;
+    width: 42%;
+    height: 4px;
+    border-radius: 999px;
+    background:
+        linear-gradient(
+            90deg,
+            rgba(255, 255, 255, 0),
+            rgba(255, 255, 255, 0.9) 18%,
+            rgba(255, 255, 255, 0.22) 62%,
+            rgba(255, 255, 255, 0)
+        );
+    transform-origin: left center;
+    transform: rotate(-12deg);
+    filter: blur(0.2px);
+    animation: psAimTracePulse 5.8s ease-in-out infinite;
+    z-index: 1;
+}
+
+.ps-card-scene--hero .ps-aim-trace {
+    height: 5px;
+}
+
+.ps-cue-shadow,
+.ps-cue-stick {
+    position: absolute;
+    left: -6%;
+    top: 67%;
+    width: 38%;
+    height: 10px;
+    border-radius: 999px;
+    transform-origin: 92% 50%;
+    z-index: 1;
+}
+
+.ps-card-scene--hero .ps-cue-shadow,
+.ps-card-scene--hero .ps-cue-stick {
+    height: 14px;
+    width: 44%;
+}
+
+.ps-cue-shadow {
+    background: rgba(0, 0, 0, 0.35);
+    filter: blur(4px);
+    transform: translateY(8px) rotate(-11deg);
+    animation: psCueShadowDrift 5.8s ease-in-out infinite;
+}
+
+.ps-cue-stick {
+    background:
+        linear-gradient(
+            90deg,
+            #fdf1bf 0%,
+            #eab308 10%,
+            #d4a574 34%,
+            #8b4513 68%,
+            #2f1606 100%
+        );
+    box-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, 0.35),
+        0 4px 12px rgba(0, 0, 0, 0.28);
+    transform: rotate(-11deg);
+    animation: psCueStroke 5.8s cubic-bezier(0.3, 0, 0.18, 1) infinite;
+}
+
+.ps-cue-stick::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 1px;
+    width: 10px;
+    height: calc(100% - 2px);
+    border-radius: 999px;
+    background: linear-gradient(180deg, #e0f2fe, #38bdf8);
+}
+
+.ps-cue-stick::after {
+    content: '';
+    position: absolute;
+    right: 12%;
+    top: 0;
+    width: 26%;
+    height: 100%;
+    border-radius: 999px;
+    background: linear-gradient(180deg, rgba(17, 24, 39, 0.92), rgba(30, 41, 59, 0.92));
+}
+
+.ps-ball {
+    position: absolute;
+    width: var(--ps-ball-size);
+    height: var(--ps-ball-size);
+    border-radius: 50%;
+    box-shadow:
+        0 8px 14px rgba(0, 0, 0, 0.32),
+        inset -6px -7px 10px rgba(0, 0, 0, 0.38),
+        inset 5px 6px 10px rgba(255, 255, 255, 0.18);
+    z-index: 3;
+}
+
+.ps-ball::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    background:
+        radial-gradient(circle at 30% 28%, rgba(255, 255, 255, 0.95), rgba(255, 255, 255, 0.18) 20%, transparent 34%),
+        radial-gradient(circle at 72% 78%, rgba(0, 0, 0, 0.25), transparent 42%);
+    mix-blend-mode: screen;
+}
+
+.ps-ball-core {
+    position: absolute;
+    inset: 24%;
+    border-radius: 50%;
+    border: 1.5px solid rgba(15, 23, 42, 0.38);
+    border-right-color: transparent;
+    border-bottom-color: transparent;
+    opacity: 0.78;
+    animation: psSpinDial 0.9s linear infinite;
+}
+
+.ps-ball--cue .ps-ball-core {
+    border-color: rgba(100, 116, 139, 0.5);
+    border-right-color: transparent;
+    border-bottom-color: transparent;
+}
+
+.ps-ball-mark {
+    position: absolute;
+    inset: 28%;
+    border-radius: 50%;
+    display: grid;
+    place-items: center;
+    background: rgba(255, 255, 255, 0.95);
+    color: #0f172a;
+    font-size: calc(var(--ps-ball-size) * 0.33);
+    font-weight: 700;
+    font-family: 'Outfit', sans-serif;
+    line-height: 1;
+    box-shadow: inset 0 -1px 2px rgba(15, 23, 42, 0.16);
+}
+
+.ps-ball--stripe::before {
+    content: '';
+    position: absolute;
+    left: 2px;
+    right: 2px;
+    top: 30%;
+    height: 40%;
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.96);
+}
+
+.ps-ball--cue {
+    left: 18%;
+    top: 65%;
+    background: radial-gradient(circle at 30% 30%, #ffffff 0%, #edf2f7 58%, #94a3b8 100%);
+    animation: psCueBallBreak 5.8s cubic-bezier(0.32, 0, 0.2, 1) infinite;
+}
+
+.ps-ball--one {
+    left: 66%;
+    top: 44%;
+    background: radial-gradient(circle at 30% 30%, #fef08a 0%, #f59e0b 58%, #7c2d12 100%);
+    animation: psObjectScatterOne 5.8s ease-in-out infinite;
+}
+
+.ps-ball--two {
+    left: 72%;
+    top: 57%;
+    background: radial-gradient(circle at 30% 30%, #93c5fd 0%, #2563eb 58%, #1e3a8a 100%);
+    animation: psObjectScatterTwo 5.8s ease-in-out infinite;
+}
+
+.ps-ball--three {
+    left: 77%;
+    top: 49%;
+    background: radial-gradient(circle at 30% 30%, #fca5a5 0%, #ef4444 58%, #7f1d1d 100%);
+    animation: psObjectScatterThree 5.8s ease-in-out infinite;
+}
+
+.ps-ball--eight {
+    left: 70%;
+    top: 50%;
+    background: radial-gradient(circle at 30% 30%, #334155 0%, #111827 58%, #020617 100%);
+    animation: psObjectScatterEight 5.8s ease-in-out infinite;
+}
+
+.ps-impact-glow {
+    position: absolute;
+    left: 60%;
+    top: 44%;
+    width: 22%;
+    aspect-ratio: 1;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(255, 255, 255, 0.28), rgba(255, 255, 255, 0.02) 62%, transparent 72%);
+    opacity: 0;
+    filter: blur(2px);
+    animation: psImpactBloom 5.8s ease-in-out infinite;
+    pointer-events: none;
+    z-index: 0;
+}
+
+@keyframes psCueStroke {
+    0%, 16%, 100% { transform: translate3d(0, 0, 0) rotate(-11deg); }
+    24% { transform: translate3d(8px, -2px, 0) rotate(-11deg); }
+    30% { transform: translate3d(42px, -10px, 0) rotate(-11deg); }
+    42% { transform: translate3d(18px, -4px, 0) rotate(-11deg); }
+}
+
+@keyframes psCueShadowDrift {
+    0%, 16%, 100% { transform: translateY(8px) rotate(-11deg); opacity: 0.32; }
+    30% { transform: translate(32px, 4px) rotate(-11deg); opacity: 0.4; }
+}
+
+@keyframes psAimTracePulse {
+    0%, 18%, 100% { opacity: 0.88; transform: rotate(-12deg) scaleX(1); }
+    26% { opacity: 0.5; }
+    32%, 62% { opacity: 0; transform: rotate(-12deg) scaleX(1.12); }
+}
+
+@keyframes psCueBallBreak {
+    0%, 18%, 100% { transform: translate3d(0, 0, 0) scale(1); }
+    26% { transform: translate3d(22px, -7px, 0) scale(1.02); }
+    34%, 60% { transform: translate3d(76px, -22px, 0) scale(1.02); }
+    76% { transform: translate3d(32px, -10px, 0) scale(0.98); }
+}
+
+@keyframes psObjectScatterOne {
+    0%, 22%, 100% { transform: translate3d(0, 0, 0) rotate(0deg); }
+    34%, 62% { transform: translate3d(34px, -24px, 0) rotate(180deg); }
+    76% { transform: translate3d(14px, -10px, 0) rotate(240deg); }
+}
+
+@keyframes psObjectScatterTwo {
+    0%, 22%, 100% { transform: translate3d(0, 0, 0) rotate(0deg); }
+    34%, 62% { transform: translate3d(22px, 18px, 0) rotate(200deg); }
+    76% { transform: translate3d(8px, 8px, 0) rotate(260deg); }
+}
+
+@keyframes psObjectScatterThree {
+    0%, 22%, 100% { transform: translate3d(0, 0, 0) rotate(0deg); }
+    34%, 62% { transform: translate3d(38px, -4px, 0) rotate(160deg); }
+    76% { transform: translate3d(14px, -2px, 0) rotate(240deg); }
+}
+
+@keyframes psObjectScatterEight {
+    0%, 22%, 100% { transform: translate3d(0, 0, 0) rotate(0deg); }
+    34%, 62% { transform: translate3d(8px, -16px, 0) rotate(140deg); }
+    76% { transform: translate3d(4px, -6px, 0) rotate(190deg); }
+}
+
+@keyframes psSpinDial {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+}
+
+@keyframes psImpactBloom {
+    0%, 24%, 100% { opacity: 0; transform: scale(0.6); }
+    33% { opacity: 0.55; transform: scale(1); }
+    54% { opacity: 0.18; transform: scale(1.55); }
+}
 
 /* SupaSesh Styles */
 .supasesh-bg { background: radial-gradient(ellipse at 30% 80%, #312e81, #1e1b4b 60%, #0f0d2e 100%); }
@@ -1367,6 +1725,10 @@ h1, h2, h3, h4, .nav-links, .logo {
     background: rgba(255, 255, 255, 0.02);
 }
 
+.project-stage-note-link {
+    color: var(--project-accent, var(--accent-1));
+}
+
 .project-meta-grid {
     display: grid;
     grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -1446,6 +1808,109 @@ h1, h2, h3, h4, .nav-links, .logo {
 
 .project-callout strong {
     color: var(--text-main);
+}
+
+.project-page-header--pool .project-callout {
+    background: rgba(16, 185, 129, 0.08);
+    border-color: rgba(16, 185, 129, 0.2);
+}
+
+.pool-showcase {
+    display: grid;
+    grid-template-columns: minmax(0, 1.15fr) minmax(320px, 0.85fr);
+    gap: 1.25rem;
+    align-items: stretch;
+}
+
+.pool-showcase-copy,
+.pool-showcase-visual {
+    background:
+        linear-gradient(180deg, rgba(255, 255, 255, 0.04), rgba(255, 255, 255, 0.015)),
+        rgba(12, 16, 16, 0.78);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: var(--radius-xl);
+    box-shadow: 0 24px 60px rgba(0, 0, 0, 0.3);
+}
+
+.pool-showcase-copy {
+    padding: 1.35rem;
+    display: flex;
+    flex-direction: column;
+    gap: 1.1rem;
+}
+
+.pool-showcase-visual {
+    padding: 1.25rem;
+    display: grid;
+    place-items: center;
+    background:
+        radial-gradient(circle at top, rgba(16, 185, 129, 0.16), transparent 38%),
+        linear-gradient(180deg, rgba(8, 25, 20, 0.92), rgba(4, 11, 15, 0.9));
+}
+
+.pool-chip-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.65rem;
+}
+
+.pool-chip {
+    display: inline-flex;
+    align-items: center;
+    min-height: 36px;
+    padding: 0.45rem 0.9rem;
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    color: var(--text-main);
+    font-size: 0.84rem;
+}
+
+.pool-stat-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 0.9rem;
+}
+
+.pool-stat-card {
+    min-width: 0;
+    padding: 1rem;
+    border-radius: 20px;
+    border: 1px solid rgba(255, 255, 255, 0.06);
+    background:
+        linear-gradient(180deg, rgba(255, 255, 255, 0.035), rgba(255, 255, 255, 0.015)),
+        rgba(255, 255, 255, 0.02);
+}
+
+.pool-stat-card span {
+    display: block;
+    font-size: 0.72rem;
+    text-transform: uppercase;
+    letter-spacing: 0.14em;
+    color: var(--text-muted);
+}
+
+.pool-stat-card strong {
+    display: block;
+    margin-top: 0.5rem;
+    font-size: 1rem;
+    color: var(--text-main);
+    line-height: 1.35;
+}
+
+.pool-stat-card p {
+    margin-top: 0.55rem;
+    color: var(--text-muted);
+    font-size: 0.9rem;
+    line-height: 1.6;
+}
+
+.pool-runtime-frame {
+    height: auto;
+    min-height: clamp(400px, 58vw, 700px);
+    background:
+        radial-gradient(circle at top, rgba(16, 185, 129, 0.12), transparent 30%),
+        #020617;
 }
 
 /* Experience Section */
@@ -1688,6 +2153,14 @@ footer {
         grid-template-columns: 1fr;
     }
 
+    .pool-showcase {
+        grid-template-columns: 1fr;
+    }
+
+    .pool-stat-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
     .project-stage-insights {
         grid-template-columns: repeat(2, minmax(0, 1fr));
     }
@@ -1798,6 +2271,15 @@ footer {
         gap: 1.5rem;
     }
 
+    .pool-showcase-copy,
+    .pool-showcase-visual {
+        padding: 1rem;
+    }
+
+    .pool-stat-grid {
+        grid-template-columns: 1fr;
+    }
+
     .project-page-header {
         text-align: left;
         gap: 0.85rem;
@@ -1833,6 +2315,14 @@ footer {
     .project-stage-insights {
         grid-template-columns: 1fr;
         padding: 0.9rem 0.9rem 0;
+    }
+
+    .pool-showcase-visual {
+        min-height: 260px;
+    }
+
+    .ps-card-scene--hero {
+        width: min(100%, 360px);
     }
 
     .project-stage-actions {

@@ -28,67 +28,117 @@
     </nav>
 
     <main class="container project-page" style="--project-accent:#10b981;--project-accent-alt:#3b82f6;">
-        <header class="project-page-header section-animate">
+        <header class="project-page-header project-page-header--pool section-animate">
             <a href="index.html#projects" class="back-link magnetic">← Back to projects</a>
             <div class="project-kicker">Physics & Interactive Dev</div>
             <h1 class="project-page-title">Pocket Scholar</h1>
             <p class="project-summary">
-                A custom-built physics engine running an interactive billiards simulation. Originally a math/physics experiment, Pocket Scholar has evolved into a fully playable pool game with multi-stage collision resolution, friction models, and an AI opponent.
+                A custom-built billiards simulator that now feels like a product instead of a prototype: richer table materials, visible cue feedback, spinning glossy balls, responsive framing, and a sharper project page around the live runtime.
             </p>
-            <div class="project-callout"><strong>Embedded here:</strong> The full playable simulator running in the browser using HTML5 Canvas.</div>
+            <div class="project-callout"><strong>Live in browser:</strong> The full playable simulator runs directly on this page with no external API dependency.</div>
         </header>
+
+        <section class="pool-showcase section-animate">
+            <div class="pool-showcase-copy">
+                <div class="pool-chip-row">
+                    <span class="pool-chip">Responsive runtime</span>
+                    <span class="pool-chip">Premium table render</span>
+                    <span class="pool-chip">Spin + motion cues</span>
+                </div>
+                <div class="pool-stat-grid">
+                    <article class="pool-stat-card">
+                        <span>Surface</span>
+                        <strong>Rail depth + cloth lighting</strong>
+                        <p>Wood rails, pocket liners, sight diamonds, and cloth shading give the table actual presence instead of a flat rectangle.</p>
+                    </article>
+                    <article class="pool-stat-card">
+                        <span>Feedback</span>
+                        <strong>Shots read instantly</strong>
+                        <p>Projected aim lines, cue pull-back, motion trails, and impact ripples make collisions legible at a glance.</p>
+                    </article>
+                    <article class="pool-stat-card">
+                        <span>Runtime</span>
+                        <strong>Direct static embed</strong>
+                        <p>The preview now loads the game directly from the site so Amplify has fewer moving parts to get wrong.</p>
+                    </article>
+                </div>
+            </div>
+            <div class="pool-showcase-visual tilt-elem">
+                <div class="ps-card-scene ps-card-scene--hero" aria-hidden="true">
+                    <div class="ps-pocket ps-pocket-tl"></div>
+                    <div class="ps-pocket ps-pocket-tm"></div>
+                    <div class="ps-pocket ps-pocket-tr"></div>
+                    <div class="ps-pocket ps-pocket-bl"></div>
+                    <div class="ps-pocket ps-pocket-bm"></div>
+                    <div class="ps-pocket ps-pocket-br"></div>
+                    <div class="ps-diamond ps-diamond-left"></div>
+                    <div class="ps-diamond ps-diamond-right"></div>
+                    <div class="ps-aim-trace"></div>
+                    <div class="ps-cue-shadow"></div>
+                    <div class="ps-cue-stick"></div>
+                    <div class="ps-ball ps-ball--cue">
+                        <span class="ps-ball-core"></span>
+                    </div>
+                    <div class="ps-ball ps-ball--one">
+                        <span class="ps-ball-core"></span>
+                        <span class="ps-ball-mark">1</span>
+                    </div>
+                    <div class="ps-ball ps-ball--two ps-ball--stripe">
+                        <span class="ps-ball-core"></span>
+                        <span class="ps-ball-mark">10</span>
+                    </div>
+                    <div class="ps-ball ps-ball--three">
+                        <span class="ps-ball-core"></span>
+                        <span class="ps-ball-mark">3</span>
+                    </div>
+                    <div class="ps-ball ps-ball--eight">
+                        <span class="ps-ball-core"></span>
+                        <span class="ps-ball-mark">8</span>
+                    </div>
+                    <div class="ps-impact-glow"></div>
+                </div>
+            </div>
+        </section>
 
         <section class="project-stage-card section-animate">
             <div class="project-stage-bar">
                 <div class="project-stage-label">Live Pool Simulator</div>
                 <div class="project-stage-actions">
-                    <a class="project-inline-link" href="embeds/app-shell.html?src=../PocketScholar/index.html&amp;projectHref=../pocket-scholar.html&amp;title=Pocket%20Scholar&amp;accent=10b981" target="_blank" rel="noreferrer">Open full app</a>
+                    <a class="project-inline-link" href="PocketScholar/index.html" target="_blank" rel="noreferrer">Open direct runtime</a>
+                    <a class="project-inline-link" href="embeds/app-shell.html?src=../PocketScholar/index.html&amp;projectHref=../pocket-scholar.html&amp;title=Pocket%20Scholar&amp;accent=10b981" target="_blank" rel="noreferrer">Open framed app</a>
                 </div>
             </div>
             
             <div class="project-stage-insights">
                 <article class="project-stage-insight">
                     <span>Core Engine</span>
-                    <strong>Custom Physics</strong>
-                    <p>Sub-stepped iterations ensure balls don't clip through each other at high speeds.</p>
+                    <strong>Collision Stability</strong>
+                    <p>Sub-stepped collision passes keep break shots readable and stop fast balls from tunneling through one another.</p>
+                </article>
+                <article class="project-stage-insight">
+                    <span>Shot Readability</span>
+                    <strong>Spin + Trails</strong>
+                    <p>Rotating ball markers, shot power feedback, and impact ripples communicate movement without needing extra UI chrome.</p>
                 </article>
                 <article class="project-stage-insight">
                     <span>AI Opponent</span>
-                    <strong>Calculated Vectors</strong>
-                    <p>Computer calculates target angles with slight variance added for a natural feel.</p>
-                </article>
-                <article class="project-stage-insight">
-                    <span>Rendering</span>
-                    <strong>Canvas 2D</strong>
-                    <p>Fast, immediate-mode rendering with custom radial gradients for 3D ball depth.</p>
+                    <strong>Vector-Based Turns</strong>
+                    <p>The computer still plays with calculated aim vectors, but the refreshed render makes those turns feel much more intentional.</p>
                 </article>
             </div>
 
-            <div class="project-frame-shell project-frame-shell--preview ps-desktop-frame" style="--frame-height:500px; --frame-ratio:1024 / 600;">
+            <div class="project-frame-shell pool-runtime-frame">
                 <iframe
                     class="project-frame"
-                    src="embeds/preview-shell.html?src=../PocketScholar/index.html&amp;width=1024&amp;height=600&amp;accent=10b981&amp;label=Playable%20Build&amp;sizeLabel=1024%20%C3%97%20600"
-                    title="Pocket Scholar preview"
+                    src="PocketScholar/index.html"
+                    title="Pocket Scholar runtime"
                     loading="eager"
                     scrolling="no"
                 ></iframe>
             </div>
-            <div class="project-frame-shell ps-mobile-frame" style="min-height: 400px; max-height: 80vh;">
-                <iframe
-                    class="project-frame"
-                    src="PocketScholar/index.html"
-                    title="Pocket Scholar — mobile"
-                    loading="eager"
-                    style="width:100%; height:100%; border:none; border-radius: 0 0 12px 12px;"
-                ></iframe>
+            <div class="project-stage-note">
+                If an embedded preview is ever blocked by hosting or browser policy, use <a class="project-stage-note-link" href="PocketScholar/index.html" target="_blank" rel="noreferrer">the direct runtime</a>. It is a plain static HTML file and avoids the extra preview wrapper entirely.
             </div>
-            <style>
-                .ps-mobile-frame { display: none; }
-                @media (pointer: coarse) {
-                    .ps-desktop-frame { display: none !important; }
-                    .ps-mobile-frame { display: block !important; }
-                }
-            </style>
         </section>
 
         <section class="project-meta-grid section-animate">
@@ -104,10 +154,16 @@
             <article class="project-meta-card">
                 <h3>Sub-Stepping & Stability</h3>
                 <p>
-                    Pool breaks involve a high density of simultaneous collisions. In naive collision engines, moving balls large distances per frame causes them to overlap, generating "explosive" unrealistic energy. 
+                    Pool breaks involve a high density of simultaneous collisions. In naive collision engines, moving balls large distances per frame overlap and inject unrealistic energy into the system.
                 </p>
                 <p style="margin-top: 1rem; color: var(--text-muted);">
-                    Pocket Scholar uses iterative sub-stepping, solving constraints multiple times per visual frame to lock the table state accurately.
+                    Pocket Scholar resolves motion in multiple passes per frame, then layers motion trails and spin readouts on top so the simulation looks clearer without changing the underlying math.
+                </p>
+            </article>
+            <article class="project-meta-card">
+                <h3>Visual Refresh</h3>
+                <p>
+                    The updated build adds a polished wood frame, brighter cloth center, pocket rims, cue stick shading, specular ball highlights, and a HUD that reads well on both desktop and mobile.
                 </p>
             </article>
         </section>

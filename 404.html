@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Page Not Found | Sean</title>
+    <meta http-equiv="refresh" content="2; url=/index.html">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Outfit:wght@600;700;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            color-scheme: dark;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            min-height: 100vh;
+            display: grid;
+            place-items: center;
+            padding: 24px;
+            font-family: 'Inter', sans-serif;
+            color: #f8fafc;
+            background:
+                radial-gradient(circle at top left, rgba(59, 130, 246, 0.18), transparent 32%),
+                radial-gradient(circle at bottom right, rgba(16, 185, 129, 0.16), transparent 34%),
+                linear-gradient(180deg, #020617 0%, #07101f 100%);
+        }
+
+        .panel {
+            width: min(100%, 560px);
+            padding: 28px;
+            border-radius: 28px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            background: rgba(2, 6, 23, 0.74);
+            backdrop-filter: blur(18px);
+            -webkit-backdrop-filter: blur(18px);
+            box-shadow: 0 24px 60px rgba(0, 0, 0, 0.35);
+        }
+
+        .eyebrow {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 0.45rem 0.85rem;
+            border-radius: 999px;
+            background: rgba(59, 130, 246, 0.1);
+            border: 1px solid rgba(59, 130, 246, 0.2);
+            color: #93c5fd;
+            font-size: 0.76rem;
+            text-transform: uppercase;
+            letter-spacing: 0.14em;
+        }
+
+        .eyebrow::before {
+            content: '';
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #3b82f6;
+            box-shadow: 0 0 10px rgba(59, 130, 246, 0.8);
+        }
+
+        h1 {
+            margin: 18px 0 12px;
+            font-family: 'Outfit', sans-serif;
+            font-size: clamp(2.2rem, 7vw, 3.3rem);
+            line-height: 0.98;
+            letter-spacing: -0.04em;
+        }
+
+        p {
+            margin: 0;
+            color: rgba(226, 232, 240, 0.76);
+            line-height: 1.7;
+        }
+
+        .actions {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+            margin-top: 22px;
+        }
+
+        a {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 46px;
+            padding: 0.8rem 1rem;
+            border-radius: 999px;
+            text-decoration: none;
+            color: #f8fafc;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            background: rgba(255, 255, 255, 0.06);
+        }
+
+        a.primary {
+            background: rgba(16, 185, 129, 0.16);
+            border-color: rgba(16, 185, 129, 0.28);
+        }
+    </style>
+</head>
+<body>
+    <main class="panel">
+        <div class="eyebrow">Missing route</div>
+        <h1>This page moved or does not exist.</h1>
+        <p>You’ll be redirected to the portfolio automatically. If you were trying to open Pocket Scholar directly, use the live runtime link below.</p>
+        <div class="actions">
+            <a class="primary" href="/index.html">Go to portfolio</a>
+            <a href="/PocketScholar/index.html">Open Pocket Scholar</a>
+        </div>
+    </main>
+</body>
+</html>

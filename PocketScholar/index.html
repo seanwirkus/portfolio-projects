@@ -4,469 +4,1236 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Pocket Scholar - Pool Simulator</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Outfit:wght@500;600;700;800&display=swap" rel="stylesheet">
     <style>
-        body, html {
-            margin: 0; padding: 0;
-            width: 100%; height: 100%;
-            background-color: #111827;
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-            color: #f3f4f6;
-            overflow: hidden;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
+        :root {
+            color-scheme: dark;
+            --bg-0: #030712;
+            --bg-1: #07151d;
+            --bg-2: #09221d;
+            --panel: rgba(7, 16, 24, 0.72);
+            --panel-border: rgba(255, 255, 255, 0.1);
+            --text-main: #f8fafc;
+            --text-muted: rgba(226, 232, 240, 0.72);
+            --accent: #10b981;
+            --accent-soft: rgba(16, 185, 129, 0.18);
+            --accent-blue: #38bdf8;
+            --danger: #ef4444;
+            --wood-a: #8b5a2b;
+            --wood-b: #4a2c14;
+            --cloth-a: #0e8f61;
+            --cloth-b: #07513f;
         }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        html,
+        body {
+            width: 100%;
+            height: 100%;
+            margin: 0;
+        }
+
+        body {
+            overflow: hidden;
+            display: grid;
+            place-items: center;
+            font-family: 'Inter', sans-serif;
+            color: var(--text-main);
+            background:
+                radial-gradient(circle at 20% 12%, rgba(56, 189, 248, 0.15), transparent 30%),
+                radial-gradient(circle at 78% 18%, rgba(16, 185, 129, 0.18), transparent 32%),
+                radial-gradient(circle at 50% 100%, rgba(120, 53, 15, 0.28), transparent 34%),
+                linear-gradient(180deg, var(--bg-0) 0%, var(--bg-1) 44%, #02050b 100%);
+        }
+
+        .ambient {
+            position: fixed;
+            inset: auto;
+            border-radius: 999px;
+            pointer-events: none;
+            filter: blur(100px);
+            opacity: 0.5;
+        }
+
+        .ambient-a {
+            top: -100px;
+            left: -60px;
+            width: 300px;
+            height: 300px;
+            background: rgba(56, 189, 248, 0.16);
+        }
+
+        .ambient-b {
+            right: -80px;
+            bottom: -100px;
+            width: 360px;
+            height: 360px;
+            background: rgba(16, 185, 129, 0.18);
+        }
+
         #game-container {
             position: relative;
-            box-shadow: 0 10px 40px rgba(0,0,0,0.8);
-            border-radius: 12px;
+            width: min(96vw, 1040px, calc(84vh * 16 / 9));
+            aspect-ratio: 16 / 9;
+            border-radius: 30px;
             overflow: hidden;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow:
+                0 36px 90px rgba(0, 0, 0, 0.55),
+                inset 0 0 0 1px rgba(255, 255, 255, 0.04);
+            background:
+                linear-gradient(180deg, rgba(255, 255, 255, 0.04), transparent 18%),
+                rgba(2, 6, 23, 0.92);
         }
+
+        #game-container::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background:
+                linear-gradient(115deg, rgba(255, 255, 255, 0.06), transparent 24%),
+                radial-gradient(circle at 50% -10%, rgba(255, 255, 255, 0.04), transparent 36%);
+            pointer-events: none;
+            z-index: 0;
+        }
+
         canvas {
+            position: absolute;
+            inset: 0;
+            width: 100%;
+            height: 100%;
             display: block;
             touch-action: none;
             cursor: crosshair;
+            z-index: 1;
         }
+
         #ui-overlay {
             position: absolute;
-            top: 0; left: 0; width: 100%; height: 100%;
-            pointer-events: none;
+            inset: 0;
             display: flex;
             flex-direction: column;
             justify-content: space-between;
+            padding: 18px;
+            pointer-events: none;
+            z-index: 3;
         }
-        .header-bar {
-            display: flex; justify-content: space-between; align-items: center;
-            padding: 12px 20px;
-            background: linear-gradient(to bottom, rgba(0,0,0,0.6), transparent);
+
+        .header-bar,
+        .footer-bar {
+            display: flex;
+            justify-content: space-between;
+            gap: 14px;
+            pointer-events: none;
         }
-        .status {
-            font-size: 1.2rem; font-weight: bold; text-shadow: 0 2px 4px rgba(0,0,0,0.8);
-            pointer-events: auto;
-        }
+
+        .brand-lockup,
+        .status-cluster,
+        .power-widget,
         .controls {
-            padding: 16px; display: flex; justify-content: center; gap: 16px;
             pointer-events: auto;
         }
+
+        .brand-lockup,
+        .status-cluster,
+        .power-widget {
+            padding: 14px 16px;
+            border-radius: 20px;
+            border: 1px solid var(--panel-border);
+            background: var(--panel);
+            backdrop-filter: blur(18px);
+            -webkit-backdrop-filter: blur(18px);
+            box-shadow: 0 18px 36px rgba(0, 0, 0, 0.22);
+        }
+
+        .brand-lockup {
+            min-width: 210px;
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .brand-lockup span {
+            font-size: 0.74rem;
+            text-transform: uppercase;
+            letter-spacing: 0.14em;
+            color: var(--text-muted);
+        }
+
+        .brand-lockup strong {
+            font-family: 'Outfit', sans-serif;
+            font-size: 1.12rem;
+            letter-spacing: 0.01em;
+        }
+
+        .status-cluster {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-end;
+            gap: 10px;
+            min-width: 300px;
+        }
+
+        .turn-readout {
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            font-weight: 700;
+            font-size: 0.95rem;
+        }
+
+        .turn-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: var(--accent);
+            box-shadow: 0 0 12px rgba(16, 185, 129, 0.8);
+        }
+
+        .assignments {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            justify-content: flex-end;
+        }
+
+        .assignment-pill {
+            display: inline-flex;
+            align-items: center;
+            min-height: 34px;
+            padding: 0.45rem 0.75rem;
+            border-radius: 999px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            font-size: 0.82rem;
+            font-weight: 600;
+        }
+
+        .footer-bar {
+            align-items: flex-end;
+        }
+
+        .power-widget {
+            min-width: 250px;
+            display: grid;
+            gap: 8px;
+        }
+
+        .power-label-row {
+            display: flex;
+            justify-content: space-between;
+            gap: 12px;
+            align-items: center;
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            letter-spacing: 0.12em;
+            color: var(--text-muted);
+        }
+
+        .power-meter {
+            position: relative;
+            height: 10px;
+            border-radius: 999px;
+            overflow: hidden;
+            background: rgba(255, 255, 255, 0.08);
+            box-shadow: inset 0 1px 4px rgba(0, 0, 0, 0.35);
+        }
+
+        .power-fill {
+            height: 100%;
+            width: 0;
+            border-radius: inherit;
+            background: linear-gradient(90deg, #10b981, #facc15, #fb7185);
+            box-shadow: 0 0 16px rgba(250, 204, 21, 0.28);
+            transition: width 0.08s linear;
+        }
+
+        .power-help {
+            color: var(--text-muted);
+            font-size: 0.88rem;
+        }
+
+        .controls {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+            justify-content: flex-end;
+        }
+
         button {
-            background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.3);
-            color: white; padding: 8px 16px; border-radius: 6px; cursor: pointer;
-            font-weight: 500; backdrop-filter: blur(4px);
-            transition: background 0.2s;
+            appearance: none;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            background: rgba(255, 255, 255, 0.08);
+            color: var(--text-main);
+            min-height: 46px;
+            padding: 0.82rem 1rem;
+            border-radius: 999px;
+            cursor: pointer;
+            font-weight: 600;
+            font-family: inherit;
+            backdrop-filter: blur(14px);
+            -webkit-backdrop-filter: blur(14px);
+            transition: transform 0.2s ease, background 0.2s ease, border-color 0.2s ease;
         }
-        button:hover { background: rgba(255,255,255,0.2); }
-        .mode-button.active { background: #3b82f6; border-color: #60a5fa; }
-        
+
+        button:hover {
+            transform: translateY(-1px);
+            background: rgba(255, 255, 255, 0.14);
+            border-color: rgba(255, 255, 255, 0.18);
+        }
+
+        .primary-btn {
+            background: rgba(16, 185, 129, 0.18);
+            border-color: rgba(16, 185, 129, 0.32);
+        }
+
         #menu {
-            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(17, 24, 39, 0.9);
-            display: flex; flex-direction: column; justify-content: center; align-items: center;
-            pointer-events: auto; z-index: 100;
+            position: absolute;
+            inset: 0;
+            display: grid;
+            place-items: center;
+            padding: 24px;
+            background:
+                radial-gradient(circle at 50% 18%, rgba(16, 185, 129, 0.14), transparent 34%),
+                rgba(3, 8, 18, 0.78);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            z-index: 4;
         }
-        h1 { font-size: 3rem; margin-bottom: 0.5rem; color: #10b981; }
-        p.subtitle { margin-bottom: 2rem; color: #9ca3af; }
-        .menu-btn { font-size: 1.2rem; padding: 12px 32px; margin: 8px; width: 240px; background: #2563eb; border: none; }
-        .menu-btn:hover { background: #1d4ed8; }
-        .hidden { display: none !important; }
+
+        .menu-card {
+            width: min(100%, 520px);
+            padding: 28px;
+            border-radius: 28px;
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            background:
+                linear-gradient(180deg, rgba(255, 255, 255, 0.05), rgba(255, 255, 255, 0.015)),
+                rgba(7, 14, 18, 0.9);
+            box-shadow: 0 30px 70px rgba(0, 0, 0, 0.45);
+            text-align: left;
+        }
+
+        .menu-kicker {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 0.42rem 0.85rem;
+            border-radius: 999px;
+            background: rgba(16, 185, 129, 0.1);
+            border: 1px solid rgba(16, 185, 129, 0.2);
+            color: #a7f3d0;
+            font-size: 0.76rem;
+            text-transform: uppercase;
+            letter-spacing: 0.14em;
+        }
+
+        .menu-kicker::before {
+            content: '';
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: var(--accent);
+            box-shadow: 0 0 10px rgba(16, 185, 129, 0.8);
+        }
+
+        h1 {
+            margin: 18px 0 10px;
+            font-family: 'Outfit', sans-serif;
+            font-size: clamp(2.4rem, 5vw, 3.4rem);
+            line-height: 0.95;
+            letter-spacing: -0.04em;
+        }
+
+        .menu-subtitle {
+            margin: 0;
+            color: var(--text-muted);
+            font-size: 1rem;
+            line-height: 1.7;
+        }
+
+        .feature-grid {
+            margin: 22px 0 24px;
+            display: grid;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            gap: 12px;
+        }
+
+        .feature-card {
+            padding: 12px;
+            border-radius: 18px;
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            background: rgba(255, 255, 255, 0.03);
+        }
+
+        .feature-card span {
+            display: block;
+            font-size: 0.72rem;
+            text-transform: uppercase;
+            letter-spacing: 0.14em;
+            color: var(--text-muted);
+        }
+
+        .feature-card strong {
+            display: block;
+            margin-top: 0.45rem;
+            font-size: 0.92rem;
+            line-height: 1.3;
+        }
+
+        .menu-actions {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+
+        .menu-btn {
+            flex: 1 1 220px;
+            min-height: 52px;
+            font-size: 0.98rem;
+        }
+
+        .hidden {
+            display: none !important;
+        }
+
+        @media (max-width: 760px) {
+            #game-container {
+                width: min(100vw, calc(100vh * 16 / 9));
+                border-radius: 0;
+            }
+
+            #ui-overlay {
+                padding: 12px;
+            }
+
+            .header-bar,
+            .footer-bar {
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+            .status-cluster,
+            .brand-lockup,
+            .power-widget {
+                min-width: 0;
+            }
+
+            .status-cluster {
+                align-items: flex-start;
+            }
+
+            .assignments,
+            .controls {
+                justify-content: flex-start;
+            }
+
+            .feature-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .menu-card {
+                padding: 22px;
+            }
+        }
     </style>
 </head>
 <body>
+    <div class="ambient ambient-a"></div>
+    <div class="ambient ambient-b"></div>
 
-<div id="game-container">
-    <canvas id="poolCanvas"></canvas>
-    
-    <div id="ui-overlay">
-        <div class="header-bar">
-            <div id="turn-indicator" class="status">Player 1's Turn</div>
-            <div class="status" style="display:flex;gap:12px;">
-                <span id="p1-score" style="color:#ef4444;">P1: Solids</span>
-                <span id="p2-score" style="color:#3b82f6;">P2: Stripes</span>
+    <div id="game-container">
+        <canvas id="poolCanvas"></canvas>
+
+        <div id="ui-overlay">
+            <div class="header-bar">
+                <div class="brand-lockup">
+                    <span>Physics billiards</span>
+                    <strong>Pocket Scholar</strong>
+                </div>
+                <div class="status-cluster">
+                    <div class="turn-readout" id="turn-indicator-wrap">
+                        <span class="turn-dot" id="turn-dot"></span>
+                        <span id="turn-indicator">Player 1's Turn</span>
+                    </div>
+                    <div class="assignments">
+                        <span class="assignment-pill" id="p1-score" style="color:#fca5a5;">P1: Solids</span>
+                        <span class="assignment-pill" id="p2-score" style="color:#93c5fd;">P2: Stripes</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="footer-bar">
+                <div class="power-widget">
+                    <div class="power-label-row">
+                        <span>Shot power</span>
+                        <span id="power-value">Ready</span>
+                    </div>
+                    <div class="power-meter">
+                        <div class="power-fill" id="power-fill"></div>
+                    </div>
+                    <div class="power-help" id="power-help">Drag away from the cue ball to line up a shot.</div>
+                </div>
+
+                <div class="controls">
+                    <button class="primary-btn" id="reset-btn">Reset Rack</button>
+                    <button id="menu-btn">Main Menu</button>
+                </div>
             </div>
         </div>
-        <div class="controls">
-            <button id="reset-btn">Reset Rack</button>
-            <button id="menu-btn">Main Menu</button>
+
+        <div id="menu">
+            <div class="menu-card">
+                <div class="menu-kicker">Playable build</div>
+                <h1>Pocket Scholar</h1>
+                <p class="menu-subtitle">
+                    A custom pool simulator with layered rendering, sub-stepped collision handling, and a cleaner interface for desktop and mobile.
+                </p>
+                <div class="feature-grid">
+                    <div class="feature-card">
+                        <span>Visuals</span>
+                        <strong>Shiny balls, cue stick, wood rails, and cloth depth</strong>
+                    </div>
+                    <div class="feature-card">
+                        <span>Physics</span>
+                        <strong>Stable break shots with iterative collision passes</strong>
+                    </div>
+                    <div class="feature-card">
+                        <span>Feedback</span>
+                        <strong>Spin markers, motion trails, and power readout</strong>
+                    </div>
+                </div>
+                <div class="menu-actions">
+                    <button class="menu-btn primary-btn" id="btn-1p">Play vs Computer</button>
+                    <button class="menu-btn" id="btn-2p">Two Player Mode</button>
+                </div>
+            </div>
         </div>
     </div>
 
-    <div id="menu">
-        <h1>Pocket Scholar</h1>
-        <p class="subtitle">Physics-based Interactive Billiards</p>
-        <button class="menu-btn" id="btn-1p">Play vs Computer</button>
-        <button class="menu-btn" id="btn-2p">Two Player Mode</button>
-    </div>
-</div>
+    <script>
+        const TABLE_WIDTH = 800;
+        const TABLE_HEIGHT = 450;
+        const BALL_RADIUS = 12;
+        const POCKET_RADIUS = 22;
+        const FRICTION = 0.988;
+        const RESTITUTION = 0.95;
+        const RAIL_OFFSET = 24;
 
-<script>
-    // Engine constants
-    const TABLE_WIDTH = 800;  const TABLE_HEIGHT = 450;
-    const BALL_RADIUS = 12;   const POCKET_RADIUS = 22;
-    const FRICTION = 0.988;   const RESTITUTION = 0.95;
-    
-    // Canvas setup
-    const canvas = document.getElementById('poolCanvas');
-    const ctx = canvas.getContext('2d');
-    canvas.width = TABLE_WIDTH; canvas.height = TABLE_HEIGHT;
+        const canvas = document.getElementById('poolCanvas');
+        const ctx = canvas.getContext('2d');
+        canvas.width = TABLE_WIDTH;
+        canvas.height = TABLE_HEIGHT;
 
-    // Game state
-    let balls = [];
-    let state = 'menu'; // menu, playing, moving, aim
-    let mode = '1p'; // 1p, 2p
-    let cueBall = null;
-    let turn = 1; // 1 or 2
-    let dragging = false, dragStart = {x: 0, y: 0}, dragCurrent = {x: 0, y: 0};
-    
-    const uiTurn = document.getElementById('turn-indicator');
-    const menuEl = document.getElementById('menu');
+        let balls = [];
+        let state = 'menu';
+        let mode = '1p';
+        let cueBall = null;
+        let turn = 1;
+        let dragging = false;
+        let dragStart = { x: 0, y: 0 };
+        let dragCurrent = { x: 0, y: 0 };
+        let pointerPoint = { x: TABLE_WIDTH * 0.78, y: TABLE_HEIGHT / 2 };
+        let ripples = [];
 
-    // Pocket positions
-    const pockets = [
-        {x: 20, y: 20}, {x: TABLE_WIDTH/2, y: 15}, {x: TABLE_WIDTH-20, y: 20},
-        {x: 20, y: TABLE_HEIGHT-20}, {x: TABLE_WIDTH/2, y: TABLE_HEIGHT-15}, {x: TABLE_WIDTH-20, y: TABLE_HEIGHT-20}
-    ];
+        const uiTurn = document.getElementById('turn-indicator');
+        const turnDot = document.getElementById('turn-dot');
+        const powerFill = document.getElementById('power-fill');
+        const powerValue = document.getElementById('power-value');
+        const powerHelp = document.getElementById('power-help');
+        const menuEl = document.getElementById('menu');
 
-    class Ball {
-        constructor(x, y, type, color, num) {
-            this.x = x; this.y = y;
-            this.vx = 0; this.vy = 0;
-            this.type = type; // cue, solid, stripe, 8ball
-            this.color = color;
-            this.num = num;
-            this.active = true;
-            this.rotation = Math.random() * Math.PI * 2; // for subtle spin
-        }
-        draw(ctx) {
-            if (!this.active) return;
-            
-            // Cast shadow
-            ctx.beginPath();
-            ctx.arc(this.x + 3, this.y + 4, BALL_RADIUS, 0, Math.PI*2);
-            ctx.fillStyle = 'rgba(0,0,0,0.4)';
-            ctx.fill();
-
-            ctx.beginPath();
-            ctx.arc(this.x, this.y, BALL_RADIUS, 0, Math.PI*2);
-            ctx.fillStyle = this.color;
-            ctx.fill();
-
-            // Striping logic
-            if (this.type === 'stripe') {
-                ctx.save();
-                ctx.translate(this.x, this.y);
-                ctx.rotate(this.rotation);
-                ctx.fillStyle = '#f8fafc';
-                ctx.beginPath(); ctx.arc(0, 0, BALL_RADIUS*0.75, Math.PI*1.2, Math.PI*1.8); ctx.fill();
-                ctx.beginPath(); ctx.arc(0, 0, BALL_RADIUS*0.75, Math.PI*0.2, Math.PI*0.8); ctx.fill();
-                ctx.restore();
-            } else if (this.type !== 'cue') {
-                ctx.fillStyle = '#f8fafc';
-                ctx.beginPath(); ctx.arc(this.x, this.y, BALL_RADIUS*0.5, 0, Math.PI*2); ctx.fill();
-            }
-
-            if (this.num && this.type !== 'cue') {
-                ctx.save();
-                ctx.translate(this.x, this.y);
-                // Keep number generally upright or softly rotated
-                ctx.fillStyle = '#111827';
-                ctx.font = 'bold 11px Inter, sans-serif'; 
-                ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
-                ctx.fillText(this.num, 0, 1);
-                ctx.restore();
-            }
-
-            // Shiny specular highlight and volume shading
-            let grad = ctx.createRadialGradient(this.x - BALL_RADIUS*0.3, this.y - BALL_RADIUS*0.3, BALL_RADIUS*0.1, this.x, this.y, BALL_RADIUS);
-            grad.addColorStop(0, 'rgba(255,255,255,0.8)');
-            grad.addColorStop(0.4, 'rgba(255,255,255,0.1)');
-            grad.addColorStop(0.8, 'rgba(0,0,0,0.2)');
-            grad.addColorStop(1, 'rgba(0,0,0,0.6)');
-            ctx.fillStyle = grad;
-            ctx.beginPath(); ctx.arc(this.x, this.y, BALL_RADIUS, 0, Math.PI*2); ctx.fill();
-        }
-    }
-
-    function initTable() {
-        balls = [];
-        cueBall = new Ball(200, TABLE_HEIGHT/2, 'cue', 'white', '');
-        balls.push(cueBall);
-
-        // Rack setup
-        const startX = 550;
-        const startY = TABLE_HEIGHT/2;
-        const rowSpacing = BALL_RADIUS * Math.sqrt(3) + 0.5;
-        let pidx = 1;
-        const colors = ['#ef4444', '#3b82f6', '#f59e0b', '#10b981', '#f97316', '#6366f1', '#8b5cf6'];
-        
-        let pattern = [
-            [ {type:'solid', c:colors[0]} ],
-            [ {type:'stripe', c:colors[1]}, {type:'solid', c:colors[2]} ],
-            [ {type:'solid', c:colors[3]}, {type:'8ball', c:'#111'}, {type:'stripe', c:colors[4]} ],
-            [ {type:'stripe', c:colors[5]}, {type:'solid', c:colors[6]}, {type:'stripe', c:colors[0]}, {type:'solid', c:colors[1]} ],
-            [ {type:'solid', c:colors[2]}, {type:'stripe', c:colors[3]}, {type:'solid', c:colors[4]}, {type:'stripe', c:colors[5]}, {type:'stripe', c:colors[6]} ]
+        const pockets = [
+            { x: 20, y: 20 },
+            { x: TABLE_WIDTH / 2, y: 15 },
+            { x: TABLE_WIDTH - 20, y: 20 },
+            { x: 20, y: TABLE_HEIGHT - 20 },
+            { x: TABLE_WIDTH / 2, y: TABLE_HEIGHT - 15 },
+            { x: TABLE_WIDTH - 20, y: TABLE_HEIGHT - 20 }
         ];
 
-        let num = 1;
-        for (let row = 0; row < 5; row++) {
-            for (let col = 0; col <= row; col++) {
-                let d = pattern[row][col];
-                let bx = startX + row * rowSpacing;
-                let by = startY - (row * BALL_RADIUS) + (col * BALL_RADIUS * 2) + col * 0.5;
-                let n = d.type==='8ball' ? 8 : (d.type==='stripe' ? num+8 : num);
-                balls.push(new Ball(bx, by, d.type, d.c, n));
-                if (d.type !== '8ball') num++;
+        class Ball {
+            constructor(x, y, type, color, num) {
+                this.x = x;
+                this.y = y;
+                this.vx = 0;
+                this.vy = 0;
+                this.type = type;
+                this.color = color;
+                this.num = num;
+                this.active = true;
+                this.rotation = Math.random() * Math.PI * 2;
+                this.trail = [];
+            }
+
+            updateTrail(speed) {
+                if (!this.active) {
+                    this.trail = [];
+                    return;
+                }
+
+                if (speed > 0.45) {
+                    this.trail.unshift({ x: this.x, y: this.y, speed });
+                    if (this.trail.length > 8) this.trail.length = 8;
+                } else if (this.trail.length) {
+                    this.trail.pop();
+                }
+            }
+
+            drawTrail(context) {
+                if (this.trail.length < 2) return;
+
+                for (let i = this.trail.length - 1; i >= 0; i--) {
+                    const point = this.trail[i];
+                    const alpha = (1 - i / this.trail.length) * 0.18;
+                    context.beginPath();
+                    context.arc(point.x, point.y, BALL_RADIUS * (0.68 + i * 0.02), 0, Math.PI * 2);
+                    context.fillStyle = `rgba(255,255,255,${alpha})`;
+                    context.fill();
+                }
+            }
+
+            draw(context) {
+                if (!this.active) return;
+
+                this.drawTrail(context);
+
+                context.beginPath();
+                context.ellipse(this.x + 4, this.y + BALL_RADIUS + 5, BALL_RADIUS * 0.92, BALL_RADIUS * 0.42, 0, 0, Math.PI * 2);
+                context.fillStyle = 'rgba(0, 0, 0, 0.24)';
+                context.fill();
+
+                const baseGrad = context.createRadialGradient(
+                    this.x - BALL_RADIUS * 0.35,
+                    this.y - BALL_RADIUS * 0.35,
+                    BALL_RADIUS * 0.25,
+                    this.x,
+                    this.y,
+                    BALL_RADIUS * 1.08
+                );
+                baseGrad.addColorStop(0, '#ffffff');
+                baseGrad.addColorStop(0.08, this.type === 'cue' ? '#f8fafc' : this.color);
+                baseGrad.addColorStop(0.6, this.color);
+                baseGrad.addColorStop(1, 'rgba(0, 0, 0, 0.82)');
+
+                context.beginPath();
+                context.arc(this.x, this.y, BALL_RADIUS, 0, Math.PI * 2);
+                context.fillStyle = baseGrad;
+                context.fill();
+
+                if (this.type === 'stripe') {
+                    context.save();
+                    context.translate(this.x, this.y);
+                    context.rotate(this.rotation);
+                    context.beginPath();
+                    context.arc(0, 0, BALL_RADIUS, 0, Math.PI * 2);
+                    context.clip();
+                    context.fillStyle = 'rgba(255, 255, 255, 0.96)';
+                    context.fillRect(-BALL_RADIUS, -BALL_RADIUS * 0.42, BALL_RADIUS * 2, BALL_RADIUS * 0.84);
+                    context.restore();
+                }
+
+                if (this.type !== 'cue') {
+                    context.beginPath();
+                    context.arc(this.x, this.y, BALL_RADIUS * 0.47, 0, Math.PI * 2);
+                    context.fillStyle = 'rgba(255, 255, 255, 0.95)';
+                    context.fill();
+
+                    context.fillStyle = this.type === '8ball' ? '#0f172a' : '#111827';
+                    context.font = '700 10px Outfit, sans-serif';
+                    context.textAlign = 'center';
+                    context.textBaseline = 'middle';
+                    context.fillText(String(this.num), this.x, this.y + 0.5);
+                }
+
+                context.save();
+                context.translate(this.x, this.y);
+                context.rotate(this.rotation);
+                context.beginPath();
+                context.arc(0, 0, BALL_RADIUS * 0.58, -0.95, 0.95);
+                context.strokeStyle = this.type === 'cue'
+                    ? 'rgba(100, 116, 139, 0.6)'
+                    : 'rgba(15, 23, 42, 0.55)';
+                context.lineWidth = 1.4;
+                context.stroke();
+                context.restore();
+
+                const gloss = context.createRadialGradient(
+                    this.x - BALL_RADIUS * 0.45,
+                    this.y - BALL_RADIUS * 0.5,
+                    1,
+                    this.x - BALL_RADIUS * 0.45,
+                    this.y - BALL_RADIUS * 0.5,
+                    BALL_RADIUS * 0.75
+                );
+                gloss.addColorStop(0, 'rgba(255,255,255,0.98)');
+                gloss.addColorStop(0.28, 'rgba(255,255,255,0.46)');
+                gloss.addColorStop(1, 'rgba(255,255,255,0)');
+                context.beginPath();
+                context.arc(this.x, this.y, BALL_RADIUS, 0, Math.PI * 2);
+                context.fillStyle = gloss;
+                context.fill();
+
+                context.beginPath();
+                context.arc(this.x, this.y, BALL_RADIUS, 0, Math.PI * 2);
+                context.strokeStyle = 'rgba(255,255,255,0.12)';
+                context.lineWidth = 1;
+                context.stroke();
             }
         }
-        state = 'aim';
-        updateUI();
-    }
 
-    function collisionSystem() {
-        // Substeps for stability
-        const STEPS = 4;
-        let isMoving = false;
-        
-        for (let step = 0; step < STEPS; step++) {
-            for (let i = 0; i < balls.length; i++) {
-                let b = balls[i];
-                if (!b.active) continue;
-                
-                b.x += (b.vx / STEPS);
-                b.y += (b.vy / STEPS);
-                
-                // Walls
-                if (b.x < BALL_RADIUS + 24) { b.x = BALL_RADIUS + 24; b.vx *= -RESTITUTION; }
-                if (b.x > TABLE_WIDTH - BALL_RADIUS - 24) { b.x = TABLE_WIDTH - BALL_RADIUS - 24; b.vx *= -RESTITUTION; }
-                if (b.y < BALL_RADIUS + 24) { b.y = BALL_RADIUS + 24; b.vy *= -RESTITUTION; }
-                if (b.y > TABLE_HEIGHT - BALL_RADIUS - 24) { b.y = TABLE_HEIGHT - BALL_RADIUS - 24; b.vy *= -RESTITUTION; }
+        function roundedRectPath(context, x, y, width, height, radius) {
+            context.beginPath();
+            context.moveTo(x + radius, y);
+            context.lineTo(x + width - radius, y);
+            context.quadraticCurveTo(x + width, y, x + width, y + radius);
+            context.lineTo(x + width, y + height - radius);
+            context.quadraticCurveTo(x + width, y + height, x + width - radius, y + height);
+            context.lineTo(x + radius, y + height);
+            context.quadraticCurveTo(x, y + height, x, y + height - radius);
+            context.lineTo(x, y + radius);
+            context.quadraticCurveTo(x, y, x + radius, y);
+            context.closePath();
+        }
 
-                // Pockets
-                for (let p of pockets) {
-                    let dx = b.x - p.x; let dy = b.y - p.y;
-                    if (Math.hypot(dx, dy) < POCKET_RADIUS) {
-                        b.active = false;
-                        if (b.type === 'cue') {
-                            setTimeout(() => { b.active = true; b.x = 200; b.y = TABLE_HEIGHT/2; b.vx = 0; b.vy = 0; }, 1000);
+        function spawnRipple(x, y, intensity) {
+            ripples.push({
+                x,
+                y,
+                radius: 5,
+                alpha: Math.min(0.55, 0.18 + intensity * 0.03),
+                growth: 1.8 + intensity * 0.08
+            });
+        }
+
+        function updateRipples() {
+            ripples = ripples.filter((ripple) => {
+                ripple.radius += ripple.growth;
+                ripple.alpha *= 0.92;
+                return ripple.alpha > 0.02;
+            });
+        }
+
+        function drawTable() {
+            const woodGrad = ctx.createLinearGradient(0, 0, 0, TABLE_HEIGHT);
+            woodGrad.addColorStop(0, '#a66b37');
+            woodGrad.addColorStop(0.38, '#7a4922');
+            woodGrad.addColorStop(1, '#43230f');
+            ctx.fillStyle = woodGrad;
+            roundedRectPath(ctx, 0, 0, TABLE_WIDTH, TABLE_HEIGHT, 28);
+            ctx.fill();
+
+            const railGrad = ctx.createLinearGradient(0, 16, 0, TABLE_HEIGHT - 16);
+            railGrad.addColorStop(0, '#7b471f');
+            railGrad.addColorStop(1, '#311607');
+            ctx.fillStyle = railGrad;
+            roundedRectPath(ctx, 14, 14, TABLE_WIDTH - 28, TABLE_HEIGHT - 28, 24);
+            ctx.fill();
+
+            ctx.strokeStyle = 'rgba(255, 255, 255, 0.14)';
+            ctx.lineWidth = 2;
+            roundedRectPath(ctx, 11, 11, TABLE_WIDTH - 22, TABLE_HEIGHT - 22, 26);
+            ctx.stroke();
+
+            const clothGrad = ctx.createRadialGradient(
+                TABLE_WIDTH / 2,
+                TABLE_HEIGHT / 2,
+                40,
+                TABLE_WIDTH / 2,
+                TABLE_HEIGHT / 2,
+                TABLE_WIDTH * 0.62
+            );
+            clothGrad.addColorStop(0, '#109c6c');
+            clothGrad.addColorStop(0.45, '#0c7f5c');
+            clothGrad.addColorStop(1, '#074737');
+            ctx.fillStyle = clothGrad;
+            roundedRectPath(ctx, 24, 24, TABLE_WIDTH - 48, TABLE_HEIGHT - 48, 20);
+            ctx.fill();
+
+            ctx.save();
+            roundedRectPath(ctx, 24, 24, TABLE_WIDTH - 48, TABLE_HEIGHT - 48, 20);
+            ctx.clip();
+            ctx.fillStyle = 'rgba(255, 255, 255, 0.028)';
+            for (let i = -TABLE_HEIGHT; i < TABLE_WIDTH; i += 22) {
+                ctx.fillRect(i, 0, 1, TABLE_HEIGHT);
+            }
+            ctx.restore();
+
+            ctx.strokeStyle = 'rgba(255, 255, 255, 0.05)';
+            ctx.lineWidth = 1;
+            roundedRectPath(ctx, 28, 28, TABLE_WIDTH - 56, TABLE_HEIGHT - 56, 18);
+            ctx.stroke();
+
+            const diamondPoints = [
+                [TABLE_WIDTH * 0.2, 18], [TABLE_WIDTH * 0.4, 18], [TABLE_WIDTH * 0.6, 18], [TABLE_WIDTH * 0.8, 18],
+                [TABLE_WIDTH * 0.2, TABLE_HEIGHT - 18], [TABLE_WIDTH * 0.4, TABLE_HEIGHT - 18], [TABLE_WIDTH * 0.6, TABLE_HEIGHT - 18], [TABLE_WIDTH * 0.8, TABLE_HEIGHT - 18],
+                [18, TABLE_HEIGHT * 0.25], [18, TABLE_HEIGHT * 0.5], [18, TABLE_HEIGHT * 0.75],
+                [TABLE_WIDTH - 18, TABLE_HEIGHT * 0.25], [TABLE_WIDTH - 18, TABLE_HEIGHT * 0.5], [TABLE_WIDTH - 18, TABLE_HEIGHT * 0.75]
+            ];
+            ctx.fillStyle = '#f6d28b';
+            diamondPoints.forEach(([x, y]) => {
+                ctx.save();
+                ctx.translate(x, y);
+                ctx.rotate(Math.PI / 4);
+                ctx.fillRect(-4, -4, 8, 8);
+                ctx.restore();
+            });
+
+            const spotColor = 'rgba(255, 255, 255, 0.22)';
+            ctx.beginPath();
+            ctx.arc(TABLE_WIDTH * 0.26, TABLE_HEIGHT / 2, 4, 0, Math.PI * 2);
+            ctx.fillStyle = spotColor;
+            ctx.fill();
+
+            ctx.beginPath();
+            ctx.arc(TABLE_WIDTH * 0.7, TABLE_HEIGHT / 2, 4, 0, Math.PI * 2);
+            ctx.fill();
+
+            ripples.forEach((ripple) => {
+                ctx.beginPath();
+                ctx.arc(ripple.x, ripple.y, ripple.radius, 0, Math.PI * 2);
+                ctx.strokeStyle = `rgba(255,255,255,${ripple.alpha})`;
+                ctx.lineWidth = 1.8;
+                ctx.stroke();
+            });
+
+            pockets.forEach((pocket) => {
+                const pocketGrad = ctx.createRadialGradient(pocket.x, pocket.y, 2, pocket.x, pocket.y, POCKET_RADIUS);
+                pocketGrad.addColorStop(0, '#020617');
+                pocketGrad.addColorStop(0.68, '#000000');
+                pocketGrad.addColorStop(1, '#1f2937');
+                ctx.beginPath();
+                ctx.arc(pocket.x, pocket.y, POCKET_RADIUS, 0, Math.PI * 2);
+                ctx.fillStyle = pocketGrad;
+                ctx.fill();
+                ctx.strokeStyle = 'rgba(255,255,255,0.08)';
+                ctx.lineWidth = 2;
+                ctx.stroke();
+            });
+        }
+
+        function getAimData() {
+            if (!cueBall || !cueBall.active) return null;
+
+            let dx;
+            let dy;
+            let power;
+
+            if (dragging) {
+                dx = dragStart.x - dragCurrent.x;
+                dy = dragStart.y - dragCurrent.y;
+                power = Math.min(Math.hypot(dx, dy) * 0.15, 30);
+            } else {
+                dx = pointerPoint.x - cueBall.x;
+                dy = pointerPoint.y - cueBall.y;
+                if (Math.abs(dx) < 0.001 && Math.abs(dy) < 0.001) {
+                    dx = 1;
+                    dy = 0;
+                }
+                power = 4.5;
+            }
+
+            const angle = Math.atan2(dy, dx);
+            return {
+                angle,
+                power,
+                lineLength: dragging ? 105 + power * 8 : 125,
+                lineAlpha: dragging ? Math.min(0.7, power / 24) : 0.26,
+                pullBack: BALL_RADIUS + 14 + (dragging ? Math.min(power * 1.6, 58) : 20)
+            };
+        }
+
+        function drawCueGuide() {
+            if (state !== 'aim' || !cueBall || !cueBall.active) return;
+
+            const aim = getAimData();
+            if (!aim) return;
+
+            ctx.save();
+            ctx.beginPath();
+            ctx.moveTo(cueBall.x, cueBall.y);
+            ctx.lineTo(
+                cueBall.x + Math.cos(aim.angle) * aim.lineLength,
+                cueBall.y + Math.sin(aim.angle) * aim.lineLength
+            );
+            ctx.setLineDash([10, 10]);
+            ctx.strokeStyle = `rgba(255, 255, 255, ${aim.lineAlpha})`;
+            ctx.lineWidth = 2;
+            ctx.stroke();
+            ctx.restore();
+
+            ctx.save();
+            ctx.translate(cueBall.x, cueBall.y);
+            ctx.rotate(aim.angle + Math.PI);
+
+            ctx.fillStyle = 'rgba(0, 0, 0, 0.35)';
+            ctx.fillRect(aim.pullBack + 10, 8, 260, 5);
+
+            const cueGrad = ctx.createLinearGradient(aim.pullBack, 0, aim.pullBack + 280, 0);
+            cueGrad.addColorStop(0, '#fef3c7');
+            cueGrad.addColorStop(0.08, '#eab308');
+            cueGrad.addColorStop(0.32, '#d4a574');
+            cueGrad.addColorStop(0.7, '#8b4513');
+            cueGrad.addColorStop(1, '#2f1606');
+
+            ctx.beginPath();
+            ctx.moveTo(aim.pullBack, -3);
+            ctx.lineTo(aim.pullBack + 280, -5);
+            ctx.lineTo(aim.pullBack + 280, 5);
+            ctx.lineTo(aim.pullBack, 3);
+            ctx.closePath();
+            ctx.fillStyle = cueGrad;
+            ctx.fill();
+
+            ctx.fillStyle = '#38bdf8';
+            ctx.fillRect(aim.pullBack - 4, -2.1, 4, 4.2);
+
+            ctx.fillStyle = 'rgba(15, 23, 42, 0.95)';
+            ctx.fillRect(aim.pullBack + 172, -5, 76, 10);
+
+            ctx.restore();
+        }
+
+        function updatePowerUI() {
+            if (state === 'menu') {
+                powerFill.style.width = '0%';
+                powerValue.textContent = 'Menu';
+                powerHelp.textContent = 'Choose a mode to start a new rack.';
+                return;
+            }
+
+            if (state === 'moving') {
+                powerHelp.textContent = 'Balls in motion...';
+                powerValue.textContent = 'Live';
+                return;
+            }
+
+            const aim = getAimData();
+            const pct = aim ? Math.min(100, (aim.power / 30) * 100) : 0;
+            powerFill.style.width = `${pct}%`;
+            powerValue.textContent = dragging ? `${Math.round(pct)}%` : 'Ready';
+            powerHelp.textContent = dragging
+                ? 'Release to strike the cue ball.'
+                : (mode === '1p' && turn === 2 ? 'Computer is lining up.' : 'Drag away from the cue ball to set power.');
+        }
+
+        function initTable() {
+            balls = [];
+            ripples = [];
+            cueBall = new Ball(200, TABLE_HEIGHT / 2, 'cue', '#f8fafc', '');
+            balls.push(cueBall);
+
+            const startX = 550;
+            const startY = TABLE_HEIGHT / 2;
+            const rowSpacing = BALL_RADIUS * Math.sqrt(3) + 0.5;
+            const colors = ['#ef4444', '#3b82f6', '#f59e0b', '#10b981', '#f97316', '#6366f1', '#8b5cf6'];
+
+            const pattern = [
+                [{ type: 'solid', c: colors[0] }],
+                [{ type: 'stripe', c: colors[1] }, { type: 'solid', c: colors[2] }],
+                [{ type: 'solid', c: colors[3] }, { type: '8ball', c: '#111827' }, { type: 'stripe', c: colors[4] }],
+                [{ type: 'stripe', c: colors[5] }, { type: 'solid', c: colors[6] }, { type: 'stripe', c: colors[0] }, { type: 'solid', c: colors[1] }],
+                [{ type: 'solid', c: colors[2] }, { type: 'stripe', c: colors[3] }, { type: 'solid', c: colors[4] }, { type: 'stripe', c: colors[5] }, { type: 'stripe', c: colors[6] }]
+            ];
+
+            let num = 1;
+            for (let row = 0; row < 5; row++) {
+                for (let col = 0; col <= row; col++) {
+                    const descriptor = pattern[row][col];
+                    const bx = startX + row * rowSpacing;
+                    const by = startY - (row * BALL_RADIUS) + (col * BALL_RADIUS * 2) + col * 0.5;
+                    const n = descriptor.type === '8ball' ? 8 : (descriptor.type === 'stripe' ? num + 8 : num);
+                    balls.push(new Ball(bx, by, descriptor.type, descriptor.c, n));
+                    if (descriptor.type !== '8ball') num++;
+                }
+            }
+
+            pointerPoint = { x: TABLE_WIDTH * 0.78, y: TABLE_HEIGHT / 2 };
+            dragging = false;
+            state = 'aim';
+            updateUI();
+            updatePowerUI();
+        }
+
+        function collisionSystem() {
+            const STEPS = 4;
+            let isMoving = false;
+
+            for (let step = 0; step < STEPS; step++) {
+                for (let i = 0; i < balls.length; i++) {
+                    const ball = balls[i];
+                    if (!ball.active) continue;
+
+                    ball.x += ball.vx / STEPS;
+                    ball.y += ball.vy / STEPS;
+
+                    if (ball.x < BALL_RADIUS + RAIL_OFFSET) {
+                        ball.x = BALL_RADIUS + RAIL_OFFSET;
+                        ball.vx *= -RESTITUTION;
+                        spawnRipple(ball.x, ball.y, Math.abs(ball.vx));
+                    }
+                    if (ball.x > TABLE_WIDTH - BALL_RADIUS - RAIL_OFFSET) {
+                        ball.x = TABLE_WIDTH - BALL_RADIUS - RAIL_OFFSET;
+                        ball.vx *= -RESTITUTION;
+                        spawnRipple(ball.x, ball.y, Math.abs(ball.vx));
+                    }
+                    if (ball.y < BALL_RADIUS + RAIL_OFFSET) {
+                        ball.y = BALL_RADIUS + RAIL_OFFSET;
+                        ball.vy *= -RESTITUTION;
+                        spawnRipple(ball.x, ball.y, Math.abs(ball.vy));
+                    }
+                    if (ball.y > TABLE_HEIGHT - BALL_RADIUS - RAIL_OFFSET) {
+                        ball.y = TABLE_HEIGHT - BALL_RADIUS - RAIL_OFFSET;
+                        ball.vy *= -RESTITUTION;
+                        spawnRipple(ball.x, ball.y, Math.abs(ball.vy));
+                    }
+
+                    for (const pocket of pockets) {
+                        const dx = ball.x - pocket.x;
+                        const dy = ball.y - pocket.y;
+                        if (Math.hypot(dx, dy) < POCKET_RADIUS) {
+                            ball.active = false;
+                            spawnRipple(pocket.x, pocket.y, 8);
+                            if (ball.type === 'cue') {
+                                setTimeout(() => {
+                                    ball.active = true;
+                                    ball.x = 200;
+                                    ball.y = TABLE_HEIGHT / 2;
+                                    ball.vx = 0;
+                                    ball.vy = 0;
+                                    ball.trail = [];
+                                    pointerPoint = { x: TABLE_WIDTH * 0.78, y: TABLE_HEIGHT / 2 };
+                                }, 900);
+                            }
+                        }
+                    }
+                }
+
+                for (let i = 0; i < balls.length; i++) {
+                    for (let j = i + 1; j < balls.length; j++) {
+                        const b1 = balls[i];
+                        const b2 = balls[j];
+                        if (!b1.active || !b2.active) continue;
+
+                        let dx = b2.x - b1.x;
+                        let dy = b2.y - b1.y;
+                        let dist = Math.hypot(dx, dy);
+
+                        if (dist === 0) {
+                            dx = (Math.random() - 0.5) * 0.01;
+                            dy = (Math.random() - 0.5) * 0.01;
+                            dist = Math.hypot(dx, dy);
+                        }
+
+                        if (dist < BALL_RADIUS * 2) {
+                            const nx = dx / dist;
+                            const ny = dy / dist;
+                            const overlap = BALL_RADIUS * 2 - dist;
+                            b1.x -= nx * overlap / 2;
+                            b1.y -= ny * overlap / 2;
+                            b2.x += nx * overlap / 2;
+                            b2.y += ny * overlap / 2;
+
+                            const relVx = b1.vx - b2.vx;
+                            const relVy = b1.vy - b2.vy;
+                            const impulse = nx * relVx + ny * relVy;
+                            const transfer = impulse * RESTITUTION;
+
+                            b1.vx -= transfer * nx;
+                            b1.vy -= transfer * ny;
+                            b2.vx += transfer * nx;
+                            b2.vy += transfer * ny;
+
+                            spawnRipple((b1.x + b2.x) / 2, (b1.y + b2.y) / 2, Math.abs(impulse));
                         }
                     }
                 }
             }
 
-            // Ball-ball
-            for (let i = 0; i < balls.length; i++) {
-                for (let j = i + 1; j < balls.length; j++) {
-                    let b1 = balls[i], b2 = balls[j];
-                    if (!b1.active || !b2.active) continue;
-                    let dx = b2.x - b1.x, dy = b2.y - b1.y;
-                    let dist = Math.hypot(dx, dy);
-                    if (dist < BALL_RADIUS * 2) {
-                        let nx = dx / dist, ny = dy / dist;
-                        let overlap = BALL_RADIUS * 2 - dist;
-                        b1.x -= nx * overlap / 2; b1.y -= ny * overlap / 2;
-                        b2.x += nx * overlap / 2; b2.y += ny * overlap / 2;
-                        
-                        let kx = b1.vx - b2.vx, ky = b1.vy - b2.vy;
-                        let p = 2 * (nx * kx + ny * ky) / 2;
-                        b1.vx -= p * nx * RESTITUTION; b1.vy -= p * ny * RESTITUTION;
-                        b2.vx += p * nx * RESTITUTION; b2.vy += p * ny * RESTITUTION;
-                    }
+            for (const ball of balls) {
+                if (!ball.active) continue;
+                ball.vx *= FRICTION;
+                ball.vy *= FRICTION;
+                const speed = Math.hypot(ball.vx, ball.vy);
+
+                if (speed < 0.05) {
+                    ball.vx = 0;
+                    ball.vy = 0;
+                } else {
+                    isMoving = true;
+                    ball.rotation += speed * 0.05;
+                }
+
+                ball.updateTrail(speed);
+            }
+
+            updateRipples();
+
+            if (!isMoving && state === 'moving') {
+                state = 'aim';
+                turn = turn === 1 ? 2 : 1;
+                updateUI();
+                if (mode === '1p' && turn === 2) {
+                    setTimeout(computerTurn, 800);
                 }
             }
         }
 
-        // Friction & checks (and spin visualization)
-        for (let b of balls) {
-            if (!b.active) continue;
-            b.vx *= FRICTION; b.vy *= FRICTION;
-            let speed = Math.hypot(b.vx, b.vy);
-            if (speed < 0.05) { b.vx = 0; b.vy = 0; }
-            else { 
-                isMoving = true;
-                b.rotation += speed * 0.05; // Visual spin based on speed
-            }
+        function computerTurn() {
+            if (state !== 'aim') return;
+
+            uiTurn.textContent = 'Computer lining up...';
+            turnDot.style.background = '#38bdf8';
+            turnDot.style.boxShadow = '0 0 12px rgba(56, 189, 248, 0.8)';
+
+            setTimeout(() => {
+                let activeObject = balls.find((ball) => ball.active && ball.type !== 'cue' && ball.type !== '8ball');
+                if (!activeObject) activeObject = balls.find((ball) => ball.active && ball.type === '8ball');
+
+                if (activeObject && cueBall.active) {
+                    const dx = activeObject.x - cueBall.x;
+                    const dy = activeObject.y - cueBall.y;
+                    const angle = Math.atan2(dy, dx) + (Math.random() - 0.5) * 0.1;
+                    const power = 15 + Math.random() * 10;
+                    cueBall.vx = Math.cos(angle) * power;
+                    cueBall.vy = Math.sin(angle) * power;
+                    state = 'moving';
+                    spawnRipple(cueBall.x, cueBall.y, power * 0.35);
+                } else {
+                    turn = 1;
+                    updateUI();
+                }
+            }, 900);
         }
 
-        if (!isMoving && state === 'moving') {
-            state = 'aim';
-            // Switch turns if missed, handle AI etc.
-            turn = turn === 1 ? 2 : 1;
-            updateUI();
-            if (mode === '1p' && turn === 2) setTimeout(computerTurn, 1000);
-        }
-    }
+        function draw() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            drawTable();
 
-    function computerTurn() {
-        if(state !== 'aim') return;
-        uiTurn.textContent = "Computer is thinking...";
-        setTimeout(() => {
-            let activeObj = balls.find(b => b.active && b.type !== 'cue' && b.type !== '8ball');
-            if(!activeObj) activeObj = balls.find(b => b.active && b.type === '8ball');
-            
-            if (activeObj && cueBall.active) {
-                let dx = activeObj.x - cueBall.x;
-                let dy = activeObj.y - cueBall.y;
-                let angle = Math.atan2(dy, dx) + (Math.random() - 0.5) * 0.1; // minor inaccuracy
-                let power = 15 + Math.random() * 10;
-                cueBall.vx = Math.cos(angle) * power;
-                cueBall.vy = Math.sin(angle) * power;
-                state = 'moving';
+            balls.forEach((ball) => ball.draw(ctx));
+            drawCueGuide();
+
+            if (state === 'moving' || state === 'aim') {
+                collisionSystem();
             } else {
-                turn = 1; updateUI(); 
+                updateRipples();
             }
-        }, 1200);
-    }
 
-    function draw() {
-        ctx.clearRect(0, 0, canvas.width, canvas.height);
-        
-        // Wood edge gradient
-        let woodGrad = ctx.createLinearGradient(0, 0, 0, TABLE_HEIGHT);
-        woodGrad.addColorStop(0, '#78350f');
-        woodGrad.addColorStop(1, '#451a03');
-        ctx.fillStyle = woodGrad;
-        ctx.fillRect(0, 0, TABLE_WIDTH, TABLE_HEIGHT);
-        
-        // Inner shadows/bevels on wood
-        ctx.strokeStyle = '#92400e'; ctx.lineWidth = 4;
-        ctx.strokeRect(2, 2, TABLE_WIDTH-4, TABLE_HEIGHT-4);
-        ctx.strokeStyle = '#290f02'; ctx.lineWidth = 4;
-        ctx.strokeRect(18, 18, TABLE_WIDTH-36, TABLE_HEIGHT-36);
-
-        // Cloth with radial vignette
-        let clothGrad = ctx.createRadialGradient(TABLE_WIDTH/2, TABLE_HEIGHT/2, 50, TABLE_WIDTH/2, TABLE_HEIGHT/2, 600);
-        clothGrad.addColorStop(0, '#047857'); // bright center
-        clothGrad.addColorStop(1, '#064e3b'); // dark corners
-        ctx.fillStyle = clothGrad;
-        ctx.fillRect(20, 20, TABLE_WIDTH-40, TABLE_HEIGHT-40);
-
-        // Pockets
-        for (let p of pockets) {
-            let pgrad = ctx.createRadialGradient(p.x, p.y, POCKET_RADIUS*0.2, p.x, p.y, POCKET_RADIUS);
-            pgrad.addColorStop(0, '#000000');
-            pgrad.addColorStop(0.8, '#111827');
-            pgrad.addColorStop(1, '#27272a');
-            ctx.beginPath(); ctx.arc(p.x, p.y, POCKET_RADIUS, 0, Math.PI*2); 
-            ctx.fillStyle = pgrad; ctx.fill();
-            ctx.strokeStyle = '#1f2937'; ctx.lineWidth = 2; ctx.stroke();
+            updatePowerUI();
+            requestAnimationFrame(draw);
         }
 
-        balls.forEach(b => b.draw(ctx));
-
-        // Aiming line and Pool Cue
-        if (state === 'aim' && dragging && cueBall.active) {
-            let dx = dragStart.x - dragCurrent.x;
-            let dy = dragStart.y - dragCurrent.y;
-            let power = Math.hypot(dx, dy);
-            let angle = Math.atan2(dy, dx);
-            let constrainedPower = Math.min(power * 0.15, 30);
-            
-            // Draw aiming projection line
-            ctx.beginPath();
-            ctx.moveTo(cueBall.x, cueBall.y);
-            // Show longer line based on power
-            let lineLen = 100 + constrainedPower * 10;
-            ctx.lineTo(cueBall.x + Math.cos(angle) * lineLen, cueBall.y + Math.sin(angle) * lineLen);
-            ctx.setLineDash([8, 8]);
-            ctx.strokeStyle = `rgba(255, 255, 255, ${Math.min(power/80, 0.4)})`;
-            ctx.lineWidth = 2;
-            ctx.stroke();
-            ctx.setLineDash([]);
-            
-            // Draw realistic Pool Cue
-            ctx.save();
-            ctx.translate(cueBall.x, cueBall.y);
-            ctx.rotate(angle + Math.PI); // Rotate AWAY from the direction of aim
-            
-            // Pullback distance based on power
-            let pullBack = BALL_RADIUS + 5 + Math.min(power*0.8, 40);
-            
-            // Cue shadow
-            ctx.fillStyle = 'rgba(0,0,0,0.5)';
-            ctx.fillRect(pullBack + 5, 5, 250, 4);
-
-            // Cue stick (tapered)
-            let cueGrad = ctx.createLinearGradient(pullBack, 0, pullBack + 250, 0);
-            cueGrad.addColorStop(0, '#fcd34d'); // light maple shaft
-            cueGrad.addColorStop(0.4, '#d97706'); // middle
-            cueGrad.addColorStop(0.45, '#111827'); // wrap start
-            cueGrad.addColorStop(0.85, '#111827'); // wrap end
-            cueGrad.addColorStop(1, '#451a03'); // butt
-            
-            ctx.beginPath();
-            ctx.moveTo(pullBack, -2);
-            ctx.lineTo(pullBack + 250, -4);
-            ctx.lineTo(pullBack + 250, 4);
-            ctx.lineTo(pullBack, 2);
-            ctx.fillStyle = cueGrad;
-            ctx.fill();
-
-            // Cue Tip
-            ctx.fillStyle = '#38bdf8'; // blue chalk tip
-            ctx.fillRect(pullBack - 3, -1.8, 3, 3.6);
-            
-            ctx.restore();
+        function getMousePos(event) {
+            const rect = canvas.getBoundingClientRect();
+            const clientX = event.touches ? event.touches[0].clientX : event.clientX;
+            const clientY = event.touches ? event.touches[0].clientY : event.clientY;
+            const scaleX = canvas.width / rect.width;
+            const scaleY = canvas.height / rect.height;
+            return {
+                x: (clientX - rect.left) * scaleX,
+                y: (clientY - rect.top) * scaleY
+            };
         }
 
-        if (state === 'moving' || state === 'aim') collisionSystem();
-        requestAnimationFrame(draw);
-    }
-
-    function getMousePos(e) {
-        let rect = canvas.getBoundingClientRect();
-        let clientX = e.touches ? e.touches[0].clientX : e.clientX;
-        let clientY = e.touches ? e.touches[0].clientY : e.clientY;
-        let scaleX = canvas.width / rect.width;
-        let scaleY = canvas.height / rect.height;
-        return { x: (clientX - rect.left) * scaleX, y: (clientY - rect.top) * scaleY };
-    }
-
-    function startDrag(e) {
-        if (mode === '1p' && turn === 2) return;
-        if (state === 'aim' && cueBall.active) {
-            dragging = true;
-            dragStart = getMousePos(e);
-            dragCurrent = dragStart;
+        function updatePointer(event) {
+            pointerPoint = getMousePos(event);
         }
-    }
-    function updateDrag(e) {
-        if (dragging) {
-            dragCurrent = getMousePos(e);
-            e.preventDefault();
-        }
-    }
-    function endDrag(e) {
-        if (dragging && state === 'aim') {
-            dragging = false;
-            let dx = dragStart.x - dragCurrent.x;
-            let dy = dragStart.y - dragCurrent.y;
-            let power = Math.min(Math.hypot(dx, dy) * 0.15, 30);
-            if (power > 1) {
-                let angle = Math.atan2(dy, dx);
-                cueBall.vx = Math.cos(angle) * power;
-                cueBall.vy = Math.sin(angle) * power;
-                state = 'moving';
+
+        function startDrag(event) {
+            if (mode === '1p' && turn === 2) return;
+            if (state === 'aim' && cueBall.active) {
+                dragging = true;
+                dragStart = getMousePos(event);
+                dragCurrent = dragStart;
+                pointerPoint = dragStart;
+                event.preventDefault();
             }
         }
-    }
 
-    canvas.addEventListener('mousedown', startDrag);
-    window.addEventListener('mousemove', updateDrag);
-    window.addEventListener('mouseup', endDrag);
-    canvas.addEventListener('touchstart', startDrag, {passive: false});
-    window.addEventListener('touchmove', updateDrag, {passive: false});
-    window.addEventListener('touchend', endDrag);
+        function updateDrag(event) {
+            updatePointer(event);
+            if (dragging) {
+                dragCurrent = getMousePos(event);
+                event.preventDefault();
+            }
+        }
 
-    function updateUI() {
-        uiTurn.textContent = (turn === 1) ? "Player 1's Turn" : (mode === '2p' ? "Player 2's Turn" : "Computer's Turn");
-        uiTurn.style.color = turn === 1 ? '#ef4444' : '#3b82f6';
-    }
+        function endDrag() {
+            if (dragging && state === 'aim') {
+                dragging = false;
+                const dx = dragStart.x - dragCurrent.x;
+                const dy = dragStart.y - dragCurrent.y;
+                const power = Math.min(Math.hypot(dx, dy) * 0.15, 30);
+                if (power > 1) {
+                    const angle = Math.atan2(dy, dx);
+                    cueBall.vx = Math.cos(angle) * power;
+                    cueBall.vy = Math.sin(angle) * power;
+                    state = 'moving';
+                    spawnRipple(cueBall.x, cueBall.y, power * 0.35);
+                }
+            }
+        }
 
-    document.getElementById('btn-1p').onclick = () => { mode = '1p'; turn = 1; menuEl.classList.add('hidden'); initTable(); };
-    document.getElementById('btn-2p').onclick = () => { mode = '2p'; turn = 1; menuEl.classList.add('hidden'); initTable(); };
-    document.getElementById('reset-btn').onclick = initTable;
-    document.getElementById('menu-btn').onclick = () => { menuEl.classList.remove('hidden'); state = 'menu'; };
+        function updateUI() {
+            if (turn === 1) {
+                uiTurn.textContent = "Player 1's Turn";
+                uiTurn.style.color = '#fca5a5';
+                turnDot.style.background = '#ef4444';
+                turnDot.style.boxShadow = '0 0 12px rgba(239, 68, 68, 0.8)';
+            } else if (mode === '2p') {
+                uiTurn.textContent = "Player 2's Turn";
+                uiTurn.style.color = '#93c5fd';
+                turnDot.style.background = '#3b82f6';
+                turnDot.style.boxShadow = '0 0 12px rgba(59, 130, 246, 0.8)';
+            } else {
+                uiTurn.textContent = "Computer's Turn";
+                uiTurn.style.color = '#93c5fd';
+                turnDot.style.background = '#38bdf8';
+                turnDot.style.boxShadow = '0 0 12px rgba(56, 189, 248, 0.8)';
+            }
+        }
 
-    draw();
-</script>
+        canvas.addEventListener('mousedown', startDrag);
+        canvas.addEventListener('mousemove', updatePointer);
+        window.addEventListener('mousemove', updateDrag);
+        window.addEventListener('mouseup', endDrag);
+        canvas.addEventListener('touchstart', startDrag, { passive: false });
+        canvas.addEventListener('touchmove', updateDrag, { passive: false });
+        window.addEventListener('touchmove', updateDrag, { passive: false });
+        window.addEventListener('touchend', endDrag);
+
+        document.getElementById('btn-1p').onclick = () => {
+            mode = '1p';
+            turn = 1;
+            menuEl.classList.add('hidden');
+            initTable();
+        };
+
+        document.getElementById('btn-2p').onclick = () => {
+            mode = '2p';
+            turn = 1;
+            menuEl.classList.add('hidden');
+            initTable();
+        };
+
+        document.getElementById('reset-btn').onclick = () => {
+            initTable();
+        };
+
+        document.getElementById('menu-btn').onclick = () => {
+            menuEl.classList.remove('hidden');
+            state = 'menu';
+            updatePowerUI();
+        };
+
+        initTable();
+        state = 'menu';
+        updatePowerUI();
+        draw();
+    </script>
 </body>
 </html>
