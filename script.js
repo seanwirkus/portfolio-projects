@@ -97,63 +97,67 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     });
 
-    // 5. Auto-resize same-origin project preview iframes to avoid nested scrollbars
-    const projectFrames = document.querySelectorAll('.project-frame[data-auto-resize]');
-    projectFrames.forEach((frame) => {
-        const shell = frame.closest('.project-frame-shell');
-        const minHeight = Number(frame.dataset.minHeight || 720);
-        const maxHeight = Number(frame.dataset.maxHeight || 2200);
-        let resizeObserver = null;
+        // 5. Auto-resize same-origin project preview iframes to avoid nested scrollbars
+        const projectFrames = document.querySelectorAll('.project-frame[data-auto-resize]');
+        projectFrames.forEach((frame) => {
+            const shell = frame.closest('.project-frame-shell');
+            const minHeight = Number(frame.dataset.minHeight || 720);
+            const maxHeight = Number(frame.dataset.maxHeight || 2200);
+            let resizeObserver = null;
+            let currentHeight = 0; // track height to avoid loops
 
-        const applyHeight = () => {
-            try {
-                const doc = frame.contentDocument;
-                if (!doc) return;
+            const applyHeight = () => {
+                try {
+                    const doc = frame.contentDocument;
+                    if (!doc) return;
 
-                const html = doc.documentElement;
-                const body = doc.body;
-                const contentHeight = Math.max(
-                    html ? html.scrollHeight : 0,
-                    html ? html.offsetHeight : 0,
-                    body ? body.scrollHeight : 0,
-                    body ? body.offsetHeight : 0
-                );
+                    const html = doc.documentElement;
+                    const body = doc.body;
+                    const contentHeight = Math.max(
+                        html ? html.scrollHeight : 0,
+                        html ? html.offsetHeight : 0,
+                        body ? body.scrollHeight : 0,
+                        body ? body.offsetHeight : 0
+                    );
 
-                if (!contentHeight) return;
+                    if (!contentHeight) return;
 
-                const nextHeight = Math.min(Math.max(contentHeight, minHeight), maxHeight);
-                frame.style.height = `${nextHeight}px`;
-                if (shell) {
-                    shell.style.height = `${nextHeight}px`;
+                    const nextHeight = Math.min(Math.max(contentHeight, minHeight), maxHeight);
+                    if (nextHeight !== currentHeight) { // Only update if changed!
+                        currentHeight = nextHeight;
+                        frame.style.height = `${nextHeight}px`;
+                        if (shell) {
+                            shell.style.height = `${nextHeight}px`;
+                        }
+                    }
+                } catch (error) {
+                    // Ignore cross-document or early-load access errors.
                 }
-            } catch (error) {
-                // Ignore cross-document or early-load access errors.
-            }
-        };
+            };
 
-        frame.addEventListener('load', () => {
-            applyHeight();
+            frame.addEventListener('load', () => {
+                applyHeight();
 
-            try {
-                const doc = frame.contentDocument;
-                if (!doc || !doc.documentElement) return;
+                try {
+                    const doc = frame.contentDocument;
+                    if (!doc || !doc.documentElement) return;
 
-                if ('ResizeObserver' in window) {
-                    resizeObserver = new ResizeObserver(() => applyHeight());
-                    resizeObserver.observe(doc.documentElement);
-                    if (doc.body) resizeObserver.observe(doc.body);
+                    if ('ResizeObserver' in window) {
+                        resizeObserver = new ResizeObserver(() => applyHeight());
+                        resizeObserver.observe(doc.documentElement);
+                        if (doc.body) resizeObserver.observe(doc.body);
+                    }
+                } catch (error) {
+                    // Ignore inaccessible documents.
                 }
-            } catch (error) {
-                // Ignore inaccessible documents.
-            }
 
-            window.setTimeout(applyHeight, 150);
-            window.setTimeout(applyHeight, 600);
-            window.setTimeout(applyHeight, 1200);
+                window.setTimeout(applyHeight, 150);
+                window.setTimeout(applyHeight, 600);
+                window.setTimeout(applyHeight, 1200);
+            });
+
+            window.addEventListener('resize', applyHeight);
         });
-
-        window.addEventListener('resize', applyHeight);
-    });
 
     // 6. Live MPH counter synced with gauge animation
     const mphEl = document.querySelector('.mph-value');
