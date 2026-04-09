@@ -237,7 +237,7 @@
         }
 
         .power-widget {
-            min-width: 250px;
+            min-width: 280px;
             display: grid;
             gap: 8px;
         }
@@ -361,25 +361,85 @@
 
         .power-meter {
             position: relative;
-            height: 10px;
+            height: 22px;
             border-radius: 999px;
-            overflow: hidden;
+            overflow: visible;
             background: rgba(255, 255, 255, 0.08);
             box-shadow: inset 0 1px 4px rgba(0, 0, 0, 0.35);
+            cursor: pointer;
+            touch-action: none;
         }
 
         .power-fill {
             height: 100%;
             width: 0;
-            border-radius: inherit;
+            border-radius: 999px;
             background: linear-gradient(90deg, #10b981, #facc15, #fb7185);
             box-shadow: 0 0 16px rgba(250, 204, 21, 0.28);
-            transition: width 0.08s linear;
+            transition: none;
+            pointer-events: none;
+        }
+
+        .power-slider-thumb {
+            position: absolute;
+            top: 50%;
+            left: 0;
+            width: 28px;
+            height: 28px;
+            margin: -14px 0 0 -14px;
+            border-radius: 50%;
+            background: radial-gradient(circle at 40% 35%, #fff, #cbd5e1 60%, #94a3b8);
+            border: 3px solid rgba(16, 185, 129, 0.8);
+            box-shadow: 0 0 0 4px rgba(16, 185, 129, 0.18), 0 4px 12px rgba(0, 0, 0, 0.35);
+            cursor: grab;
+            z-index: 2;
+            transition: box-shadow 0.15s ease;
+        }
+
+        .power-slider-thumb:active {
+            cursor: grabbing;
+            box-shadow: 0 0 0 6px rgba(16, 185, 129, 0.3), 0 4px 16px rgba(0, 0, 0, 0.45);
+        }
+
+        .power-shoot-row {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+
+        .shoot-btn {
+            flex-shrink: 0;
+            appearance: none;
+            min-height: 36px;
+            padding: 0.5rem 1.1rem;
+            border-radius: 999px;
+            border: 1px solid rgba(250, 204, 21, 0.3);
+            background: linear-gradient(135deg, rgba(16, 185, 129, 0.22), rgba(250, 204, 21, 0.18));
+            color: #fef08a;
+            cursor: pointer;
+            font-size: 0.78rem;
+            font-weight: 700;
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+            font-family: inherit;
+            transition: transform 0.15s ease, box-shadow 0.15s ease;
+        }
+
+        .shoot-btn:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 6px 20px rgba(250, 204, 21, 0.2);
+        }
+
+        .shoot-btn:disabled {
+            opacity: 0.35;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
         }
 
         .power-help {
             color: var(--text-muted);
-            font-size: 0.88rem;
+            font-size: 0.82rem;
         }
 
         .controls {
@@ -606,12 +666,16 @@
                 <div class="power-widget">
                     <div class="power-label-row">
                         <span>Shot power</span>
-                        <span id="power-value">Ready</span>
+                        <span id="power-value">0%</span>
                     </div>
-                    <div class="power-meter">
+                    <div class="power-meter" id="power-meter">
                         <div class="power-fill" id="power-fill"></div>
+                        <div class="power-slider-thumb" id="power-thumb"></div>
                     </div>
-                    <div class="power-help" id="power-help">Drag away from the cue ball to line up a shot.</div>
+                    <div class="power-shoot-row">
+                        <div class="power-help" id="power-help">Drag slider to set power. Aim on the table.</div>
+                        <button class="shoot-btn" id="shoot-btn" type="button">Shoot</button>
+                    </div>
                 </div>
 
                 <div class="spin-widget">
@@ -689,6 +753,9 @@
         let dragStart = { x: 0, y: 0 };
         let dragCurrent = { x: 0, y: 0 };
         let pointerPoint = { x: TABLE_WIDTH * 0.78, y: TABLE_HEIGHT / 2 };
+        const MAX_POWER = 30;
+        let shotPower = 0;
+        let powerSliderDragging = false;
         let ripples = [];
         let spin = { x: 0, y: 0 };
         let spinDragging = false;
@@ -761,14 +828,17 @@
 
                 this.drawTrail(context);
 
+                // Shadow — single directional drop shadow
+                const shadowGrad = context.createRadialGradient(
+                    this.x + 3, this.y + 3, BALL_RADIUS * 0.2,
+                    this.x + 3, this.y + 3, BALL_RADIUS * 1.4
+                );
+                shadowGrad.addColorStop(0, 'rgba(0, 0, 0, 0.35)');
+                shadowGrad.addColorStop(0.6, 'rgba(0, 0, 0, 0.12)');
+                shadowGrad.addColorStop(1, 'rgba(0, 0, 0, 0)');
                 context.beginPath();
-                context.ellipse(this.x + 4, this.y + BALL_RADIUS + 5.5, BALL_RADIUS * 0.96, BALL_RADIUS * 0.48, 0, 0, Math.PI * 2);
-                context.fillStyle = 'rgba(0, 0, 0, 0.28)';
-                context.fill();
-
-                context.beginPath();
-                context.ellipse(this.x + 1.5, this.y + BALL_RADIUS + 7.5, BALL_RADIUS * 0.78, BALL_RADIUS * 0.24, 0, 0, Math.PI * 2);
-                context.fillStyle = 'rgba(15, 23, 42, 0.18)';
+                context.arc(this.x + 3, this.y + 3, BALL_RADIUS * 1.35, 0, Math.PI * 2);
+                context.fillStyle = shadowGrad;
                 context.fill();
 
                 const baseGrad = context.createRadialGradient(
@@ -1022,31 +1092,23 @@
         function getAimData() {
             if (!cueBall || !cueBall.active) return null;
 
-            let dx;
-            let dy;
-            let power;
-
-            if (dragging) {
-                dx = dragStart.x - dragCurrent.x;
-                dy = dragStart.y - dragCurrent.y;
-                power = Math.min(Math.hypot(dx, dy) * 0.15, 30);
-            } else {
-                dx = pointerPoint.x - cueBall.x;
-                dy = pointerPoint.y - cueBall.y;
-                if (Math.abs(dx) < 0.001 && Math.abs(dy) < 0.001) {
-                    dx = 1;
-                    dy = 0;
-                }
-                power = 4.5;
+            let dx = pointerPoint.x - cueBall.x;
+            let dy = pointerPoint.y - cueBall.y;
+            if (Math.abs(dx) < 0.001 && Math.abs(dy) < 0.001) {
+                dx = 1;
+                dy = 0;
             }
+
+            const power = shotPower > 0 ? shotPower : 4.5;
+            const charged = shotPower > 0;
 
             const angle = Math.atan2(dy, dx);
             return {
                 angle,
                 power,
-                lineLength: dragging ? 105 + power * 8 : 125,
-                lineAlpha: dragging ? Math.min(0.7, power / 24) : 0.26,
-                pullBack: BALL_RADIUS + 14 + (dragging ? Math.min(power * 1.6, 58) : 20)
+                lineLength: charged ? 105 + power * 8 : 125,
+                lineAlpha: charged ? Math.min(0.7, power / 24) : 0.26,
+                pullBack: BALL_RADIUS + 14 + (charged ? Math.min(power * 1.6, 58) : 20)
             };
         }
 
@@ -1174,7 +1236,7 @@
             ctx.fill();
             ctx.restore();
 
-            if (dragging) {
+            if (shotPower > 0) {
                 ctx.save();
                 ctx.beginPath();
                 ctx.arc(cueBall.x, cueBall.y, BALL_RADIUS + 10 + aim.power * 0.18, 0, Math.PI * 2);
@@ -1315,24 +1377,30 @@
         function updatePowerUI() {
             if (state === 'menu') {
                 powerFill.style.width = '0%';
+                powerThumb.style.left = '0%';
                 powerValue.textContent = 'Menu';
                 powerHelp.textContent = 'Choose a mode to start a new rack.';
+                shootBtn.disabled = true;
                 return;
             }
 
             if (state === 'moving') {
-                powerHelp.textContent = 'Balls in motion...';
+                powerHelp.textContent = 'Balls in motion\u2026';
                 powerValue.textContent = 'Live';
+                shootBtn.disabled = true;
                 return;
             }
 
-            const aim = getAimData();
-            const pct = aim ? Math.min(100, (aim.power / 30) * 100) : 0;
+            const pct = Math.min(100, (shotPower / MAX_POWER) * 100);
             powerFill.style.width = `${pct}%`;
-            powerValue.textContent = dragging ? `${Math.round(pct)}%` : 'Ready';
-            powerHelp.textContent = dragging
-                ? 'Release to strike the cue ball.'
-                : (mode === '1p' && turn === 2 ? 'Computer is lining up.' : 'Drag away from the cue ball to set power.');
+            powerThumb.style.left = `${pct}%`;
+            powerValue.textContent = `${Math.round(pct)}%`;
+            shootBtn.disabled = (state !== 'aim' || shotPower < 1.5);
+            if (mode === '1p' && turn === 2) {
+                powerHelp.textContent = 'Computer is lining up.';
+            } else {
+                powerHelp.textContent = shotPower > 0 ? 'Press Shoot or release slider to fire.' : 'Drag slider to set power. Aim on the table.';
+            }
         }
 
         function initTable() {
@@ -1368,6 +1436,7 @@
 
             pointerPoint = { x: TABLE_WIDTH * 0.78, y: TABLE_HEIGHT / 2 };
             dragging = false;
+            shotPower = 0;
             cueBall.spinX = 0;
             cueBall.spinY = 0;
             cueBall.spinEnergy = 0;
@@ -1621,37 +1690,62 @@
             pointerPoint = getMousePos(event);
         }
 
-        function startDrag(event) {
-            if (mode === '1p' && turn === 2) return;
-            if (state === 'aim' && cueBall.active) {
-                dragging = true;
-                dragStart = getMousePos(event);
-                dragCurrent = dragStart;
-                pointerPoint = dragStart;
-                event.preventDefault();
-            }
-        }
-
-        function updateDrag(event) {
+        // Canvas only controls aim direction
+        function handleCanvasPointer(event) {
+            if (state !== 'aim') return;
             updatePointer(event);
-            if (dragging) {
-                dragCurrent = getMousePos(event);
-                event.preventDefault();
+            if (event.cancelable) event.preventDefault();
+        }
+
+        function fireShot() {
+            if (state !== 'aim' || !cueBall || !cueBall.active) return;
+            if (shotPower < 1.5) return;
+            const aim = getAimData();
+            if (aim) {
+                strikeCueBall(shotPower, aim.angle);
+                shotPower = 0;
+                updatePowerUI();
             }
         }
 
-        function endDrag() {
-            if (dragging && state === 'aim') {
-                dragging = false;
-                const dx = dragStart.x - dragCurrent.x;
-                const dy = dragStart.y - dragCurrent.y;
-                const power = Math.min(Math.hypot(dx, dy) * 0.15, 30);
-                if (power > 1) {
-                    const angle = Math.atan2(dy, dx);
-                    strikeCueBall(power, angle);
-                }
-            }
+        // Power slider logic
+        const powerMeter = document.getElementById('power-meter');
+        const powerThumb = document.getElementById('power-thumb');
+        const shootBtn = document.getElementById('shoot-btn');
+
+        function setPowerFromPointer(clientX) {
+            const rect = powerMeter.getBoundingClientRect();
+            const pct = Math.max(0, Math.min(1, (clientX - rect.left) / rect.width));
+            shotPower = pct * MAX_POWER;
+            updatePowerUI();
         }
+
+        powerMeter.addEventListener('pointerdown', (e) => {
+            if (state !== 'aim') return;
+            powerSliderDragging = true;
+            powerMeter.setPointerCapture(e.pointerId);
+            setPowerFromPointer(e.clientX);
+            e.preventDefault();
+        });
+        powerMeter.addEventListener('pointermove', (e) => {
+            if (!powerSliderDragging) return;
+            setPowerFromPointer(e.clientX);
+        });
+        powerMeter.addEventListener('pointerup', (e) => {
+            if (!powerSliderDragging) return;
+            powerSliderDragging = false;
+            // Fire on release if power is set
+            if (shotPower >= 1.5) {
+                fireShot();
+            }
+        });
+        powerMeter.addEventListener('pointercancel', () => {
+            powerSliderDragging = false;
+        });
+
+        shootBtn.addEventListener('click', () => {
+            fireShot();
+        });
 
         function updateUI() {
             if (turn === 1) {
@@ -1672,14 +1766,13 @@
             }
         }
 
-        canvas.addEventListener('mousedown', startDrag);
-        canvas.addEventListener('mousemove', updatePointer);
-        window.addEventListener('mousemove', updateDrag);
-        window.addEventListener('mouseup', endDrag);
-        canvas.addEventListener('touchstart', startDrag, { passive: false });
-        canvas.addEventListener('touchmove', updateDrag, { passive: false });
-        window.addEventListener('touchmove', updateDrag, { passive: false });
-        window.addEventListener('touchend', endDrag);
+        // Canvas events — aim only, no shooting
+        canvas.addEventListener('mousemove', handleCanvasPointer);
+        canvas.addEventListener('touchmove', handleCanvasPointer, { passive: false });
+        canvas.addEventListener('touchstart', (e) => {
+            handleCanvasPointer(e);
+            if (e.cancelable) e.preventDefault();
+        }, { passive: false });
 
         spinPad.addEventListener('pointerdown', (event) => {
             spinPad.setPointerCapture(event.pointerId);

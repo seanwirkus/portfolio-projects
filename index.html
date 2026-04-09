@@ -52,7 +52,7 @@
                     <span class="badge-dot"></span>
                     Available for Full-time roles
                 </div>
-                <h1 class="hero-title">Engineering at the Intersection of <span>Health & Tech</span></h1>
+                <h1 class="hero-title">Engineering at the <br>Intersection of <span>Health & Tech</span></h1>
                 <div class="hero-roles" aria-label="Rotating roles">
                     <span class="hero-role-static">I build&nbsp;</span>
                     <span class="hero-role-typed" id="typed-role"></span><span class="typed-cursor">|</span>
@@ -179,7 +179,7 @@
                         <div class="cp-mini-dash">
                             <div class="cp-mini-top">
                                 <div class="cp-speed-box">
-                                    <span class="cp-speed-num">42</span>
+                                    <span class="cp-speed-num mph-value">42</span>
                                     <span class="cp-speed-unit">MPH</span>
                                 </div>
                                 <div class="cp-nav-pill">
@@ -225,9 +225,41 @@
 
                 <article class="project-card slide-up tilt-elem" style="--delay: 4; cursor: pointer;" onclick="window.location.href='freewayfrenzy.html'">
                     <div class="project-image-placeholder freeway-bg">
-                        <div class="road">
-                            <div class="road-lines"></div>
-                            <div class="car-block"></div>
+                        <div class="fw-scene">
+                            <div class="fw-shoulder fw-shoulder-l"></div>
+                            <div class="fw-road-surface">
+                                <div class="fw-edge fw-edge-l"></div>
+                                <div class="fw-lane-mark fm1"></div>
+                                <div class="fw-lane-mark fm2"></div>
+                                <div class="fw-lane-mark fm3"></div>
+                                <div class="fw-lane-mark fm4"></div>
+                                <div class="fw-edge fw-edge-r"></div>
+                                <!-- Side traffic (safe lanes) -->
+                                <div class="fw-obs fw-obs-side1"></div>
+                                <div class="fw-obs fw-obs-side2"></div>
+                                <!-- Crash obstacle (same lane as player) -->
+                                <div class="fw-obs fw-obs-crash"></div>
+                                <!-- Player car -->
+                                <div class="fw-player-car">
+                                    <div class="fw-pc-roof"></div>
+                                    <div class="fw-pc-wind"></div>
+                                    <div class="fw-pc-hl fw-pc-hl-l"></div>
+                                    <div class="fw-pc-hl fw-pc-hl-r"></div>
+                                    <div class="fw-pc-tl fw-pc-tl-l"></div>
+                                    <div class="fw-pc-tl fw-pc-tl-r"></div>
+                                </div>
+                                <!-- Crash effects -->
+                                <div class="fw-crash-flash"></div>
+                                <div class="fw-debris fw-d1"></div>
+                                <div class="fw-debris fw-d2"></div>
+                                <div class="fw-debris fw-d3"></div>
+                                <div class="fw-debris fw-d4"></div>
+                                <div class="fw-debris fw-d5"></div>
+                                <div class="fw-debris fw-d6"></div>
+                            </div>
+                            <div class="fw-shoulder fw-shoulder-r"></div>
+                            <div class="fw-hud">SCORE: 142</div>
+                            <div class="fw-hud-go">GAME OVER</div>
                         </div>
                     </div>
                     <div class="project-info">
@@ -264,8 +296,6 @@
                             <div class="ps-pocket ps-pocket-br"></div>
                             <div class="ps-diamond ps-diamond-left"></div>
                             <div class="ps-diamond ps-diamond-right"></div>
-                            <div class="ps-aim-trace"></div>
-                            <div class="ps-cue-shadow"></div>
                             <div class="ps-cue-stick"></div>
                             <div class="ps-ball ps-ball--cue">
                                 <span class="ps-ball-core"></span>
@@ -274,19 +304,14 @@
                                 <span class="ps-ball-core"></span>
                                 <span class="ps-ball-mark">1</span>
                             </div>
-                            <div class="ps-ball ps-ball--two ps-ball--stripe">
+                            <div class="ps-ball ps-ball--eight">
                                 <span class="ps-ball-core"></span>
-                                <span class="ps-ball-mark">10</span>
+                                <span class="ps-ball-mark">8</span>
                             </div>
                             <div class="ps-ball ps-ball--three">
                                 <span class="ps-ball-core"></span>
                                 <span class="ps-ball-mark">3</span>
                             </div>
-                            <div class="ps-ball ps-ball--eight">
-                                <span class="ps-ball-core"></span>
-                                <span class="ps-ball-mark">8</span>
-                            </div>
-                            <div class="ps-impact-glow"></div>
                         </div>
                     </div>
                     <div class="project-info">

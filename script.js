@@ -163,8 +163,8 @@ document.addEventListener('DOMContentLoaded', () => {
         });
 
     // 6. Live MPH counter synced with gauge animation
-    const mphEl = document.querySelector('.mph-value');
-    if (mphEl) {
+    const mphEls = document.querySelectorAll('.mph-value');
+    if (mphEls.length > 0) {
         // Keyframes match the CSS fillGauge / sweepNeedle animation (3s loop)
         // 0% → 0mph, 30% → 65mph, 60% → 88mph, 80% → 48mph, 100% → 0mph
         const keyframes = [
@@ -190,7 +190,10 @@ document.addEventListener('DOMContentLoaded', () => {
                     break;
                 }
             }
-            mphEl.textContent = Math.round(mph);
+            
+            const roundedMph = Math.round(mph);
+            mphEls.forEach(el => el.textContent = roundedMph);
+            
             requestAnimationFrame(animateMPH);
         }
         requestAnimationFrame(animateMPH);
@@ -308,7 +311,22 @@ document.addEventListener('DOMContentLoaded', () => {
     if (heroCanvas) {
         const ctx = heroCanvas.getContext('2d');
         let particles = [];
-        const particleCount = 35;
+        const particleCount = 45; // Increased particle count for more interaction
+        let mousePos = { x: -1000, y: -1000 };
+        const heroSection = document.querySelector('.hero');
+        
+        if (heroSection) {
+            heroSection.addEventListener('mousemove', (e) => {
+                const rect = heroCanvas.getBoundingClientRect();
+                mousePos.x = e.clientX - rect.left;
+                mousePos.y = e.clientY - rect.top;
+            });
+            heroSection.addEventListener('mouseleave', () => {
+                mousePos.x = -1000;
+                mousePos.y = -1000;
+            });
+        }
+
         const colors = [
             'rgba(59, 130, 246, 0.35)',
             'rgba(139, 92, 246, 0.3)',
@@ -353,14 +371,29 @@ document.addEventListener('DOMContentLoaded', () => {
 
             // Draw faint connecting lines
             for (let i = 0; i < particles.length; i++) {
+                // Connect to mouse with interactive glow
+                const mouseDist = Math.hypot(particles[i].x - mousePos.x, particles[i].y - mousePos.y);
+                if (mouseDist < 180) {
+                    ctx.beginPath();
+                    ctx.moveTo(particles[i].x, particles[i].y);
+                    ctx.lineTo(mousePos.x, mousePos.y);
+                    ctx.strokeStyle = `rgba(139, 92, 246, ${0.2 * (1 - mouseDist / 180)})`;
+                    ctx.lineWidth = 1.5;
+                    ctx.stroke();
+                    
+                    // slight attraction to mouse for interactive feel
+                    particles[i].dx += (mousePos.x - particles[i].x) * 0.00015;
+                    particles[i].dy += (mousePos.y - particles[i].y) * 0.00015;
+                }
+
                 for (let j = i + 1; j < particles.length; j++) {
                     const dist = Math.hypot(particles[i].x - particles[j].x, particles[i].y - particles[j].y);
                     if (dist < 120) {
                         ctx.beginPath();
                         ctx.moveTo(particles[i].x, particles[i].y);
                         ctx.lineTo(particles[j].x, particles[j].y);
-                        ctx.strokeStyle = `rgba(59, 130, 246, ${0.06 * (1 - dist / 120)})`;
-                        ctx.lineWidth = 0.5;
+                        ctx.strokeStyle = `rgba(59, 130, 246, ${0.08 * (1 - dist / 120)})`;
+                        ctx.lineWidth = 0.8;
                         ctx.stroke();
                     }
                 }

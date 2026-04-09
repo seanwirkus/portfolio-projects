@@ -125,6 +125,42 @@
     gap: 14px;
   }
 
+  .playback-row {
+    display: grid;
+    grid-template-columns: 1.2fr 0.9fr 0.9fr;
+    gap: 8px;
+    margin-top: 2px;
+  }
+
+  .control-btn {
+    min-height: 34px;
+    border-radius: 8px;
+    background: var(--panel);
+    border: 1px solid var(--panel-border);
+    color: var(--text);
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'Space Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 0.03em;
+    transition: all 0.2s;
+    user-select: none;
+  }
+
+  .control-btn:hover {
+    background: var(--card-hover);
+    border-color: var(--accent);
+  }
+
+  .control-btn--primary {
+    background: rgba(59,130,246,0.16);
+    border-color: rgba(59,130,246,0.45);
+    color: #dbeafe;
+    font-weight: 700;
+  }
+
   .control-group label {
     display: flex;
     justify-content: space-between;
@@ -304,56 +340,6 @@
     font-weight: 700;
   }
 
-  .playback-controls {
-    position: absolute;
-    top: 12px;
-    right: 16px;
-    display: flex;
-    gap: 8px;
-    z-index: 10;
-  }
-
-  .play-btn {
-    width: 32px;
-    height: 32px;
-    border-radius: 6px;
-    background: var(--panel);
-    border: 1px solid var(--panel-border);
-    color: var(--text);
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    transition: all 0.2s;
-    font-size: 14px;
-  }
-
-  .play-btn:hover {
-    background: var(--card-hover);
-    border-color: var(--accent);
-  }
-
-  .speed-display {
-    height: 32px;
-    padding: 0 10px;
-    border-radius: 6px;
-    background: var(--panel);
-    border: 1px solid var(--panel-border);
-    color: var(--text-dim);
-    font-family: 'Space Mono', monospace;
-    font-size: 11px;
-    display: flex;
-    align-items: center;
-    cursor: pointer;
-    user-select: none;
-    transition: all 0.2s;
-  }
-
-  .speed-display:hover {
-    border-color: var(--accent);
-    color: var(--text);
-  }
-
   @media (prefers-reduced-motion: reduce) {
     * { transition: none !important; }
   }
@@ -381,6 +367,11 @@
       <label>Speed <span id="speedVal">25 mm/s</span></label>
       <input type="range" id="speedSlider" min="10" max="50" value="25">
     </div>
+    <div class="playback-row">
+      <button class="control-btn control-btn--primary" id="playBtn" title="Play or pause animation" aria-label="Play animation">Play</button>
+      <button class="control-btn" id="speedDisplay" title="Cycle playback speed">1x</button>
+      <button class="control-btn" id="resetBtn" title="Reset timeline to start">Reset</button>
+    </div>
   </div>
 
   <div class="section-label">Hemodynamics</div>
@@ -396,11 +387,6 @@
 </div>
 
 <div class="main">
-  <div class="playback-controls">
-    <button class="play-btn" id="playBtn" title="Play/Pause">&#9654;</button>
-    <div class="speed-display" id="speedDisplay" title="Click to cycle speed">1x</div>
-  </div>
-
   <div class="diagram-container" id="ekgContainer">
     <div class="diagram-label ekg-label">Lead II EKG</div>
     <canvas id="ekgCanvas"></canvas>
@@ -607,12 +593,14 @@ const PHASES = [
 let currentCondition = 'normal';
 let heartRate = 75;
 let paperSpeed = 25;
-let playing = true;
+let playing = false;
 let playbackSpeed = 1;
 let playheadT = 0;
 let ekgCanvas, wiggersCanvas, ekgCtx, wiggersCtx;
 let dpr = window.devicePixelRatio || 1;
 let lastFrame = 0;
+const speeds = [0.25, 0.5, 1, 2, 4];
+let speedIdx = 2;
 
 /* ---- Math Utilities ---- */
 function gaussian(x, amp, center, width) {
@@ -1269,6 +1257,19 @@ function updatePhaseText() {
   }
 }
 
+function updatePlaybackUI() {
+  const playBtn = document.getElementById('playBtn');
+  if (!playBtn) return;
+  playBtn.textContent = playing ? 'Pause' : 'Play';
+  playBtn.setAttribute('aria-label', playing ? 'Pause animation' : 'Play animation');
+}
+
+function updateSpeedUI() {
+  const speedDisplay = document.getElementById('speedDisplay');
+  if (!speedDisplay) return;
+  speedDisplay.textContent = `${speeds[speedIdx]}x`;
+}
+
 /* ---- Animation Loop ---- */
 function animate(timestamp) {
   if (!lastFrame) lastFrame = timestamp;
@@ -1349,15 +1350,17 @@ function init() {
 
   document.getElementById('playBtn').addEventListener('click', () => {
     playing = !playing;
-    document.getElementById('playBtn').innerHTML = playing ? '&#9646;&#9646;' : '&#9654;';
+    updatePlaybackUI();
   });
 
-  const speeds = [0.25, 0.5, 1, 2, 4];
-  let speedIdx = 2;
   document.getElementById('speedDisplay').addEventListener('click', () => {
     speedIdx = (speedIdx + 1) % speeds.length;
     playbackSpeed = speeds[speedIdx];
-    document.getElementById('speedDisplay').textContent = speeds[speedIdx] + 'x';
+    updateSpeedUI();
+  });
+
+  document.getElementById('resetBtn').addEventListener('click', () => {
+    playheadT = 0;
   });
 
   setupCanvasInteraction(ekgCanvas, 3);
@@ -1365,6 +1368,8 @@ function init() {
 
   window.addEventListener('resize', resizeCanvases);
 
+  updatePlaybackUI();
+  updateSpeedUI();
   requestAnimationFrame(animate);
 }
 
