@@ -134,35 +134,55 @@
             this.color = color;
             this.num = num;
             this.active = true;
+            this.rotation = Math.random() * Math.PI * 2; // for subtle spin
         }
         draw(ctx) {
             if (!this.active) return;
+            
+            // Cast shadow
+            ctx.beginPath();
+            ctx.arc(this.x + 3, this.y + 4, BALL_RADIUS, 0, Math.PI*2);
+            ctx.fillStyle = 'rgba(0,0,0,0.4)';
+            ctx.fill();
+
             ctx.beginPath();
             ctx.arc(this.x, this.y, BALL_RADIUS, 0, Math.PI*2);
             ctx.fillStyle = this.color;
             ctx.fill();
-            
-            // Shading
-            let grad = ctx.createRadialGradient(this.x-4, this.y-4, 2, this.x, this.y, BALL_RADIUS);
-            grad.addColorStop(0, 'rgba(255,255,255,0.4)');
-            grad.addColorStop(1, 'rgba(0,0,0,0.3)');
-            ctx.fillStyle = grad;
-            ctx.fill();
 
+            // Striping logic
             if (this.type === 'stripe') {
-                ctx.fillStyle = 'white';
-                ctx.beginPath(); ctx.arc(this.x, this.y, BALL_RADIUS*0.7, 0, Math.PI*0.8); ctx.fill();
-                ctx.beginPath(); ctx.arc(this.x, this.y, BALL_RADIUS*0.7, Math.PI, Math.PI*1.8); ctx.fill();
+                ctx.save();
+                ctx.translate(this.x, this.y);
+                ctx.rotate(this.rotation);
+                ctx.fillStyle = '#f8fafc';
+                ctx.beginPath(); ctx.arc(0, 0, BALL_RADIUS*0.75, Math.PI*1.2, Math.PI*1.8); ctx.fill();
+                ctx.beginPath(); ctx.arc(0, 0, BALL_RADIUS*0.75, Math.PI*0.2, Math.PI*0.8); ctx.fill();
+                ctx.restore();
             } else if (this.type !== 'cue') {
-                ctx.fillStyle = 'white';
-                ctx.beginPath(); ctx.arc(this.x, this.y, BALL_RADIUS/2, 0, Math.PI*2); ctx.fill();
+                ctx.fillStyle = '#f8fafc';
+                ctx.beginPath(); ctx.arc(this.x, this.y, BALL_RADIUS*0.5, 0, Math.PI*2); ctx.fill();
             }
 
             if (this.num && this.type !== 'cue') {
-                ctx.fillStyle = 'black';
-                ctx.font = '10px Arial'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
-                ctx.fillText(this.num, this.x, this.y);
+                ctx.save();
+                ctx.translate(this.x, this.y);
+                // Keep number generally upright or softly rotated
+                ctx.fillStyle = '#111827';
+                ctx.font = 'bold 11px Inter, sans-serif'; 
+                ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+                ctx.fillText(this.num, 0, 1);
+                ctx.restore();
             }
+
+            // Shiny specular highlight and volume shading
+            let grad = ctx.createRadialGradient(this.x - BALL_RADIUS*0.3, this.y - BALL_RADIUS*0.3, BALL_RADIUS*0.1, this.x, this.y, BALL_RADIUS);
+            grad.addColorStop(0, 'rgba(255,255,255,0.8)');
+            grad.addColorStop(0.4, 'rgba(255,255,255,0.1)');
+            grad.addColorStop(0.8, 'rgba(0,0,0,0.2)');
+            grad.addColorStop(1, 'rgba(0,0,0,0.6)');
+            ctx.fillStyle = grad;
+            ctx.beginPath(); ctx.arc(this.x, this.y, BALL_RADIUS, 0, Math.PI*2); ctx.fill();
         }
     }
 
@@ -254,12 +274,16 @@
             }
         }
 
-        // Friction & checks
+        // Friction & checks (and spin visualization)
         for (let b of balls) {
             if (!b.active) continue;
             b.vx *= FRICTION; b.vy *= FRICTION;
-            if (Math.hypot(b.vx, b.vy) < 0.05) { b.vx = 0; b.vy = 0; }
-            else isMoving = true;
+            let speed = Math.hypot(b.vx, b.vy);
+            if (speed < 0.05) { b.vx = 0; b.vy = 0; }
+            else { 
+                isMoving = true;
+                b.rotation += speed * 0.05; // Visual spin based on speed
+            }
         }
 
         if (!isMoving && state === 'moving') {
@@ -295,42 +319,92 @@
     function draw() {
         ctx.clearRect(0, 0, canvas.width, canvas.height);
         
-        // Table frame
-        ctx.fillStyle = '#1e3a8a'; // Deep blue table border
+        // Wood edge gradient
+        let woodGrad = ctx.createLinearGradient(0, 0, 0, TABLE_HEIGHT);
+        woodGrad.addColorStop(0, '#78350f');
+        woodGrad.addColorStop(1, '#451a03');
+        ctx.fillStyle = woodGrad;
         ctx.fillRect(0, 0, TABLE_WIDTH, TABLE_HEIGHT);
         
-        // Wood edge
-        ctx.fillStyle = '#92400e';
-        ctx.fillRect(0,0, TABLE_WIDTH, 20); ctx.fillRect(0, TABLE_HEIGHT-20, TABLE_WIDTH, 20);
-        ctx.fillRect(0,0, 20, TABLE_HEIGHT); ctx.fillRect(TABLE_WIDTH-20, 0, 20, TABLE_HEIGHT);
+        // Inner shadows/bevels on wood
+        ctx.strokeStyle = '#92400e'; ctx.lineWidth = 4;
+        ctx.strokeRect(2, 2, TABLE_WIDTH-4, TABLE_HEIGHT-4);
+        ctx.strokeStyle = '#290f02'; ctx.lineWidth = 4;
+        ctx.strokeRect(18, 18, TABLE_WIDTH-36, TABLE_HEIGHT-36);
 
-        // Cloth
-        ctx.fillStyle = '#065f46'; // Classic pool green cloth
+        // Cloth with radial vignette
+        let clothGrad = ctx.createRadialGradient(TABLE_WIDTH/2, TABLE_HEIGHT/2, 50, TABLE_WIDTH/2, TABLE_HEIGHT/2, 600);
+        clothGrad.addColorStop(0, '#047857'); // bright center
+        clothGrad.addColorStop(1, '#064e3b'); // dark corners
+        ctx.fillStyle = clothGrad;
         ctx.fillRect(20, 20, TABLE_WIDTH-40, TABLE_HEIGHT-40);
 
         // Pockets
-        ctx.fillStyle = '#000';
         for (let p of pockets) {
-            ctx.beginPath(); ctx.arc(p.x, p.y, POCKET_RADIUS, 0, Math.PI*2); ctx.fill();
+            let pgrad = ctx.createRadialGradient(p.x, p.y, POCKET_RADIUS*0.2, p.x, p.y, POCKET_RADIUS);
+            pgrad.addColorStop(0, '#000000');
+            pgrad.addColorStop(0.8, '#111827');
+            pgrad.addColorStop(1, '#27272a');
+            ctx.beginPath(); ctx.arc(p.x, p.y, POCKET_RADIUS, 0, Math.PI*2); 
+            ctx.fillStyle = pgrad; ctx.fill();
+            ctx.strokeStyle = '#1f2937'; ctx.lineWidth = 2; ctx.stroke();
         }
 
         balls.forEach(b => b.draw(ctx));
 
-        // Aiming line
+        // Aiming line and Pool Cue
         if (state === 'aim' && dragging && cueBall.active) {
             let dx = dragStart.x - dragCurrent.x;
             let dy = dragStart.y - dragCurrent.y;
             let power = Math.hypot(dx, dy);
             let angle = Math.atan2(dy, dx);
+            let constrainedPower = Math.min(power * 0.15, 30);
             
+            // Draw aiming projection line
             ctx.beginPath();
             ctx.moveTo(cueBall.x, cueBall.y);
-            ctx.lineTo(cueBall.x + Math.cos(angle) * power * 2, cueBall.y + Math.sin(angle) * power * 2);
-            ctx.setLineDash([5, 5]);
-            ctx.strokeStyle = `rgba(255, 255, 255, ${Math.min(power/100, 1)})`;
+            // Show longer line based on power
+            let lineLen = 100 + constrainedPower * 10;
+            ctx.lineTo(cueBall.x + Math.cos(angle) * lineLen, cueBall.y + Math.sin(angle) * lineLen);
+            ctx.setLineDash([8, 8]);
+            ctx.strokeStyle = `rgba(255, 255, 255, ${Math.min(power/80, 0.4)})`;
             ctx.lineWidth = 2;
             ctx.stroke();
             ctx.setLineDash([]);
+            
+            // Draw realistic Pool Cue
+            ctx.save();
+            ctx.translate(cueBall.x, cueBall.y);
+            ctx.rotate(angle + Math.PI); // Rotate AWAY from the direction of aim
+            
+            // Pullback distance based on power
+            let pullBack = BALL_RADIUS + 5 + Math.min(power*0.8, 40);
+            
+            // Cue shadow
+            ctx.fillStyle = 'rgba(0,0,0,0.5)';
+            ctx.fillRect(pullBack + 5, 5, 250, 4);
+
+            // Cue stick (tapered)
+            let cueGrad = ctx.createLinearGradient(pullBack, 0, pullBack + 250, 0);
+            cueGrad.addColorStop(0, '#fcd34d'); // light maple shaft
+            cueGrad.addColorStop(0.4, '#d97706'); // middle
+            cueGrad.addColorStop(0.45, '#111827'); // wrap start
+            cueGrad.addColorStop(0.85, '#111827'); // wrap end
+            cueGrad.addColorStop(1, '#451a03'); // butt
+            
+            ctx.beginPath();
+            ctx.moveTo(pullBack, -2);
+            ctx.lineTo(pullBack + 250, -4);
+            ctx.lineTo(pullBack + 250, 4);
+            ctx.lineTo(pullBack, 2);
+            ctx.fillStyle = cueGrad;
+            ctx.fill();
+
+            // Cue Tip
+            ctx.fillStyle = '#38bdf8'; // blue chalk tip
+            ctx.fillRect(pullBack - 3, -1.8, 3, 3.6);
+            
+            ctx.restore();
         }
 
         if (state === 'moving' || state === 'aim') collisionSystem();
