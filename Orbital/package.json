@@ -1,0 +1,15 @@
+{
+  "name": "orbital-mosaic-app",
+  "version": "1.0.0",
+  "description": "Web interface for MOSAIC Chemical Synthesis Framework",
+  "main": "app.js",
+  "scripts": {
+    "start": "node app.js",
+    "setup": "bash setup_mosaic.sh"
+  },
+  "dependencies": {
+    "express": "^4.18.2",
+    "cross-spawn": "^7.0.3"
+  },
+  "license": "MIT"
+}
