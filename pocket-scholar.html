@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pocket Scholar | Sean</title>
+    <meta name="description" content="Physics-based interactive pool simulator built from scratch using HTML5 Canvas and JavaScript physics simulations.">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+    <link rel="icon" type="image/svg+xml" href="favicon.svg">
+</head>
+<body>
+    <div class="cursor-dot"></div>
+    <div class="cursor-outline"></div>
+    <div class="bg-gradient bg-gradient-1"></div>
+    <div class="bg-gradient bg-gradient-2"></div>
+    <div class="bg-noise"></div>
+
+    <nav class="navbar">
+        <div class="nav-content">
+            <div class="logo magnetic" onclick="window.location.href='index.html'">S.</div>
+            <ul class="nav-links">
+                <li><a href="index.html#projects" class="magnetic">Back to Portfolio</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <main class="container project-page" style="--project-accent:#10b981;--project-accent-alt:#3b82f6;">
+        <header class="project-page-header section-animate">
+            <a href="index.html#projects" class="back-link magnetic">← Back to projects</a>
+            <div class="project-kicker">Physics & Interactive Dev</div>
+            <h1 class="project-page-title">Pocket Scholar</h1>
+            <p class="project-summary">
+                A custom-built physics engine running an interactive billiards simulation. Originally a math/physics experiment, Pocket Scholar has evolved into a fully playable pool game with multi-stage collision resolution, friction models, and an AI opponent.
+            </p>
+            <div class="project-callout"><strong>Embedded here:</strong> The full playable simulator running in the browser using HTML5 Canvas.</div>
+        </header>
+
+        <section class="project-stage-card section-animate">
+            <div class="project-stage-bar">
+                <div class="project-stage-label">Live Pool Simulator</div>
+                <div class="project-stage-actions">
+                    <a class="project-inline-link" href="embeds/app-shell.html?src=../PocketScholar/index.html&amp;projectHref=../pocket-scholar.html&amp;title=Pocket%20Scholar&amp;accent=10b981" target="_blank" rel="noreferrer">Open full app</a>
+                </div>
+            </div>
+            
+            <div class="project-stage-insights">
+                <article class="project-stage-insight">
+                    <span>Core Engine</span>
+                    <strong>Custom Physics</strong>
+                    <p>Sub-stepped iterations ensure balls don't clip through each other at high speeds.</p>
+                </article>
+                <article class="project-stage-insight">
+                    <span>AI Opponent</span>
+                    <strong>Calculated Vectors</strong>
+                    <p>Computer calculates target angles with slight variance added for a natural feel.</p>
+                </article>
+                <article class="project-stage-insight">
+                    <span>Rendering</span>
+                    <strong>Canvas 2D</strong>
+                    <p>Fast, immediate-mode rendering with custom radial gradients for 3D ball depth.</p>
+                </article>
+            </div>
+
+            <div class="project-frame-shell project-frame-shell--preview ps-desktop-frame" style="--frame-height:500px; --frame-ratio:1024 / 600;">
+                <iframe
+                    class="project-frame"
+                    src="embeds/preview-shell.html?src=../PocketScholar/index.html&amp;width=1024&amp;height=600&amp;accent=10b981&amp;label=Playable%20Build&amp;sizeLabel=1024%20%C3%97%20600"
+                    title="Pocket Scholar preview"
+                    loading="eager"
+                    scrolling="no"
+                ></iframe>
+            </div>
+            <div class="project-frame-shell ps-mobile-frame" style="min-height: 400px; max-height: 80vh;">
+                <iframe
+                    class="project-frame"
+                    src="PocketScholar/index.html"
+                    title="Pocket Scholar — mobile"
+                    loading="eager"
+                    style="width:100%; height:100%; border:none; border-radius: 0 0 12px 12px;"
+                ></iframe>
+            </div>
+            <style>
+                .ps-mobile-frame { display: none; }
+                @media (pointer: coarse) {
+                    .ps-desktop-frame { display: none !important; }
+                    .ps-mobile-frame { display: block !important; }
+                }
+            </style>
+        </section>
+
+        <section class="project-meta-grid section-animate">
+            <article class="project-meta-card">
+                <h3>Tech Stack</h3>
+                <div class="project-tag-list">
+                    <span class="tag">JavaScript</span>
+                    <span class="tag">HTML5 Canvas</span>
+                    <span class="tag">Math/Physics</span>
+                    <span class="tag">Algorithms</span>
+                </div>
+            </article>
+            <article class="project-meta-card">
+                <h3>Sub-Stepping & Stability</h3>
+                <p>
+                    Pool breaks involve a high density of simultaneous collisions. In naive collision engines, moving balls large distances per frame causes them to overlap, generating "explosive" unrealistic energy. 
+                </p>
+                <p style="margin-top: 1rem; color: var(--text-muted);">
+                    Pocket Scholar uses iterative sub-stepping, solving constraints multiple times per visual frame to lock the table state accurately.
+                </p>
+            </article>
+        </section>
+    </main>
+
+    <footer style="padding: 4rem 2rem; text-align: center; color: rgba(226, 232, 240, 0.4); font-size: 0.85rem;">
+        &copy; 2026 Sean. All rights reserved.
+    </footer>
+
+    <script src="script.js"></script>
+</body>
+</html>

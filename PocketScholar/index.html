@@ -1,0 +1,398 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Pocket Scholar - Pool Simulator</title>
+    <style>
+        body, html {
+            margin: 0; padding: 0;
+            width: 100%; height: 100%;
+            background-color: #111827;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            color: #f3f4f6;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+        #game-container {
+            position: relative;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.8);
+            border-radius: 12px;
+            overflow: hidden;
+        }
+        canvas {
+            display: block;
+            touch-action: none;
+            cursor: crosshair;
+        }
+        #ui-overlay {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            pointer-events: none;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+        .header-bar {
+            display: flex; justify-content: space-between; align-items: center;
+            padding: 12px 20px;
+            background: linear-gradient(to bottom, rgba(0,0,0,0.6), transparent);
+        }
+        .status {
+            font-size: 1.2rem; font-weight: bold; text-shadow: 0 2px 4px rgba(0,0,0,0.8);
+            pointer-events: auto;
+        }
+        .controls {
+            padding: 16px; display: flex; justify-content: center; gap: 16px;
+            pointer-events: auto;
+        }
+        button {
+            background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.3);
+            color: white; padding: 8px 16px; border-radius: 6px; cursor: pointer;
+            font-weight: 500; backdrop-filter: blur(4px);
+            transition: background 0.2s;
+        }
+        button:hover { background: rgba(255,255,255,0.2); }
+        .mode-button.active { background: #3b82f6; border-color: #60a5fa; }
+        
+        #menu {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(17, 24, 39, 0.9);
+            display: flex; flex-direction: column; justify-content: center; align-items: center;
+            pointer-events: auto; z-index: 100;
+        }
+        h1 { font-size: 3rem; margin-bottom: 0.5rem; color: #10b981; }
+        p.subtitle { margin-bottom: 2rem; color: #9ca3af; }
+        .menu-btn { font-size: 1.2rem; padding: 12px 32px; margin: 8px; width: 240px; background: #2563eb; border: none; }
+        .menu-btn:hover { background: #1d4ed8; }
+        .hidden { display: none !important; }
+    </style>
+</head>
+<body>
+
+<div id="game-container">
+    <canvas id="poolCanvas"></canvas>
+    
+    <div id="ui-overlay">
+        <div class="header-bar">
+            <div id="turn-indicator" class="status">Player 1's Turn</div>
+            <div class="status" style="display:flex;gap:12px;">
+                <span id="p1-score" style="color:#ef4444;">P1: Solids</span>
+                <span id="p2-score" style="color:#3b82f6;">P2: Stripes</span>
+            </div>
+        </div>
+        <div class="controls">
+            <button id="reset-btn">Reset Rack</button>
+            <button id="menu-btn">Main Menu</button>
+        </div>
+    </div>
+
+    <div id="menu">
+        <h1>Pocket Scholar</h1>
+        <p class="subtitle">Physics-based Interactive Billiards</p>
+        <button class="menu-btn" id="btn-1p">Play vs Computer</button>
+        <button class="menu-btn" id="btn-2p">Two Player Mode</button>
+    </div>
+</div>
+
+<script>
+    // Engine constants
+    const TABLE_WIDTH = 800;  const TABLE_HEIGHT = 450;
+    const BALL_RADIUS = 12;   const POCKET_RADIUS = 22;
+    const FRICTION = 0.988;   const RESTITUTION = 0.95;
+    
+    // Canvas setup
+    const canvas = document.getElementById('poolCanvas');
+    const ctx = canvas.getContext('2d');
+    canvas.width = TABLE_WIDTH; canvas.height = TABLE_HEIGHT;
+
+    // Game state
+    let balls = [];
+    let state = 'menu'; // menu, playing, moving, aim
+    let mode = '1p'; // 1p, 2p
+    let cueBall = null;
+    let turn = 1; // 1 or 2
+    let dragging = false, dragStart = {x: 0, y: 0}, dragCurrent = {x: 0, y: 0};
+    
+    const uiTurn = document.getElementById('turn-indicator');
+    const menuEl = document.getElementById('menu');
+
+    // Pocket positions
+    const pockets = [
+        {x: 20, y: 20}, {x: TABLE_WIDTH/2, y: 15}, {x: TABLE_WIDTH-20, y: 20},
+        {x: 20, y: TABLE_HEIGHT-20}, {x: TABLE_WIDTH/2, y: TABLE_HEIGHT-15}, {x: TABLE_WIDTH-20, y: TABLE_HEIGHT-20}
+    ];
+
+    class Ball {
+        constructor(x, y, type, color, num) {
+            this.x = x; this.y = y;
+            this.vx = 0; this.vy = 0;
+            this.type = type; // cue, solid, stripe, 8ball
+            this.color = color;
+            this.num = num;
+            this.active = true;
+        }
+        draw(ctx) {
+            if (!this.active) return;
+            ctx.beginPath();
+            ctx.arc(this.x, this.y, BALL_RADIUS, 0, Math.PI*2);
+            ctx.fillStyle = this.color;
+            ctx.fill();
+            
+            // Shading
+            let grad = ctx.createRadialGradient(this.x-4, this.y-4, 2, this.x, this.y, BALL_RADIUS);
+            grad.addColorStop(0, 'rgba(255,255,255,0.4)');
+            grad.addColorStop(1, 'rgba(0,0,0,0.3)');
+            ctx.fillStyle = grad;
+            ctx.fill();
+
+            if (this.type === 'stripe') {
+                ctx.fillStyle = 'white';
+                ctx.beginPath(); ctx.arc(this.x, this.y, BALL_RADIUS*0.7, 0, Math.PI*0.8); ctx.fill();
+                ctx.beginPath(); ctx.arc(this.x, this.y, BALL_RADIUS*0.7, Math.PI, Math.PI*1.8); ctx.fill();
+            } else if (this.type !== 'cue') {
+                ctx.fillStyle = 'white';
+                ctx.beginPath(); ctx.arc(this.x, this.y, BALL_RADIUS/2, 0, Math.PI*2); ctx.fill();
+            }
+
+            if (this.num && this.type !== 'cue') {
+                ctx.fillStyle = 'black';
+                ctx.font = '10px Arial'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+                ctx.fillText(this.num, this.x, this.y);
+            }
+        }
+    }
+
+    function initTable() {
+        balls = [];
+        cueBall = new Ball(200, TABLE_HEIGHT/2, 'cue', 'white', '');
+        balls.push(cueBall);
+
+        // Rack setup
+        const startX = 550;
+        const startY = TABLE_HEIGHT/2;
+        const rowSpacing = BALL_RADIUS * Math.sqrt(3) + 0.5;
+        let pidx = 1;
+        const colors = ['#ef4444', '#3b82f6', '#f59e0b', '#10b981', '#f97316', '#6366f1', '#8b5cf6'];
+        
+        let pattern = [
+            [ {type:'solid', c:colors[0]} ],
+            [ {type:'stripe', c:colors[1]}, {type:'solid', c:colors[2]} ],
+            [ {type:'solid', c:colors[3]}, {type:'8ball', c:'#111'}, {type:'stripe', c:colors[4]} ],
+            [ {type:'stripe', c:colors[5]}, {type:'solid', c:colors[6]}, {type:'stripe', c:colors[0]}, {type:'solid', c:colors[1]} ],
+            [ {type:'solid', c:colors[2]}, {type:'stripe', c:colors[3]}, {type:'solid', c:colors[4]}, {type:'stripe', c:colors[5]}, {type:'stripe', c:colors[6]} ]
+        ];
+
+        let num = 1;
+        for (let row = 0; row < 5; row++) {
+            for (let col = 0; col <= row; col++) {
+                let d = pattern[row][col];
+                let bx = startX + row * rowSpacing;
+                let by = startY - (row * BALL_RADIUS) + (col * BALL_RADIUS * 2) + col * 0.5;
+                let n = d.type==='8ball' ? 8 : (d.type==='stripe' ? num+8 : num);
+                balls.push(new Ball(bx, by, d.type, d.c, n));
+                if (d.type !== '8ball') num++;
+            }
+        }
+        state = 'aim';
+        updateUI();
+    }
+
+    function collisionSystem() {
+        // Substeps for stability
+        const STEPS = 4;
+        let isMoving = false;
+        
+        for (let step = 0; step < STEPS; step++) {
+            for (let i = 0; i < balls.length; i++) {
+                let b = balls[i];
+                if (!b.active) continue;
+                
+                b.x += (b.vx / STEPS);
+                b.y += (b.vy / STEPS);
+                
+                // Walls
+                if (b.x < BALL_RADIUS + 24) { b.x = BALL_RADIUS + 24; b.vx *= -RESTITUTION; }
+                if (b.x > TABLE_WIDTH - BALL_RADIUS - 24) { b.x = TABLE_WIDTH - BALL_RADIUS - 24; b.vx *= -RESTITUTION; }
+                if (b.y < BALL_RADIUS + 24) { b.y = BALL_RADIUS + 24; b.vy *= -RESTITUTION; }
+                if (b.y > TABLE_HEIGHT - BALL_RADIUS - 24) { b.y = TABLE_HEIGHT - BALL_RADIUS - 24; b.vy *= -RESTITUTION; }
+
+                // Pockets
+                for (let p of pockets) {
+                    let dx = b.x - p.x; let dy = b.y - p.y;
+                    if (Math.hypot(dx, dy) < POCKET_RADIUS) {
+                        b.active = false;
+                        if (b.type === 'cue') {
+                            setTimeout(() => { b.active = true; b.x = 200; b.y = TABLE_HEIGHT/2; b.vx = 0; b.vy = 0; }, 1000);
+                        }
+                    }
+                }
+            }
+
+            // Ball-ball
+            for (let i = 0; i < balls.length; i++) {
+                for (let j = i + 1; j < balls.length; j++) {
+                    let b1 = balls[i], b2 = balls[j];
+                    if (!b1.active || !b2.active) continue;
+                    let dx = b2.x - b1.x, dy = b2.y - b1.y;
+                    let dist = Math.hypot(dx, dy);
+                    if (dist < BALL_RADIUS * 2) {
+                        let nx = dx / dist, ny = dy / dist;
+                        let overlap = BALL_RADIUS * 2 - dist;
+                        b1.x -= nx * overlap / 2; b1.y -= ny * overlap / 2;
+                        b2.x += nx * overlap / 2; b2.y += ny * overlap / 2;
+                        
+                        let kx = b1.vx - b2.vx, ky = b1.vy - b2.vy;
+                        let p = 2 * (nx * kx + ny * ky) / 2;
+                        b1.vx -= p * nx * RESTITUTION; b1.vy -= p * ny * RESTITUTION;
+                        b2.vx += p * nx * RESTITUTION; b2.vy += p * ny * RESTITUTION;
+                    }
+                }
+            }
+        }
+
+        // Friction & checks
+        for (let b of balls) {
+            if (!b.active) continue;
+            b.vx *= FRICTION; b.vy *= FRICTION;
+            if (Math.hypot(b.vx, b.vy) < 0.05) { b.vx = 0; b.vy = 0; }
+            else isMoving = true;
+        }
+
+        if (!isMoving && state === 'moving') {
+            state = 'aim';
+            // Switch turns if missed, handle AI etc.
+            turn = turn === 1 ? 2 : 1;
+            updateUI();
+            if (mode === '1p' && turn === 2) setTimeout(computerTurn, 1000);
+        }
+    }
+
+    function computerTurn() {
+        if(state !== 'aim') return;
+        uiTurn.textContent = "Computer is thinking...";
+        setTimeout(() => {
+            let activeObj = balls.find(b => b.active && b.type !== 'cue' && b.type !== '8ball');
+            if(!activeObj) activeObj = balls.find(b => b.active && b.type === '8ball');
+            
+            if (activeObj && cueBall.active) {
+                let dx = activeObj.x - cueBall.x;
+                let dy = activeObj.y - cueBall.y;
+                let angle = Math.atan2(dy, dx) + (Math.random() - 0.5) * 0.1; // minor inaccuracy
+                let power = 15 + Math.random() * 10;
+                cueBall.vx = Math.cos(angle) * power;
+                cueBall.vy = Math.sin(angle) * power;
+                state = 'moving';
+            } else {
+                turn = 1; updateUI(); 
+            }
+        }, 1200);
+    }
+
+    function draw() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        
+        // Table frame
+        ctx.fillStyle = '#1e3a8a'; // Deep blue table border
+        ctx.fillRect(0, 0, TABLE_WIDTH, TABLE_HEIGHT);
+        
+        // Wood edge
+        ctx.fillStyle = '#92400e';
+        ctx.fillRect(0,0, TABLE_WIDTH, 20); ctx.fillRect(0, TABLE_HEIGHT-20, TABLE_WIDTH, 20);
+        ctx.fillRect(0,0, 20, TABLE_HEIGHT); ctx.fillRect(TABLE_WIDTH-20, 0, 20, TABLE_HEIGHT);
+
+        // Cloth
+        ctx.fillStyle = '#065f46'; // Classic pool green cloth
+        ctx.fillRect(20, 20, TABLE_WIDTH-40, TABLE_HEIGHT-40);
+
+        // Pockets
+        ctx.fillStyle = '#000';
+        for (let p of pockets) {
+            ctx.beginPath(); ctx.arc(p.x, p.y, POCKET_RADIUS, 0, Math.PI*2); ctx.fill();
+        }
+
+        balls.forEach(b => b.draw(ctx));
+
+        // Aiming line
+        if (state === 'aim' && dragging && cueBall.active) {
+            let dx = dragStart.x - dragCurrent.x;
+            let dy = dragStart.y - dragCurrent.y;
+            let power = Math.hypot(dx, dy);
+            let angle = Math.atan2(dy, dx);
+            
+            ctx.beginPath();
+            ctx.moveTo(cueBall.x, cueBall.y);
+            ctx.lineTo(cueBall.x + Math.cos(angle) * power * 2, cueBall.y + Math.sin(angle) * power * 2);
+            ctx.setLineDash([5, 5]);
+            ctx.strokeStyle = `rgba(255, 255, 255, ${Math.min(power/100, 1)})`;
+            ctx.lineWidth = 2;
+            ctx.stroke();
+            ctx.setLineDash([]);
+        }
+
+        if (state === 'moving' || state === 'aim') collisionSystem();
+        requestAnimationFrame(draw);
+    }
+
+    function getMousePos(e) {
+        let rect = canvas.getBoundingClientRect();
+        let clientX = e.touches ? e.touches[0].clientX : e.clientX;
+        let clientY = e.touches ? e.touches[0].clientY : e.clientY;
+        let scaleX = canvas.width / rect.width;
+        let scaleY = canvas.height / rect.height;
+        return { x: (clientX - rect.left) * scaleX, y: (clientY - rect.top) * scaleY };
+    }
+
+    function startDrag(e) {
+        if (mode === '1p' && turn === 2) return;
+        if (state === 'aim' && cueBall.active) {
+            dragging = true;
+            dragStart = getMousePos(e);
+            dragCurrent = dragStart;
+        }
+    }
+    function updateDrag(e) {
+        if (dragging) {
+            dragCurrent = getMousePos(e);
+            e.preventDefault();
+        }
+    }
+    function endDrag(e) {
+        if (dragging && state === 'aim') {
+            dragging = false;
+            let dx = dragStart.x - dragCurrent.x;
+            let dy = dragStart.y - dragCurrent.y;
+            let power = Math.min(Math.hypot(dx, dy) * 0.15, 30);
+            if (power > 1) {
+                let angle = Math.atan2(dy, dx);
+                cueBall.vx = Math.cos(angle) * power;
+                cueBall.vy = Math.sin(angle) * power;
+                state = 'moving';
+            }
+        }
+    }
+
+    canvas.addEventListener('mousedown', startDrag);
+    window.addEventListener('mousemove', updateDrag);
+    window.addEventListener('mouseup', endDrag);
+    canvas.addEventListener('touchstart', startDrag, {passive: false});
+    window.addEventListener('touchmove', updateDrag, {passive: false});
+    window.addEventListener('touchend', endDrag);
+
+    function updateUI() {
+        uiTurn.textContent = (turn === 1) ? "Player 1's Turn" : (mode === '2p' ? "Player 2's Turn" : "Computer's Turn");
+        uiTurn.style.color = turn === 1 ? '#ef4444' : '#3b82f6';
+    }
+
+    document.getElementById('btn-1p').onclick = () => { mode = '1p'; turn = 1; menuEl.classList.add('hidden'); initTable(); };
+    document.getElementById('btn-2p').onclick = () => { mode = '2p'; turn = 1; menuEl.classList.add('hidden'); initTable(); };
+    document.getElementById('reset-btn').onclick = initTable;
+    document.getElementById('menu-btn').onclick = () => { menuEl.classList.remove('hidden'); state = 'menu'; };
+
+    draw();
+</script>
+</body>
+</html>
