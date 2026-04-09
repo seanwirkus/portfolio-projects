@@ -240,6 +240,19 @@
 
         const fitPreview = () => {
             const availableWidth = Math.max(previewRoot.clientWidth - padding, 0);
+            
+            // Let the preview app handle its own mobile responsiveness natively instead of shrinking it
+            if (window.innerWidth <= 768) {
+                document.documentElement.style.setProperty('--frame-width', `100%`);
+                document.documentElement.style.setProperty('--frame-height', `100%`);
+                previewCanvas.style.transform = `translate(-50%, -50%) scale(1)`;
+                return;
+            }
+            
+            // Restore desktop frame dimensions if window resizing
+            document.documentElement.style.setProperty('--frame-width', `${frameWidth}px`);
+            document.documentElement.style.setProperty('--frame-height', `${frameHeight}px`);
+
             const availableHeight = Math.max(previewRoot.clientHeight - padding, 0);
             const scale = Math.max(
                 Math.min(availableWidth / frameWidth, availableHeight / frameHeight),
