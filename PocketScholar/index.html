@@ -793,6 +793,45 @@
             ctx.arc(TABLE_WIDTH * 0.7, TABLE_HEIGHT / 2, 4, 0, Math.PI * 2);
             ctx.fill();
 
+            ctx.save();
+            ctx.strokeStyle = 'rgba(255, 255, 255, 0.08)';
+            ctx.lineWidth = 1.1;
+            ctx.setLineDash([8, 10]);
+            ctx.beginPath();
+            ctx.moveTo(TABLE_WIDTH * 0.26, 34);
+            ctx.lineTo(TABLE_WIDTH * 0.26, TABLE_HEIGHT - 34);
+            ctx.stroke();
+            ctx.beginPath();
+            ctx.arc(TABLE_WIDTH * 0.26, TABLE_HEIGHT / 2, 56, -Math.PI / 2, Math.PI / 2);
+            ctx.stroke();
+            ctx.setLineDash([]);
+            ctx.restore();
+
+            ctx.save();
+            ctx.translate(596, TABLE_HEIGHT / 2);
+            ctx.beginPath();
+            ctx.moveTo(-20, -54);
+            ctx.lineTo(78, 0);
+            ctx.lineTo(-20, 54);
+            ctx.closePath();
+            ctx.strokeStyle = 'rgba(252, 211, 77, 0.16)';
+            ctx.lineWidth = 1.2;
+            ctx.setLineDash([6, 9]);
+            ctx.stroke();
+            ctx.restore();
+
+            ctx.save();
+            roundedRectPath(ctx, 24, 24, TABLE_WIDTH - 48, TABLE_HEIGHT - 48, 20);
+            ctx.clip();
+            const lightSweep = ctx.createLinearGradient(80, 0, 420, TABLE_HEIGHT);
+            lightSweep.addColorStop(0, 'rgba(255,255,255,0)');
+            lightSweep.addColorStop(0.4, 'rgba(255,255,255,0.035)');
+            lightSweep.addColorStop(0.58, 'rgba(255,255,255,0.01)');
+            lightSweep.addColorStop(1, 'rgba(255,255,255,0)');
+            ctx.fillStyle = lightSweep;
+            ctx.fillRect(38, 24, 340, TABLE_HEIGHT - 48);
+            ctx.restore();
+
             ripples.forEach((ripple) => {
                 ctx.beginPath();
                 ctx.arc(ripple.x, ripple.y, ripple.radius, 0, Math.PI * 2);
@@ -853,6 +892,22 @@
             const aim = getAimData();
             if (!aim) return;
 
+            const ghostDistance = Math.max(BALL_RADIUS * 3.2, Math.min(aim.lineLength * 0.58, 92));
+            const ghostX = cueBall.x + Math.cos(aim.angle) * ghostDistance;
+            const ghostY = cueBall.y + Math.sin(aim.angle) * ghostDistance;
+
+            ctx.save();
+            for (let i = 1; i <= 4; i++) {
+                const t = i / 5;
+                const dotX = cueBall.x + Math.cos(aim.angle) * aim.lineLength * t;
+                const dotY = cueBall.y + Math.sin(aim.angle) * aim.lineLength * t;
+                ctx.beginPath();
+                ctx.arc(dotX, dotY, 2 + i * 0.35, 0, Math.PI * 2);
+                ctx.fillStyle = `rgba(255,255,255,${aim.lineAlpha * (0.18 + t * 0.55)})`;
+                ctx.fill();
+            }
+            ctx.restore();
+
             ctx.save();
             ctx.beginPath();
             ctx.moveTo(cueBall.x, cueBall.y);
@@ -865,6 +920,37 @@
             ctx.lineWidth = 2;
             ctx.stroke();
             ctx.restore();
+
+            ctx.save();
+            ctx.beginPath();
+            ctx.arc(ghostX, ghostY, BALL_RADIUS, 0, Math.PI * 2);
+            ctx.fillStyle = 'rgba(255,255,255,0.08)';
+            ctx.fill();
+            ctx.strokeStyle = `rgba(255,255,255,${Math.max(0.18, aim.lineAlpha * 0.85)})`;
+            ctx.lineWidth = 1.6;
+            ctx.setLineDash([6, 6]);
+            ctx.stroke();
+            ctx.setLineDash([]);
+            ctx.beginPath();
+            ctx.arc(ghostX, ghostY, BALL_RADIUS * 0.34, 0, Math.PI * 2);
+            ctx.fillStyle = 'rgba(255,255,255,0.16)';
+            ctx.fill();
+            ctx.restore();
+
+            if (dragging) {
+                ctx.save();
+                ctx.beginPath();
+                ctx.arc(cueBall.x, cueBall.y, BALL_RADIUS + 10 + aim.power * 0.18, 0, Math.PI * 2);
+                ctx.strokeStyle = `rgba(250, 204, 21, ${Math.min(0.55, aim.power / 36)})`;
+                ctx.lineWidth = 2.4;
+                ctx.stroke();
+                ctx.beginPath();
+                ctx.arc(cueBall.x, cueBall.y, BALL_RADIUS + 18 + aim.power * 0.12, 0, Math.PI * 2);
+                ctx.strokeStyle = `rgba(56, 189, 248, ${Math.min(0.32, aim.power / 56)})`;
+                ctx.lineWidth = 1.2;
+                ctx.stroke();
+                ctx.restore();
+            }
 
             ctx.save();
             ctx.translate(cueBall.x, cueBall.y);
