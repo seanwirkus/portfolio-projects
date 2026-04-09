@@ -756,6 +756,7 @@
         const MAX_POWER = 30;
         let shotPower = 0;
         let powerSliderDragging = false;
+        let isAiming = false; // New state for drag-to-aim
         let ripples = [];
         let spin = { x: 0, y: 0 };
         let spinDragging = false;
@@ -828,16 +829,16 @@
 
                 this.drawTrail(context);
 
-                // Shadow — single directional drop shadow
+                // Improved Shadow — slightly larger and softer for better depth
                 const shadowGrad = context.createRadialGradient(
-                    this.x + 3, this.y + 3, BALL_RADIUS * 0.2,
-                    this.x + 3, this.y + 3, BALL_RADIUS * 1.4
+                    this.x + 4, this.y + 4, BALL_RADIUS * 0.1,
+                    this.x + 4, this.y + 4, BALL_RADIUS * 1.6
                 );
-                shadowGrad.addColorStop(0, 'rgba(0, 0, 0, 0.35)');
-                shadowGrad.addColorStop(0.6, 'rgba(0, 0, 0, 0.12)');
+                shadowGrad.addColorStop(0, 'rgba(0, 0, 0, 0.45)');
+                shadowGrad.addColorStop(0.5, 'rgba(0, 0, 0, 0.18)');
                 shadowGrad.addColorStop(1, 'rgba(0, 0, 0, 0)');
                 context.beginPath();
-                context.arc(this.x + 3, this.y + 3, BALL_RADIUS * 1.35, 0, Math.PI * 2);
+                context.arc(this.x + 4, this.y + 4, BALL_RADIUS * 1.6, 0, Math.PI * 2);
                 context.fillStyle = shadowGrad;
                 context.fill();
 
@@ -987,6 +988,26 @@
             ctx.fillStyle = clothGrad;
             roundedRectPath(ctx, 24, 24, TABLE_WIDTH - 48, TABLE_HEIGHT - 48, 20);
             ctx.fill();
+
+            // Cloth Texture — subtle grain
+            ctx.save();
+            roundedRectPath(ctx, 24, 24, TABLE_WIDTH - 48, TABLE_HEIGHT - 48, 20);
+            ctx.clip();
+            ctx.globalAlpha = 0.04;
+            for (let i = 0; i < 600; i++) {
+                ctx.fillStyle = i % 2 === 0 ? '#fff' : '#000';
+                ctx.fillRect(Math.random() * TABLE_WIDTH, Math.random() * TABLE_HEIGHT, 1, 1);
+            }
+            ctx.restore();
+
+            // Inner Rail Shadow for depth
+            ctx.save();
+            ctx.strokeStyle = 'rgba(0, 0, 0, 0.35)';
+            ctx.lineWidth = 6;
+            ctx.filter = 'blur(4px)';
+            roundedRectPath(ctx, 26, 26, TABLE_WIDTH - 52, TABLE_HEIGHT - 52, 18);
+            ctx.stroke();
+            ctx.restore();
 
             ctx.save();
             roundedRectPath(ctx, 24, 24, TABLE_WIDTH - 48, TABLE_HEIGHT - 48, 20);
@@ -1255,39 +1276,53 @@
             ctx.translate(cueBall.x, cueBall.y);
             ctx.rotate(aim.angle + Math.PI);
 
-            ctx.fillStyle = 'rgba(0, 0, 0, 0.32)';
-            ctx.fillRect(aim.pullBack + 12, 9, 260, 7);
+            // Cue Stick
+            ctx.save();
+            ctx.translate(cueBall.x, cueBall.y);
+            ctx.rotate(aim.angle + Math.PI);
 
+            // Shadow
+            ctx.fillStyle = 'rgba(0, 0, 0, 0.28)';
+            ctx.fillRect(aim.pullBack + 12, 11, 280, 8);
+
+            // Main Stick Gradient
             const cueGrad = ctx.createLinearGradient(aim.pullBack, 0, aim.pullBack + 280, 0);
-            cueGrad.addColorStop(0, '#fef3c7');
-            cueGrad.addColorStop(0.08, '#eab308');
-            cueGrad.addColorStop(0.32, '#d4a574');
-            cueGrad.addColorStop(0.7, '#8b4513');
-            cueGrad.addColorStop(1, '#2f1606');
+            cueGrad.addColorStop(0, '#fefce8'); // Tip ferrule
+            cueGrad.addColorStop(0.04, '#eab308'); // Brass ferrule
+            cueGrad.addColorStop(0.1, '#d4a574'); // Shaft start
+            cueGrad.addColorStop(0.6, '#8b4513'); // Shaft middle
+            cueGrad.addColorStop(0.7, '#2f1606'); // Butt start
+            cueGrad.addColorStop(1, '#1a0d04'); // Butt end
 
-            ctx.fillStyle = 'rgba(0, 0, 0, 0.24)';
+            // 3D-ish stick shape
             ctx.beginPath();
-            ctx.moveTo(aim.pullBack + 6, 2);
-            ctx.lineTo(aim.pullBack + 286, 0);
-            ctx.lineTo(aim.pullBack + 286, 11);
-            ctx.lineTo(aim.pullBack + 6, 14);
-            ctx.closePath();
-            ctx.fill();
-
-            ctx.beginPath();
-            ctx.moveTo(aim.pullBack, -3);
-            ctx.lineTo(aim.pullBack + 280, -5);
-            ctx.lineTo(aim.pullBack + 280, 5);
-            ctx.lineTo(aim.pullBack, 3);
+            ctx.moveTo(aim.pullBack, -2.5);
+            ctx.lineTo(aim.pullBack + 280, -6.5);
+            ctx.lineTo(aim.pullBack + 280, 6.5);
+            ctx.lineTo(aim.pullBack, 2.5);
             ctx.closePath();
             ctx.fillStyle = cueGrad;
             ctx.fill();
 
-            ctx.fillStyle = '#38bdf8';
-            ctx.fillRect(aim.pullBack - 4, -2.1, 4, 4.2);
+            // Tip (Leather)
+            ctx.fillStyle = '#1e293b';
+            ctx.fillRect(aim.pullBack - 5, -1.8, 5, 3.6);
 
-            ctx.fillStyle = 'rgba(15, 23, 42, 0.95)';
-            ctx.fillRect(aim.pullBack + 172, -5, 76, 10);
+            // Brass Ferrule highlights
+            ctx.fillStyle = 'rgba(255, 255, 255, 0.4)';
+            ctx.fillRect(aim.pullBack + 2, -2.1, 4, 0.8);
+
+            // Butt Grip
+            ctx.fillStyle = 'rgba(0, 0, 0, 0.85)';
+            ctx.fillRect(aim.pullBack + 180, -5.5, 80, 11);
+
+            // Shaft polish (subtle white sweep)
+            const polish = ctx.createLinearGradient(aim.pullBack + 40, -4, aim.pullBack + 160, -4);
+            polish.addColorStop(0, 'rgba(255, 255, 255, 0)');
+            polish.addColorStop(0.5, 'rgba(255, 255, 255, 0.12)');
+            polish.addColorStop(1, 'rgba(255, 255, 255, 0)');
+            ctx.fillStyle = polish;
+            ctx.fillRect(aim.pullBack + 40, -4, 120, 2);
 
             ctx.restore();
         }
@@ -1691,8 +1726,9 @@
         }
 
         // Canvas only controls aim direction
+        // Canvas controls aim direction ONLY while dragging
         function handleCanvasPointer(event) {
-            if (state !== 'aim') return;
+            if (state !== 'aim' || !isAiming) return;
             updatePointer(event);
             if (event.cancelable) event.preventDefault();
         }
@@ -1766,13 +1802,23 @@
             }
         }
 
-        // Canvas events — aim only, no shooting
-        canvas.addEventListener('mousemove', handleCanvasPointer);
-        canvas.addEventListener('touchmove', handleCanvasPointer, { passive: false });
-        canvas.addEventListener('touchstart', (e) => {
+        // Canvas events — Drag to Aim
+        canvas.addEventListener('pointerdown', (e) => {
+            if (state !== 'aim') return;
+            isAiming = true;
+            canvas.setPointerCapture(e.pointerId);
             handleCanvasPointer(e);
-            if (e.cancelable) e.preventDefault();
-        }, { passive: false });
+        });
+
+        canvas.addEventListener('pointermove', handleCanvasPointer);
+
+        window.addEventListener('pointerup', (e) => {
+            isAiming = false;
+        });
+
+        canvas.addEventListener('pointercancel', () => {
+            isAiming = false;
+        });
 
         spinPad.addEventListener('pointerdown', (event) => {
             spinPad.setPointerCapture(event.pointerId);
