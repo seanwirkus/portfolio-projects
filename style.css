@@ -1805,6 +1805,100 @@ h1, h2, h3, h4, .nav-links, .logo {
 .miso-vm-icon { text-align: center; padding: 16px; font-size: 2rem; color: rgba(139, 92, 246, 0.8); animation: misoSpin 4s ease-in-out infinite; filter: drop-shadow(0 0 10px rgba(139, 92, 246, 0.4)); }
 @keyframes misoSpin { 0%, 100% { transform: scale(1); opacity: 0.8; } 50% { transform: scale(1.15); opacity: 1; } }
 
+/* Power Analysis Tool Styles */
+.powertool-bg {
+    background: radial-gradient(circle at 20% 0%, #1d4ed8, #0f172a 54%, #020617 100%);
+}
+
+.pat-mini {
+    width: 170px;
+    border-radius: 14px;
+    border: 1px solid rgba(148, 163, 184, 0.18);
+    background: rgba(15, 23, 42, 0.7);
+    box-shadow: 0 10px 24px rgba(2, 6, 23, 0.35);
+    overflow: hidden;
+}
+
+.pat-head {
+    display: flex;
+    gap: 5px;
+    padding: 9px 11px;
+    border-bottom: 1px solid rgba(148, 163, 184, 0.14);
+}
+
+.pat-dot {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: rgba(148, 163, 184, 0.5);
+}
+
+.pat-dot:nth-child(1) { background: #f87171; }
+.pat-dot:nth-child(2) { background: #fbbf24; }
+.pat-dot:nth-child(3) { background: #34d399; }
+
+.pat-chart {
+    position: relative;
+    height: 48px;
+    margin: 10px 10px 8px;
+    border-radius: 8px;
+    background: rgba(15, 23, 42, 0.6);
+    border: 1px solid rgba(148, 163, 184, 0.14);
+    overflow: hidden;
+}
+
+.pat-axis {
+    position: absolute;
+    left: 8px;
+    right: 8px;
+    bottom: 10px;
+    height: 1px;
+    background: rgba(148, 163, 184, 0.28);
+}
+
+.pat-line {
+    position: absolute;
+    left: 12px;
+    right: 12px;
+    top: 12px;
+    height: 18px;
+    border-bottom: 2px solid rgba(56, 189, 248, 0.9);
+    border-left: 2px solid transparent;
+    border-radius: 0 0 18px 8px;
+    transform: skewX(-16deg);
+    animation: patLinePulse 2.8s ease-in-out infinite;
+}
+
+@keyframes patLinePulse {
+    0%, 100% { opacity: 0.8; transform: skewX(-16deg) translateY(0); }
+    50% { opacity: 1; transform: skewX(-16deg) translateY(-2px); }
+}
+
+.pat-bars {
+    display: flex;
+    align-items: flex-end;
+    gap: 6px;
+    height: 32px;
+    padding: 0 10px 10px;
+}
+
+.pat-bar {
+    flex: 1;
+    border-radius: 4px 4px 2px 2px;
+    background: linear-gradient(180deg, #34d399, #0f766e);
+    animation: patBarWave 2.6s ease-in-out infinite;
+}
+
+.pat-bar.b1 { height: 45%; animation-delay: 0s; }
+.pat-bar.b2 { height: 70%; animation-delay: 0.2s; }
+.pat-bar.b3 { height: 88%; animation-delay: 0.4s; }
+.pat-bar.b4 { height: 56%; animation-delay: 0.6s; }
+
+@keyframes patBarWave {
+    0%, 100% { filter: brightness(0.95); transform: scaleY(1); }
+    50% { filter: brightness(1.1); transform: scaleY(1.06); }
+}
+
 .project-role {
     font-size: 0.72rem;
     text-transform: uppercase;

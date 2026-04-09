@@ -1,0 +1,608 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Power Analysis Tool | Sean</title>
+  <meta name="description" content="Interactive statistical power analysis tool for t-tests, ANOVA, and regression.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="icon" type="image/svg+xml" href="favicon.svg">
+  <script src="https://cdn.plot.ly/plotly-2.35.2.min.js"></script>
+  <style>
+    :root {
+      --bg: #05070c;
+      --panel: rgba(10, 14, 22, 0.9);
+      --panel-border: rgba(148, 163, 184, 0.24);
+      --text: #e2e8f0;
+      --muted: #94a3b8;
+      --accent: #3b82f6;
+      --accent-2: #10b981;
+    }
+
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: Inter, sans-serif;
+      color: var(--text);
+      background:
+        radial-gradient(circle at 16% 0%, rgba(59,130,246,0.15), transparent 28%),
+        radial-gradient(circle at 88% 10%, rgba(16,185,129,0.16), transparent 30%),
+        var(--bg);
+    }
+
+    .container {
+      max-width: 1240px;
+      margin: 0 auto;
+      padding: 24px 18px 44px;
+      display: grid;
+      gap: 16px;
+    }
+
+    .topbar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      padding: 14px 16px;
+      border: 1px solid var(--panel-border);
+      border-radius: 16px;
+      background: var(--panel);
+    }
+
+    .title-wrap h1 {
+      margin: 0;
+      font-size: clamp(1.4rem, 3.6vw, 2rem);
+      font-family: Outfit, sans-serif;
+      letter-spacing: -0.02em;
+    }
+
+    .title-wrap p {
+      margin: 6px 0 0;
+      color: var(--muted);
+      font-size: 0.95rem;
+    }
+
+    .back-link {
+      color: #dbeafe;
+      text-decoration: none;
+      border: 1px solid rgba(96, 165, 250, 0.35);
+      background: rgba(59, 130, 246, 0.16);
+      border-radius: 999px;
+      min-height: 40px;
+      display: inline-flex;
+      align-items: center;
+      padding: 0.45rem 0.9rem;
+      font-weight: 600;
+      white-space: nowrap;
+    }
+
+    .layout {
+      display: grid;
+      grid-template-columns: minmax(280px, 360px) minmax(0, 1fr);
+      gap: 16px;
+      align-items: start;
+    }
+
+    .panel {
+      border: 1px solid var(--panel-border);
+      border-radius: 16px;
+      background: var(--panel);
+      padding: 14px;
+      box-shadow: 0 16px 40px rgba(0, 0, 0, 0.32);
+    }
+
+    .controls {
+      display: grid;
+      gap: 12px;
+      position: sticky;
+      top: 16px;
+    }
+
+    .field {
+      display: grid;
+      gap: 6px;
+    }
+
+    label {
+      font-size: 0.84rem;
+      color: var(--muted);
+      font-weight: 600;
+    }
+
+    .inline {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+
+    select,
+    input[type="number"] {
+      width: 100%;
+      min-height: 38px;
+      border-radius: 10px;
+      border: 1px solid rgba(148, 163, 184, 0.35);
+      background: rgba(15, 23, 42, 0.65);
+      color: var(--text);
+      padding: 0.45rem 0.55rem;
+      font: inherit;
+    }
+
+    input[type="range"] {
+      width: 100%;
+      accent-color: var(--accent);
+    }
+
+    .range-row {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) 88px;
+      gap: 10px;
+      align-items: center;
+    }
+
+    .toggle {
+      display: inline-flex;
+      gap: 8px;
+      align-items: center;
+      color: var(--text);
+      font-size: 0.88rem;
+    }
+
+    .btn-row {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      margin-top: 4px;
+    }
+
+    button {
+      border: 1px solid rgba(148, 163, 184, 0.34);
+      background: rgba(15, 23, 42, 0.65);
+      color: var(--text);
+      border-radius: 10px;
+      min-height: 36px;
+      padding: 0.45rem 0.8rem;
+      cursor: pointer;
+      font: inherit;
+      font-weight: 600;
+    }
+
+    .primary {
+      border-color: rgba(96, 165, 250, 0.45);
+      background: rgba(59, 130, 246, 0.2);
+      color: #dbeafe;
+    }
+
+    .results-grid {
+      display: grid;
+      gap: 12px;
+    }
+
+    .result-cards {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 10px;
+    }
+
+    .result-card {
+      border: 1px solid rgba(148, 163, 184, 0.24);
+      border-radius: 12px;
+      padding: 10px;
+      background: rgba(15, 23, 42, 0.45);
+    }
+
+    .result-card span {
+      color: var(--muted);
+      display: block;
+      font-size: 0.74rem;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+    }
+
+    .result-card strong {
+      display: block;
+      margin-top: 5px;
+      font-size: 1.05rem;
+      font-family: Outfit, sans-serif;
+    }
+
+    .plot {
+      min-height: 245px;
+      border: 1px solid rgba(148, 163, 184, 0.2);
+      border-radius: 12px;
+      overflow: hidden;
+    }
+
+    .notice {
+      min-height: 22px;
+      color: #a7f3d0;
+      font-size: 0.85rem;
+      margin-top: 2px;
+    }
+
+    @media (max-width: 1040px) {
+      .layout { grid-template-columns: 1fr; }
+      .controls { position: static; }
+      .result-cards { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    }
+  </style>
+</head>
+<body>
+  <main class="container">
+    <section class="topbar">
+      <div class="title-wrap">
+        <h1>Power Analysis Tool</h1>
+        <p>Interactive power and sample size estimates for t-tests, ANOVA, and regression.</p>
+      </div>
+      <a class="back-link" href="index.html#projects">Back to portfolio</a>
+    </section>
+
+    <section class="layout">
+      <aside class="panel controls">
+        <div class="field">
+          <label for="testType">Test type</label>
+          <select id="testType">
+            <option value="two_sample">Two-sample t-test</option>
+            <option value="paired">Paired t-test</option>
+            <option value="anova">One-way ANOVA</option>
+            <option value="regression">Linear regression</option>
+          </select>
+        </div>
+
+        <label class="toggle">
+          <input type="checkbox" id="oneTailed">
+          One-tailed test
+        </label>
+
+        <div class="field">
+          <label for="n">Sample size n</label>
+          <div class="range-row">
+            <input type="range" id="n" min="4" max="1000" step="1" value="30">
+            <input type="number" id="nInput" min="4" max="1000" step="1" value="30">
+          </div>
+        </div>
+
+        <div class="field">
+          <label for="alpha">Significance alpha</label>
+          <div class="range-row">
+            <input type="range" id="alpha" min="0.001" max="0.2" step="0.001" value="0.05">
+            <input type="number" id="alphaInput" min="0.001" max="0.2" step="0.001" value="0.05">
+          </div>
+        </div>
+
+        <div class="field">
+          <label for="targetPower">Target power</label>
+          <div class="range-row">
+            <input type="range" id="targetPower" min="0.1" max="0.99" step="0.01" value="0.8">
+            <input type="number" id="targetPowerInput" min="0.1" max="0.99" step="0.01" value="0.8">
+          </div>
+        </div>
+
+        <div class="field" id="effectBlock">
+          <label for="effectSize">Effect size (d / f)</label>
+          <div class="range-row">
+            <input type="range" id="effectSize" min="0.05" max="2" step="0.01" value="0.5">
+            <input type="number" id="effectSizeInput" min="0.05" max="2" step="0.01" value="0.5">
+          </div>
+        </div>
+
+        <div class="field" id="kBlock" style="display:none;">
+          <label for="k">Groups k</label>
+          <div class="range-row">
+            <input type="range" id="k" min="2" max="20" step="1" value="3">
+            <input type="number" id="kInput" min="2" max="20" step="1" value="3">
+          </div>
+        </div>
+
+        <div class="field" id="predictorBlock" style="display:none;">
+          <label for="predictors">Predictors p</label>
+          <div class="range-row">
+            <input type="range" id="predictors" min="1" max="40" step="1" value="3">
+            <input type="number" id="predictorsInput" min="1" max="40" step="1" value="3">
+          </div>
+        </div>
+
+        <div class="field" id="r2Block" style="display:none;">
+          <label for="r2">R squared</label>
+          <div class="range-row">
+            <input type="range" id="r2" min="0.01" max="0.95" step="0.01" value="0.2">
+            <input type="number" id="r2Input" min="0.01" max="0.95" step="0.01" value="0.2">
+          </div>
+        </div>
+
+        <div class="btn-row">
+          <button id="findN" class="primary">Find required n</button>
+          <button id="resetAll">Reset</button>
+        </div>
+        <div id="notice" class="notice"></div>
+      </aside>
+
+      <section class="panel results-grid">
+        <div class="result-cards">
+          <article class="result-card">
+            <span>Estimated power</span>
+            <strong id="powerOut">0.000</strong>
+          </article>
+          <article class="result-card">
+            <span>Critical z</span>
+            <strong id="zOut">0.000</strong>
+          </article>
+          <article class="result-card">
+            <span>Noncentrality</span>
+            <strong id="deltaOut">0.000</strong>
+          </article>
+          <article class="result-card">
+            <span>Estimated n for target</span>
+            <strong id="nOut">--</strong>
+          </article>
+        </div>
+
+        <div id="distributionPlot" class="plot"></div>
+        <div id="powerCurvePlot" class="plot"></div>
+        <div id="samplePlot" class="plot"></div>
+      </section>
+    </section>
+  </main>
+
+  <script>
+    const $ = (id) => document.getElementById(id);
+    const controls = {
+      testType: $("testType"),
+      oneTailed: $("oneTailed"),
+      n: $("n"), nInput: $("nInput"),
+      alpha: $("alpha"), alphaInput: $("alphaInput"),
+      targetPower: $("targetPower"), targetPowerInput: $("targetPowerInput"),
+      effect: $("effectSize"), effectInput: $("effectSizeInput"),
+      k: $("k"), kInput: $("kInput"),
+      predictors: $("predictors"), predictorsInput: $("predictorsInput"),
+      r2: $("r2"), r2Input: $("r2Input"),
+      effectBlock: $("effectBlock"),
+      kBlock: $("kBlock"),
+      predictorBlock: $("predictorBlock"),
+      r2Block: $("r2Block"),
+      notice: $("notice")
+    };
+
+    const outputs = {
+      power: $("powerOut"),
+      z: $("zOut"),
+      delta: $("deltaOut"),
+      nReq: $("nOut")
+    };
+
+    function erf(x) {
+      const s = x < 0 ? -1 : 1;
+      const a = Math.abs(x);
+      const t = 1 / (1 + 0.3275911 * a);
+      const y = 1 - (((((1.061405429 * t - 1.453152027) * t + 1.421413741) * t - 0.284496736) * t + 0.254829592) * t) * Math.exp(-a * a);
+      return s * y;
+    }
+
+    function normalCdf(x) {
+      return 0.5 * (1 + erf(x / Math.sqrt(2)));
+    }
+
+    function normalPdf(x) {
+      return Math.exp(-0.5 * x * x) / Math.sqrt(2 * Math.PI);
+    }
+
+    function invNorm(p) {
+      if (p <= 0 || p >= 1) return NaN;
+      const a = [-3.969683028665376e+01, 2.209460984245205e+02, -2.759285104469687e+02, 1.383577518672690e+02, -3.066479806614716e+01, 2.506628277459239e+00];
+      const b = [-5.447609879822406e+01, 1.615858368580409e+02, -1.556989798598866e+02, 6.680131188771972e+01, -1.328068155288572e+01];
+      const c = [-7.784894002430293e-03, -3.223964580411365e-01, -2.400758277161838e+00, -2.549732539343734e+00, 4.374664141464968e+00, 2.938163982698783e+00];
+      const d = [7.784695709041462e-03, 3.224671290700398e-01, 2.445134137142996e+00, 3.754408661907416e+00];
+      const plow = 0.02425;
+      const phigh = 1 - plow;
+      let q, r;
+      if (p < plow) {
+        q = Math.sqrt(-2 * Math.log(p));
+        return (((((c[0] * q + c[1]) * q + c[2]) * q + c[3]) * q + c[4]) * q + c[5]) /
+          ((((d[0] * q + d[1]) * q + d[2]) * q + d[3]) * q + 1);
+      }
+      if (p > phigh) {
+        q = Math.sqrt(-2 * Math.log(1 - p));
+        return -(((((c[0] * q + c[1]) * q + c[2]) * q + c[3]) * q + c[4]) * q + c[5]) /
+          ((((d[0] * q + d[1]) * q + d[2]) * q + d[3]) * q + 1);
+      }
+      q = p - 0.5;
+      r = q * q;
+      return (((((a[0] * r + a[1]) * r + a[2]) * r + a[3]) * r + a[4]) * r + a[5]) * q /
+        (((((b[0] * r + b[1]) * r + b[2]) * r + b[3]) * r + b[4]) * r + 1);
+    }
+
+    function getCriticalZ(alpha, oneTailed) {
+      return oneTailed ? invNorm(1 - alpha) : invNorm(1 - alpha / 2);
+    }
+
+    function getConfig() {
+      return {
+        testType: controls.testType.value,
+        oneTailed: controls.oneTailed.checked,
+        n: Math.max(4, Number(controls.n.value)),
+        alpha: Math.min(0.2, Math.max(0.001, Number(controls.alpha.value))),
+        targetPower: Math.min(0.99, Math.max(0.1, Number(controls.targetPower.value))),
+        effect: Math.max(0.01, Number(controls.effect.value)),
+        k: Math.max(2, Number(controls.k.value)),
+        predictors: Math.max(1, Number(controls.predictors.value)),
+        r2: Math.min(0.99, Math.max(0.01, Number(controls.r2.value)))
+      };
+    }
+
+    function getDelta(cfg, nVal) {
+      if (cfg.testType === "two_sample") return cfg.effect * Math.sqrt(nVal / 2);
+      if (cfg.testType === "paired") return cfg.effect * Math.sqrt(nVal);
+      if (cfg.testType === "anova") return cfg.effect * Math.sqrt(nVal * cfg.k);
+      const f2 = cfg.r2 / (1 - cfg.r2);
+      return Math.sqrt(Math.max(0, f2 * Math.max(1, nVal - cfg.predictors - 1)));
+    }
+
+    function getPower(cfg, nVal) {
+      const zc = getCriticalZ(cfg.alpha, cfg.oneTailed);
+      const delta = getDelta(cfg, nVal);
+      if (cfg.oneTailed) return 1 - normalCdf(zc - delta);
+      return (1 - normalCdf(zc - delta)) + normalCdf(-zc - delta);
+    }
+
+    function findRequiredN(cfg) {
+      let lo = 4;
+      let hi = 10000;
+      for (let i = 0; i < 34; i++) {
+        const mid = Math.floor((lo + hi) / 2);
+        if (getPower(cfg, mid) >= cfg.targetPower) hi = mid;
+        else lo = mid + 1;
+      }
+      return hi;
+    }
+
+    function sampleNormal(mu, sigma) {
+      const u1 = Math.max(1e-8, Math.random());
+      const u2 = Math.max(1e-8, Math.random());
+      const z0 = Math.sqrt(-2 * Math.log(u1)) * Math.cos(2 * Math.PI * u2);
+      return mu + sigma * z0;
+    }
+
+    function drawPlots(cfg, zc, delta) {
+      const xs = [];
+      const nullY = [];
+      const altY = [];
+      for (let x = -4; x <= 4; x += 0.03) {
+        xs.push(x);
+        nullY.push(normalPdf(x));
+        altY.push(normalPdf(x - delta));
+      }
+
+      Plotly.react("distributionPlot", [
+        { x: xs, y: nullY, mode: "lines", name: "Null", line: { color: "#94a3b8", width: 2 } },
+        { x: xs, y: altY, mode: "lines", name: "Alternative", line: { color: "#3b82f6", width: 2.5 } },
+        { x: [cfg.oneTailed ? zc : zc, cfg.oneTailed ? zc : zc], y: [0, 0.45], mode: "lines", name: "Critical", line: { color: "#ef4444", dash: "dash" } }
+      ], {
+        paper_bgcolor: "rgba(0,0,0,0)",
+        plot_bgcolor: "rgba(0,0,0,0)",
+        margin: { t: 24, r: 12, b: 36, l: 42 },
+        font: { color: "#cbd5e1" },
+        xaxis: { title: "z", gridcolor: "rgba(148,163,184,0.15)" },
+        yaxis: { title: "Density", gridcolor: "rgba(148,163,184,0.15)" },
+        legend: { orientation: "h", y: 1.16 }
+      }, { displayModeBar: false, responsive: true });
+
+      const curveN = [];
+      const curveP = [];
+      for (let n = 4; n <= 300; n += 2) {
+        curveN.push(n);
+        curveP.push(getPower(cfg, n));
+      }
+      Plotly.react("powerCurvePlot", [
+        { x: curveN, y: curveP, mode: "lines", name: "Power curve", line: { color: "#10b981", width: 3 } },
+        { x: [cfg.n, cfg.n], y: [0, 1], mode: "lines", name: "Current n", line: { color: "#3b82f6", dash: "dot" } },
+        { x: [4, 300], y: [cfg.targetPower, cfg.targetPower], mode: "lines", name: "Target", line: { color: "#f59e0b", dash: "dash" } }
+      ], {
+        paper_bgcolor: "rgba(0,0,0,0)",
+        plot_bgcolor: "rgba(0,0,0,0)",
+        margin: { t: 24, r: 12, b: 36, l: 42 },
+        font: { color: "#cbd5e1" },
+        xaxis: { title: "n", gridcolor: "rgba(148,163,184,0.15)" },
+        yaxis: { title: "Power", range: [0, 1], gridcolor: "rgba(148,163,184,0.15)" },
+        legend: { orientation: "h", y: 1.16 }
+      }, { displayModeBar: false, responsive: true });
+
+      const sampleA = [];
+      const sampleB = [];
+      const nSample = Math.min(100, Math.max(12, Math.floor(cfg.n)));
+      const muB = cfg.effect;
+      for (let i = 0; i < nSample; i++) {
+        sampleA.push(sampleNormal(0, 1));
+        sampleB.push(sampleNormal(muB, 1));
+      }
+      Plotly.react("samplePlot", [
+        { y: sampleA, type: "box", name: "Group A", marker: { color: "#64748b" } },
+        { y: sampleB, type: "box", name: "Group B", marker: { color: "#3b82f6" } }
+      ], {
+        paper_bgcolor: "rgba(0,0,0,0)",
+        plot_bgcolor: "rgba(0,0,0,0)",
+        margin: { t: 24, r: 12, b: 36, l: 42 },
+        font: { color: "#cbd5e1" },
+        yaxis: { title: "Simulated values", gridcolor: "rgba(148,163,184,0.15)" },
+        xaxis: { gridcolor: "rgba(148,163,184,0.12)" }
+      }, { displayModeBar: false, responsive: true });
+    }
+
+    function syncPair(rangeEl, numEl, formatter = null) {
+      const writeRangeToNum = () => {
+        numEl.value = formatter ? formatter(Number(rangeEl.value)) : rangeEl.value;
+      };
+      const writeNumToRange = () => {
+        rangeEl.value = numEl.value;
+      };
+      rangeEl.addEventListener("input", () => { writeRangeToNum(); refresh(); });
+      numEl.addEventListener("input", () => { writeNumToRange(); refresh(); });
+      writeRangeToNum();
+    }
+
+    function refresh() {
+      const cfg = getConfig();
+      controls.alphaInput.value = cfg.alpha.toFixed(3);
+      controls.targetPowerInput.value = cfg.targetPower.toFixed(2);
+      controls.effectInput.value = cfg.effect.toFixed(2);
+      controls.r2Input.value = cfg.r2.toFixed(2);
+
+      controls.kBlock.style.display = cfg.testType === "anova" ? "grid" : "none";
+      controls.predictorBlock.style.display = cfg.testType === "regression" ? "grid" : "none";
+      controls.r2Block.style.display = cfg.testType === "regression" ? "grid" : "none";
+      controls.effectBlock.querySelector("label").textContent =
+        cfg.testType === "anova" ? "Effect size f" : "Effect size d";
+
+      const zc = getCriticalZ(cfg.alpha, cfg.oneTailed);
+      const delta = getDelta(cfg, cfg.n);
+      const power = getPower(cfg, cfg.n);
+      outputs.power.textContent = power.toFixed(3);
+      outputs.z.textContent = zc.toFixed(3);
+      outputs.delta.textContent = delta.toFixed(3);
+
+      drawPlots(cfg, zc, delta);
+    }
+
+    function resetAll() {
+      controls.testType.value = "two_sample";
+      controls.oneTailed.checked = false;
+      controls.n.value = 30;
+      controls.alpha.value = 0.05;
+      controls.targetPower.value = 0.8;
+      controls.effect.value = 0.5;
+      controls.k.value = 3;
+      controls.predictors.value = 3;
+      controls.r2.value = 0.2;
+      controls.notice.textContent = "";
+      refresh();
+    }
+
+    function findNForCurrentSettings() {
+      const cfg = getConfig();
+      const nReq = findRequiredN(cfg);
+      outputs.nReq.textContent = String(nReq);
+      controls.notice.textContent = `Estimated n to hit power ${cfg.targetPower.toFixed(2)} is ${nReq}.`;
+    }
+
+    function init() {
+      syncPair(controls.n, controls.nInput);
+      syncPair(controls.alpha, controls.alphaInput, (v) => v.toFixed(3));
+      syncPair(controls.targetPower, controls.targetPowerInput, (v) => v.toFixed(2));
+      syncPair(controls.effect, controls.effectInput, (v) => v.toFixed(2));
+      syncPair(controls.k, controls.kInput);
+      syncPair(controls.predictors, controls.predictorsInput);
+      syncPair(controls.r2, controls.r2Input, (v) => v.toFixed(2));
+
+      controls.testType.addEventListener("change", refresh);
+      controls.oneTailed.addEventListener("change", refresh);
+      $("findN").addEventListener("click", findNForCurrentSettings);
+      $("resetAll").addEventListener("click", resetAll);
+      window.addEventListener("resize", refresh);
+      refresh();
+    }
+
+    init();
+  </script>
+</body>
+</html>

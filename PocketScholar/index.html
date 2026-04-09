@@ -731,8 +731,12 @@
         const TABLE_HEIGHT = 450;
         const BALL_RADIUS = 12;
         const POCKET_RADIUS = 22;
-        const FRICTION = 0.988;
-        const RESTITUTION = 0.95;
+        const CLOTH_FRICTION = 0.992;
+        const BALL_RESTITUTION = 0.94;
+        const RAIL_RESTITUTION = 0.9;
+        const RAIL_TANGENT_DAMPING = 0.985;
+        const CONTACT_FRICTION = 0.018;
+        const STOP_SPEED = 0.05;
         const RAIL_OFFSET = 24;
 
         const canvas = document.getElementById('poolCanvas');
@@ -753,10 +757,16 @@
         let dragStart = { x: 0, y: 0 };
         let dragCurrent = { x: 0, y: 0 };
         let pointerPoint = { x: TABLE_WIDTH * 0.78, y: TABLE_HEIGHT / 2 };
+        const MIN_SHOT_POWER = 1.4;
         const MAX_POWER = 30;
+        const MAX_PULL_DISTANCE = 180;
         let shotPower = 0;
         let powerSliderDragging = false;
-        let isAiming = false; // New state for drag-to-aim
+        let isAiming = false;
+        let shotPullStart = null;
+        let shotPullDirection = null;
+        let shotLockedAimPoint = null;
+        let shotPullDistance = 0;
         let ripples = [];
         let spin = { x: 0, y: 0 };
         let spinDragging = false;
@@ -820,7 +830,7 @@
                     const alpha = (1 - i / this.trail.length) * 0.18;
                     context.beginPath();
                     context.arc(point.x, point.y, BALL_RADIUS * (0.68 + i * 0.02), 0, Math.PI * 2);
-                    context.fillStyle = `rgba(255,255,255,${alpha})`;
+                    context.fillStyle = getBallTint(this, this.type === 'cue' ? alpha + 0.02 : alpha);
                     context.fill();
                 }
             }
@@ -1172,16 +1182,21 @@
             };
         }
 
-        function getGuideColor(ball) {
-            if (!ball) return 'rgba(255, 255, 255, 0.32)';
-            if (ball.type === '8ball') return 'rgba(226, 232, 240, 0.28)';
+        function getBallTint(ball, alpha) {
+            if (!ball) return `rgba(255, 255, 255, ${alpha})`;
+            if (ball.type === 'cue') return `rgba(226, 232, 240, ${alpha})`;
+            if (ball.type === '8ball') return `rgba(148, 163, 184, ${alpha})`;
 
             const hex = ball.color.replace('#', '');
             const rgb = Number.parseInt(hex, 16);
             const r = (rgb >> 16) & 255;
             const g = (rgb >> 8) & 255;
             const b = rgb & 255;
-            return `rgba(${r}, ${g}, ${b}, 0.34)`;
+            return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+        }
+
+        function getGuideColor(ball) {
+            return ball ? getBallTint(ball, 0.4) : 'rgba(255, 255, 255, 0.32)';
         }
 
         function getPredictedContact(aim) {
@@ -1233,12 +1248,14 @@
             if (!aim) return;
 
             const predicted = getPredictedContact(aim);
+            const cueDeflection = predicted ? getCueDeflectionDirection(aim, predicted) : null;
             const ghostDistance = Math.max(BALL_RADIUS * 3.2, Math.min(aim.lineLength * 0.58, 92));
             const fallbackGhostX = cueBall.x + Math.cos(aim.angle) * ghostDistance;
             const fallbackGhostY = cueBall.y + Math.sin(aim.angle) * ghostDistance;
             const ghostX = predicted ? predicted.impactX : fallbackGhostX;
             const ghostY = predicted ? predicted.impactY : fallbackGhostY;
             const objectGuideColor = getGuideColor(predicted?.ball);
+            const objectGhostFill = predicted ? getBallTint(predicted.ball, 0.14) : 'rgba(255,255,255,0.08)';
 
             ctx.save();
             for (let i = 1; i <= 4; i++) {
@@ -1280,10 +1297,25 @@
                 ctx.restore();
             }
 
+            if (cueDeflection) {
+                ctx.save();
+                ctx.beginPath();
+                ctx.moveTo(ghostX, ghostY);
+                ctx.lineTo(
+                    ghostX + cueDeflection.x * 78,
+                    ghostY + cueDeflection.y * 78
+                );
+                ctx.setLineDash([7, 11]);
+                ctx.strokeStyle = 'rgba(191, 219, 254, 0.34)';
+                ctx.lineWidth = 2.3;
+                ctx.stroke();
+                ctx.restore();
+            }
+
             ctx.save();
             ctx.beginPath();
             ctx.arc(ghostX, ghostY, BALL_RADIUS, 0, Math.PI * 2);
-            ctx.fillStyle = predicted ? objectGuideColor.replace('0.34', '0.12') : 'rgba(255,255,255,0.08)';
+            ctx.fillStyle = objectGhostFill;
             ctx.fill();
             ctx.strokeStyle = `rgba(255,255,255,${Math.max(0.18, aim.lineAlpha * 0.85)})`;
             ctx.lineWidth = 1.6;
@@ -1365,6 +1397,32 @@
             ctx.fillRect(aim.pullBack + 40, -4, 120, 2);
 
             ctx.restore();
+        }
+
+        function getCueDeflectionDirection(aim, predicted) {
+            const incomingX = Math.cos(aim.angle);
+            const incomingY = Math.sin(aim.angle);
+            const normalX = predicted.objectDirX;
+            const normalY = predicted.objectDirY;
+            const tangentX = -normalY;
+            const tangentY = normalX;
+            const projection = (incomingX * normalX) + (incomingY * normalY);
+
+            let cueDirX = incomingX - (normalX * projection);
+            let cueDirY = incomingY - (normalY * projection);
+
+            cueDirX += tangentX * spin.x * 0.28;
+            cueDirY += tangentY * spin.x * 0.28;
+            cueDirX += incomingX * (-spin.y) * 0.08;
+            cueDirY += incomingY * (-spin.y) * 0.08;
+
+            const length = Math.hypot(cueDirX, cueDirY);
+            if (length < 0.001) return null;
+
+            return {
+                x: cueDirX / length,
+                y: cueDirY / length
+            };
         }
 
         function clampSpin(nextX, nextY) {
