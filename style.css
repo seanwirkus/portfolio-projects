@@ -430,8 +430,8 @@ h1, h2, h3, h4, .nav-links, .logo {
 
 .projects-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-    gap: 2rem;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 1.5rem;
     align-items: stretch;
 }
 
@@ -442,8 +442,8 @@ h1, h2, h3, h4, .nav-links, .logo {
     overflow: hidden;
     transition: var(--trans-slow);
     display: grid;
-    grid-template-rows: minmax(0, 0.55fr) minmax(0, 0.45fr);
-    aspect-ratio: 1 / 1;
+    grid-template-rows: minmax(0, 0.6fr) minmax(0, 0.4fr);
+    aspect-ratio: 6 / 5;
     min-height: 0;
     position: relative;
 }
