@@ -673,7 +673,7 @@
                         <div class="power-slider-thumb" id="power-thumb"></div>
                     </div>
                     <div class="power-shoot-row">
-                        <div class="power-help" id="power-help">Drag slider to set power. Aim on the table.</div>
+                        <div class="power-help" id="power-help">Click-drag on cloth to aim. Drag slider for power.</div>
                         <button class="shoot-btn" id="shoot-btn" type="button">Shoot</button>
                     </div>
                 </div>
@@ -760,6 +760,7 @@
         let ripples = [];
         let spin = { x: 0, y: 0 };
         let spinDragging = false;
+        let tableSurface = null;
 
         const uiTurn = document.getElementById('turn-indicator');
         const turnDot = document.getElementById('turn-dot');
@@ -953,28 +954,33 @@
             });
         }
 
-        function drawTable() {
-            const woodGrad = ctx.createLinearGradient(0, 0, 0, TABLE_HEIGHT);
+        function buildTableSurface() {
+            const surface = document.createElement('canvas');
+            surface.width = TABLE_WIDTH;
+            surface.height = TABLE_HEIGHT;
+            const tctx = surface.getContext('2d');
+
+            const woodGrad = tctx.createLinearGradient(0, 0, 0, TABLE_HEIGHT);
             woodGrad.addColorStop(0, '#a66b37');
             woodGrad.addColorStop(0.38, '#7a4922');
             woodGrad.addColorStop(1, '#43230f');
-            ctx.fillStyle = woodGrad;
-            roundedRectPath(ctx, 0, 0, TABLE_WIDTH, TABLE_HEIGHT, 28);
-            ctx.fill();
+            tctx.fillStyle = woodGrad;
+            roundedRectPath(tctx, 0, 0, TABLE_WIDTH, TABLE_HEIGHT, 28);
+            tctx.fill();
 
-            const railGrad = ctx.createLinearGradient(0, 16, 0, TABLE_HEIGHT - 16);
+            const railGrad = tctx.createLinearGradient(0, 16, 0, TABLE_HEIGHT - 16);
             railGrad.addColorStop(0, '#7b471f');
             railGrad.addColorStop(1, '#311607');
-            ctx.fillStyle = railGrad;
-            roundedRectPath(ctx, 14, 14, TABLE_WIDTH - 28, TABLE_HEIGHT - 28, 24);
-            ctx.fill();
+            tctx.fillStyle = railGrad;
+            roundedRectPath(tctx, 14, 14, TABLE_WIDTH - 28, TABLE_HEIGHT - 28, 24);
+            tctx.fill();
 
-            ctx.strokeStyle = 'rgba(255, 255, 255, 0.14)';
-            ctx.lineWidth = 2;
-            roundedRectPath(ctx, 11, 11, TABLE_WIDTH - 22, TABLE_HEIGHT - 22, 26);
-            ctx.stroke();
+            tctx.strokeStyle = 'rgba(255, 255, 255, 0.14)';
+            tctx.lineWidth = 2;
+            roundedRectPath(tctx, 11, 11, TABLE_WIDTH - 22, TABLE_HEIGHT - 22, 26);
+            tctx.stroke();
 
-            const clothGrad = ctx.createRadialGradient(
+            const clothGrad = tctx.createRadialGradient(
                 TABLE_WIDTH / 2,
                 TABLE_HEIGHT / 2,
                 40,
@@ -985,43 +991,67 @@
             clothGrad.addColorStop(0, '#109c6c');
             clothGrad.addColorStop(0.45, '#0c7f5c');
             clothGrad.addColorStop(1, '#074737');
-            ctx.fillStyle = clothGrad;
-            roundedRectPath(ctx, 24, 24, TABLE_WIDTH - 48, TABLE_HEIGHT - 48, 20);
-            ctx.fill();
+            tctx.fillStyle = clothGrad;
+            roundedRectPath(tctx, 24, 24, TABLE_WIDTH - 48, TABLE_HEIGHT - 48, 20);
+            tctx.fill();
 
-            // Cloth Texture — subtle grain
-            ctx.save();
-            roundedRectPath(ctx, 24, 24, TABLE_WIDTH - 48, TABLE_HEIGHT - 48, 20);
-            ctx.clip();
-            ctx.globalAlpha = 0.04;
-            for (let i = 0; i < 600; i++) {
-                ctx.fillStyle = i % 2 === 0 ? '#fff' : '#000';
-                ctx.fillRect(Math.random() * TABLE_WIDTH, Math.random() * TABLE_HEIGHT, 1, 1);
+            // Stable felt grain texture to avoid frame-to-frame flicker.
+            const clothNoise = document.createElement('canvas');
+            clothNoise.width = TABLE_WIDTH;
+            clothNoise.height = TABLE_HEIGHT;
+            const nctx = clothNoise.getContext('2d');
+            for (let i = 0; i < 1400; i++) {
+                const x = Math.random() * TABLE_WIDTH;
+                const y = Math.random() * TABLE_HEIGHT;
+                nctx.fillStyle = i % 2 === 0 ? 'rgba(255,255,255,0.04)' : 'rgba(0,0,0,0.03)';
+                nctx.fillRect(x, y, 1, 1);
             }
-            ctx.restore();
+            tctx.save();
+            roundedRectPath(tctx, 24, 24, TABLE_WIDTH - 48, TABLE_HEIGHT - 48, 20);
+            tctx.clip();
+            tctx.drawImage(clothNoise, 0, 0);
+            tctx.restore();
 
-            // Inner Rail Shadow for depth
-            ctx.save();
-            ctx.strokeStyle = 'rgba(0, 0, 0, 0.35)';
-            ctx.lineWidth = 6;
-            ctx.filter = 'blur(4px)';
-            roundedRectPath(ctx, 26, 26, TABLE_WIDTH - 52, TABLE_HEIGHT - 52, 18);
-            ctx.stroke();
-            ctx.restore();
+            // Inner rail shadows for a sunken table bed.
+            tctx.save();
+            roundedRectPath(tctx, 24, 24, TABLE_WIDTH - 48, TABLE_HEIGHT - 48, 20);
+            tctx.clip();
+            const innerShadow = tctx.createRadialGradient(
+                TABLE_WIDTH / 2,
+                TABLE_HEIGHT / 2,
+                TABLE_HEIGHT * 0.18,
+                TABLE_WIDTH / 2,
+                TABLE_HEIGHT / 2,
+                TABLE_WIDTH * 0.58
+            );
+            innerShadow.addColorStop(0, 'rgba(0,0,0,0)');
+            innerShadow.addColorStop(0.74, 'rgba(0,0,0,0.08)');
+            innerShadow.addColorStop(1, 'rgba(0,0,0,0.3)');
+            tctx.fillStyle = innerShadow;
+            tctx.fillRect(24, 24, TABLE_WIDTH - 48, TABLE_HEIGHT - 48);
+            tctx.restore();
 
-            ctx.save();
-            roundedRectPath(ctx, 24, 24, TABLE_WIDTH - 48, TABLE_HEIGHT - 48, 20);
-            ctx.clip();
-            ctx.fillStyle = 'rgba(255, 255, 255, 0.028)';
+            tctx.save();
+            tctx.strokeStyle = 'rgba(0, 0, 0, 0.34)';
+            tctx.lineWidth = 6;
+            tctx.filter = 'blur(3px)';
+            roundedRectPath(tctx, 26, 26, TABLE_WIDTH - 52, TABLE_HEIGHT - 52, 18);
+            tctx.stroke();
+            tctx.restore();
+
+            tctx.save();
+            roundedRectPath(tctx, 24, 24, TABLE_WIDTH - 48, TABLE_HEIGHT - 48, 20);
+            tctx.clip();
+            tctx.fillStyle = 'rgba(255, 255, 255, 0.028)';
             for (let i = -TABLE_HEIGHT; i < TABLE_WIDTH; i += 22) {
-                ctx.fillRect(i, 0, 1, TABLE_HEIGHT);
+                tctx.fillRect(i, 0, 1, TABLE_HEIGHT);
             }
-            ctx.restore();
+            tctx.restore();
 
-            ctx.strokeStyle = 'rgba(255, 255, 255, 0.05)';
-            ctx.lineWidth = 1;
-            roundedRectPath(ctx, 28, 28, TABLE_WIDTH - 56, TABLE_HEIGHT - 56, 18);
-            ctx.stroke();
+            tctx.strokeStyle = 'rgba(255, 255, 255, 0.05)';
+            tctx.lineWidth = 1;
+            roundedRectPath(tctx, 28, 28, TABLE_WIDTH - 56, TABLE_HEIGHT - 56, 18);
+            tctx.stroke();
 
             const diamondPoints = [
                 [TABLE_WIDTH * 0.2, 18], [TABLE_WIDTH * 0.4, 18], [TABLE_WIDTH * 0.6, 18], [TABLE_WIDTH * 0.8, 18],
@@ -1029,83 +1059,92 @@
                 [18, TABLE_HEIGHT * 0.25], [18, TABLE_HEIGHT * 0.5], [18, TABLE_HEIGHT * 0.75],
                 [TABLE_WIDTH - 18, TABLE_HEIGHT * 0.25], [TABLE_WIDTH - 18, TABLE_HEIGHT * 0.5], [TABLE_WIDTH - 18, TABLE_HEIGHT * 0.75]
             ];
-            ctx.fillStyle = '#f6d28b';
+            tctx.fillStyle = '#f6d28b';
             diamondPoints.forEach(([x, y]) => {
-                ctx.save();
-                ctx.translate(x, y);
-                ctx.rotate(Math.PI / 4);
-                ctx.fillRect(-4, -4, 8, 8);
-                ctx.restore();
+                tctx.save();
+                tctx.translate(x, y);
+                tctx.rotate(Math.PI / 4);
+                tctx.fillRect(-4, -4, 8, 8);
+                tctx.restore();
             });
 
             const spotColor = 'rgba(255, 255, 255, 0.22)';
-            ctx.beginPath();
-            ctx.arc(TABLE_WIDTH * 0.26, TABLE_HEIGHT / 2, 4, 0, Math.PI * 2);
-            ctx.fillStyle = spotColor;
-            ctx.fill();
+            tctx.beginPath();
+            tctx.arc(TABLE_WIDTH * 0.26, TABLE_HEIGHT / 2, 4, 0, Math.PI * 2);
+            tctx.fillStyle = spotColor;
+            tctx.fill();
 
-            ctx.beginPath();
-            ctx.arc(TABLE_WIDTH * 0.7, TABLE_HEIGHT / 2, 4, 0, Math.PI * 2);
-            ctx.fill();
+            tctx.beginPath();
+            tctx.arc(TABLE_WIDTH * 0.7, TABLE_HEIGHT / 2, 4, 0, Math.PI * 2);
+            tctx.fill();
 
-            ctx.save();
-            ctx.strokeStyle = 'rgba(255, 255, 255, 0.08)';
-            ctx.lineWidth = 1.1;
-            ctx.setLineDash([8, 10]);
-            ctx.beginPath();
-            ctx.moveTo(TABLE_WIDTH * 0.26, 34);
-            ctx.lineTo(TABLE_WIDTH * 0.26, TABLE_HEIGHT - 34);
-            ctx.stroke();
-            ctx.beginPath();
-            ctx.arc(TABLE_WIDTH * 0.26, TABLE_HEIGHT / 2, 56, -Math.PI / 2, Math.PI / 2);
-            ctx.stroke();
-            ctx.setLineDash([]);
-            ctx.restore();
+            tctx.save();
+            tctx.strokeStyle = 'rgba(255, 255, 255, 0.08)';
+            tctx.lineWidth = 1.1;
+            tctx.setLineDash([8, 10]);
+            tctx.beginPath();
+            tctx.moveTo(TABLE_WIDTH * 0.26, 34);
+            tctx.lineTo(TABLE_WIDTH * 0.26, TABLE_HEIGHT - 34);
+            tctx.stroke();
+            tctx.beginPath();
+            tctx.arc(TABLE_WIDTH * 0.26, TABLE_HEIGHT / 2, 56, -Math.PI / 2, Math.PI / 2);
+            tctx.stroke();
+            tctx.setLineDash([]);
+            tctx.restore();
 
-            ctx.save();
-            ctx.translate(596, TABLE_HEIGHT / 2);
-            ctx.beginPath();
-            ctx.moveTo(-20, -54);
-            ctx.lineTo(78, 0);
-            ctx.lineTo(-20, 54);
-            ctx.closePath();
-            ctx.strokeStyle = 'rgba(252, 211, 77, 0.16)';
-            ctx.lineWidth = 1.2;
-            ctx.setLineDash([6, 9]);
-            ctx.stroke();
-            ctx.restore();
+            tctx.save();
+            tctx.translate(596, TABLE_HEIGHT / 2);
+            tctx.beginPath();
+            tctx.moveTo(-20, -54);
+            tctx.lineTo(78, 0);
+            tctx.lineTo(-20, 54);
+            tctx.closePath();
+            tctx.strokeStyle = 'rgba(252, 211, 77, 0.16)';
+            tctx.lineWidth = 1.2;
+            tctx.setLineDash([6, 9]);
+            tctx.stroke();
+            tctx.restore();
 
-            ctx.save();
-            roundedRectPath(ctx, 24, 24, TABLE_WIDTH - 48, TABLE_HEIGHT - 48, 20);
-            ctx.clip();
-            const lightSweep = ctx.createLinearGradient(80, 0, 420, TABLE_HEIGHT);
+            tctx.save();
+            roundedRectPath(tctx, 24, 24, TABLE_WIDTH - 48, TABLE_HEIGHT - 48, 20);
+            tctx.clip();
+            const lightSweep = tctx.createLinearGradient(80, 0, 420, TABLE_HEIGHT);
             lightSweep.addColorStop(0, 'rgba(255,255,255,0)');
             lightSweep.addColorStop(0.4, 'rgba(255,255,255,0.035)');
             lightSweep.addColorStop(0.58, 'rgba(255,255,255,0.01)');
             lightSweep.addColorStop(1, 'rgba(255,255,255,0)');
-            ctx.fillStyle = lightSweep;
-            ctx.fillRect(38, 24, 340, TABLE_HEIGHT - 48);
-            ctx.restore();
+            tctx.fillStyle = lightSweep;
+            tctx.fillRect(38, 24, 340, TABLE_HEIGHT - 48);
+            tctx.restore();
+
+            pockets.forEach((pocket) => {
+                const pocketGrad = tctx.createRadialGradient(pocket.x, pocket.y, 2, pocket.x, pocket.y, POCKET_RADIUS);
+                pocketGrad.addColorStop(0, '#020617');
+                pocketGrad.addColorStop(0.68, '#000000');
+                pocketGrad.addColorStop(1, '#1f2937');
+                tctx.beginPath();
+                tctx.arc(pocket.x, pocket.y, POCKET_RADIUS, 0, Math.PI * 2);
+                tctx.fillStyle = pocketGrad;
+                tctx.fill();
+                tctx.strokeStyle = 'rgba(255,255,255,0.08)';
+                tctx.lineWidth = 2;
+                tctx.stroke();
+            });
+
+            return surface;
+        }
+
+        function drawTable() {
+            if (!tableSurface) {
+                tableSurface = buildTableSurface();
+            }
+            ctx.drawImage(tableSurface, 0, 0);
 
             ripples.forEach((ripple) => {
                 ctx.beginPath();
                 ctx.arc(ripple.x, ripple.y, ripple.radius, 0, Math.PI * 2);
                 ctx.strokeStyle = `rgba(255,255,255,${ripple.alpha})`;
                 ctx.lineWidth = 1.8;
-                ctx.stroke();
-            });
-
-            pockets.forEach((pocket) => {
-                const pocketGrad = ctx.createRadialGradient(pocket.x, pocket.y, 2, pocket.x, pocket.y, POCKET_RADIUS);
-                pocketGrad.addColorStop(0, '#020617');
-                pocketGrad.addColorStop(0.68, '#000000');
-                pocketGrad.addColorStop(1, '#1f2937');
-                ctx.beginPath();
-                ctx.arc(pocket.x, pocket.y, POCKET_RADIUS, 0, Math.PI * 2);
-                ctx.fillStyle = pocketGrad;
-                ctx.fill();
-                ctx.strokeStyle = 'rgba(255,255,255,0.08)';
-                ctx.lineWidth = 2;
                 ctx.stroke();
             });
         }
@@ -1272,10 +1311,6 @@
                 ctx.restore();
             }
 
-            ctx.save();
-            ctx.translate(cueBall.x, cueBall.y);
-            ctx.rotate(aim.angle + Math.PI);
-
             // Cue Stick
             ctx.save();
             ctx.translate(cueBall.x, cueBall.y);
@@ -1287,8 +1322,9 @@
 
             // Main Stick Gradient
             const cueGrad = ctx.createLinearGradient(aim.pullBack, 0, aim.pullBack + 280, 0);
-            cueGrad.addColorStop(0, '#fefce8'); // Tip ferrule
-            cueGrad.addColorStop(0.04, '#eab308'); // Brass ferrule
+            cueGrad.addColorStop(0, '#fefce8'); // White ferrule start
+            cueGrad.addColorStop(0.025, '#f8fafc'); // White ferrule
+            cueGrad.addColorStop(0.05, '#caa35f'); // Brass ring
             cueGrad.addColorStop(0.1, '#d4a574'); // Shaft start
             cueGrad.addColorStop(0.6, '#8b4513'); // Shaft middle
             cueGrad.addColorStop(0.7, '#2f1606'); // Butt start
@@ -1308,9 +1344,13 @@
             ctx.fillStyle = '#1e293b';
             ctx.fillRect(aim.pullBack - 5, -1.8, 5, 3.6);
 
-            // Brass Ferrule highlights
-            ctx.fillStyle = 'rgba(255, 255, 255, 0.4)';
-            ctx.fillRect(aim.pullBack + 2, -2.1, 4, 0.8);
+            // Ferrule highlight + metallic sheen
+            const ferruleGrad = ctx.createLinearGradient(aim.pullBack, -2.6, aim.pullBack + 10, 2.6);
+            ferruleGrad.addColorStop(0, 'rgba(255, 255, 255, 0.9)');
+            ferruleGrad.addColorStop(0.45, 'rgba(250, 204, 21, 0.55)');
+            ferruleGrad.addColorStop(1, 'rgba(120, 53, 15, 0.55)');
+            ctx.fillStyle = ferruleGrad;
+            ctx.fillRect(aim.pullBack, -2.5, 10, 5);
 
             // Butt Grip
             ctx.fillStyle = 'rgba(0, 0, 0, 0.85)';
@@ -1434,7 +1474,9 @@
             if (mode === '1p' && turn === 2) {
                 powerHelp.textContent = 'Computer is lining up.';
             } else {
-                powerHelp.textContent = shotPower > 0 ? 'Press Shoot or release slider to fire.' : 'Drag slider to set power. Aim on the table.';
+                powerHelp.textContent = shotPower > 0
+                    ? 'Press Shoot, or release slider at high power to auto-fire.'
+                    : 'Click-drag on cloth to aim. Drag slider for power.';
             }
         }
 
@@ -1770,8 +1812,8 @@
         powerMeter.addEventListener('pointerup', (e) => {
             if (!powerSliderDragging) return;
             powerSliderDragging = false;
-            // Fire on release if power is set
-            if (shotPower >= 1.5) {
+            // Auto-fire only on high-power release.
+            if (shotPower >= MAX_POWER * 0.68) {
                 fireShot();
             }
         });
