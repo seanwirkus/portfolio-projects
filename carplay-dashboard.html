@@ -62,7 +62,7 @@
                     <p>The stage stays readable on phones without introducing nested scrolling.</p>
                 </article>
             </div>
-            <div class="project-frame-shell project-frame-shell--preview" style="--frame-height:600px; --frame-ratio:1024 / 600;">
+            <div class="project-frame-shell project-frame-shell--preview cp-desktop-frame" style="--frame-height:600px; --frame-ratio:1024 / 600;">
                 <iframe
                     class="project-frame"
                     src="embeds/preview-shell.html?src=carplay-dashboard-app.html&amp;width=1024&amp;height=600&amp;accent=3b82f6&amp;label=Automotive%20dashboard&amp;sizeLabel=1024%20%C3%97%20600"
@@ -71,6 +71,22 @@
                     scrolling="no"
                 ></iframe>
             </div>
+            <div class="project-frame-shell cp-mobile-frame" style="min-height: 520px; max-height: 80vh;">
+                <iframe
+                    class="project-frame"
+                    src="embeds/carplay-dashboard-app.html"
+                    title="CarPlay Dashboard — mobile"
+                    loading="eager"
+                    style="width:100%; height:100%; border:none; border-radius: 0 0 12px 12px;"
+                ></iframe>
+            </div>
+            <style>
+                .cp-mobile-frame { display: none; }
+                @media (pointer: coarse) {
+                    .cp-desktop-frame { display: none !important; }
+                    .cp-mobile-frame { display: block !important; }
+                }
+            </style>
             <div class="project-stage-note">
                 The simulator keeps the information hierarchy of the hardware UI intact: a central driving surface, route stack, media state, and secondary vehicle telemetry, all tuned for glanceability.
             </div>

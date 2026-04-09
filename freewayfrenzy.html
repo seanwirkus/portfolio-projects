@@ -62,7 +62,7 @@
                     <p>The game surface is contained in one stage so the sidebar and canvas read together on mobile.</p>
                 </article>
             </div>
-            <div class="project-frame-shell project-frame-shell--preview" style="--frame-height:640px; --frame-ratio:1024 / 600;">
+            <div class="project-frame-shell project-frame-shell--preview ff-desktop-frame" style="--frame-height:640px; --frame-ratio:1024 / 600;">
                 <iframe
                     class="project-frame"
                     src="embeds/preview-shell.html?src=../FreewayFrenzy/index.html&amp;width=1024&amp;height=600&amp;accent=ef4444&amp;label=Full%20game%20port&amp;sizeLabel=1024%20%C3%97%20600"
@@ -71,6 +71,23 @@
                     scrolling="no"
                 ></iframe>
             </div>
+            <div class="project-frame-shell ff-mobile-frame" style="aspect-ratio: 9 / 16; max-height: 75vh;">
+                <iframe
+                    class="project-frame"
+                    src="FreewayFrenzy/index.html"
+                    title="FreewayFrenzy — mobile"
+                    loading="eager"
+                    allow="autoplay"
+                    style="width:100%; height:100%; border:none; border-radius: 0 0 12px 12px;"
+                ></iframe>
+            </div>
+            <style>
+                .ff-mobile-frame { display: none; }
+                @media (pointer: coarse) {
+                    .ff-desktop-frame { display: none !important; }
+                    .ff-mobile-frame { display: block !important; }
+                }
+            </style>
             <div class="project-stage-note">
                 The browser version preserves the important parts of the embedded build: lane-based control, escalating traffic, HUD feedback, and the separation between input state and render state.
             </div>

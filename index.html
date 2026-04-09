@@ -176,14 +176,29 @@
 
                 <article class="project-card slide-up tilt-elem" style="--delay: 2; cursor: pointer;" onclick="window.location.href='carplay-dashboard.html'">
                     <div class="project-image-placeholder carplay-bg">
-                        <div class="dash-cluster">
-                            <svg class="gauge-svg" viewBox="0 0 140 90">
-                                <path d="M15,80 A55,55 0 0,1 125,80" fill="none" stroke="rgba(255,255,255,0.08)" stroke-width="8" stroke-linecap="round"/>
-                                <path d="M15,80 A55,55 0 0,1 125,80" fill="none" stroke="#3b82f6" stroke-width="8" stroke-linecap="round" stroke-dasharray="172" class="gauge-fill"/>
-                                <line x1="70" y1="78" x2="70" y2="30" stroke="#ef4444" stroke-width="3" stroke-linecap="round" class="gauge-needle"/>
-                                <circle cx="70" cy="78" r="6" fill="#0f172a" stroke="rgba(255,255,255,0.15)" stroke-width="2"/>
-                            </svg>
-                            <div class="dash-readout"><span class="mph-value">0</span><span>MPH</span></div>
+                        <div class="cp-mini-dash">
+                            <div class="cp-mini-top">
+                                <div class="cp-speed-box">
+                                    <span class="cp-speed-num">42</span>
+                                    <span class="cp-speed-unit">MPH</span>
+                                </div>
+                                <div class="cp-nav-pill">
+                                    <span class="cp-turn-arrow">↰</span>
+                                    <span class="cp-nav-dist">0.8 mi</span>
+                                </div>
+                            </div>
+                            <div class="cp-mini-map">
+                                <div class="cp-map-road cp-mr-h"></div>
+                                <div class="cp-map-road cp-mr-v"></div>
+                                <div class="cp-map-dot"></div>
+                                <div class="cp-map-route"></div>
+                            </div>
+                            <div class="cp-mini-media">
+                                <div class="cp-media-art"></div>
+                                <div class="cp-media-bar">
+                                    <div class="cp-media-fill"></div>
+                                </div>
+                            </div>
                         </div>
                     </div>
                     <div class="project-info">
