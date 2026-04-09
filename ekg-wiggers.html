@@ -42,7 +42,8 @@
             <div class="project-stage-bar">
                 <div class="project-stage-label">Original Interactive App</div>
                 <div class="project-stage-actions">
-                    <a class="project-inline-link" href="embeds/app-shell.html?src=../EKG-Wiggers/index.html&amp;projectHref=../ekg-wiggers.html&amp;title=EKG-Wiggers%20Diagram&amp;accent=ec4899" target="_blank" rel="noreferrer">Open full app</a>
+                    <a class="project-inline-link" href="ekg-wiggers-app.html" target="_blank" rel="noreferrer">Open direct app</a>
+                    <a class="project-inline-link" href="embeds/app-shell.html?src=../ekg-wiggers-app.html&amp;projectHref=../ekg-wiggers.html&amp;title=EKG-Wiggers%20Diagram&amp;accent=ec4899" target="_blank" rel="noreferrer">Open framed app</a>
                 </div>
             </div>
             <div class="project-stage-insights">
@@ -62,17 +63,17 @@
                     <p>The preview preserves the original interface while keeping it visible on smaller screens.</p>
                 </article>
             </div>
-            <div class="project-frame-shell project-frame-shell--preview" style="--frame-height:1024px; --frame-ratio:4 / 3;">
+            <div class="project-frame-shell" style="min-height: min(82vh, 900px);">
                 <iframe
                     class="project-frame"
-                    src="embeds/preview-shell.html?src=../EKG-Wiggers/index.html&amp;width=1440&amp;height=1024&amp;accent=ec4899&amp;label=Original%20interactive%20app&amp;sizeLabel=1440%20%C3%97%201024"
+                    src="ekg-wiggers-app.html"
                     title="EKG-Wiggers preview"
                     loading="eager"
-                    scrolling="no"
+                    scrolling="auto"
                 ></iframe>
             </div>
             <div class="project-stage-note">
-                The embedded build includes the clinical sidebar, rate controls, condition presets, and the synchronized visual layers used to connect ECG activity with ventricular pressure and blood-flow timing.
+                The embedded build includes the clinical sidebar, rate controls, condition presets, and the synchronized visual layers used to connect ECG activity with ventricular pressure and blood-flow timing. The portfolio page now loads a root-level app entry directly to avoid CloudFront issues with the older nested path.
             </div>
         </section>
 
