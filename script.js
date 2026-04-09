@@ -67,35 +67,38 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     });
 
-    // 4. 3D Tilt Effect - Re-implemented without continuous frame rendering
-    // This runs on hover naturally without looping, perfectly stable.
+    // 4. 3D Tilt Effect
     const tiltElements = document.querySelectorAll('.tilt-elem');
-    tiltElements.forEach(elem => {
-        elem.addEventListener('mousemove', (e) => {
-            const rect = elem.getBoundingClientRect();
-            const x = e.clientX - rect.left;
-            const y = e.clientY - rect.top;
-            
-            const multiplier = 7.5; // smaller is less tilt
-            const xRotate = multiplier * ((x - rect.width / 2) / rect.width);
-            const yRotate = -multiplier * ((y - rect.height / 2) / rect.height);
-            
-            elem.style.transform = `perspective(1000px) rotateX(${yRotate}deg) rotateY(${xRotate}deg) scale3d(1.02, 1.02, 1.02)`;
-        });
+    const isTouchDevice = window.matchMedia("(hover: none) and (pointer: coarse)").matches;
+    
+    if (!isTouchDevice) {
+        tiltElements.forEach(elem => {
+            elem.addEventListener('mousemove', (e) => {
+                const rect = elem.getBoundingClientRect();
+                const x = e.clientX - rect.left;
+                const y = e.clientY - rect.top;
+                
+                const multiplier = 7.5; // smaller is less tilt
+                const xRotate = multiplier * ((x - rect.width / 2) / rect.width);
+                const yRotate = -multiplier * ((y - rect.height / 2) / rect.height);
+                
+                elem.style.transform = `perspective(1000px) rotateX(${yRotate}deg) rotateY(${xRotate}deg) scale3d(1.02, 1.02, 1.02)`;
+            });
 
-        elem.addEventListener('mouseleave', () => {
-            elem.style.transform = `perspective(1000px) rotateX(0deg) rotateY(0deg) scale3d(1, 1, 1)`;
-            setTimeout(() => {
-                if(!elem.matches(':hover')) {
-                    elem.style.transition = 'transform 0.4s ease';
-                }
-            }, 50);
+            elem.addEventListener('mouseleave', () => {
+                elem.style.transform = `perspective(1000px) rotateX(0deg) rotateY(0deg) scale3d(1, 1, 1)`;
+                setTimeout(() => {
+                    if(!elem.matches(':hover')) {
+                        elem.style.transition = 'transform 0.4s ease';
+                    }
+                }, 50);
+            });
+            
+            elem.addEventListener('mouseenter', () => {
+                elem.style.transition = 'transform 0.1s ease';
+            });
         });
-        
-        elem.addEventListener('mouseenter', () => {
-            elem.style.transition = 'transform 0.1s ease';
-        });
-    });
+    }
 
         // 5. Auto-resize same-origin project preview iframes to avoid nested scrollbars
         const projectFrames = document.querySelectorAll('.project-frame[data-auto-resize]');
@@ -194,13 +197,15 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // 7. Interactive card hover glow that follows mouse
-    document.querySelectorAll('.project-card').forEach(card => {
-        card.addEventListener('mousemove', (e) => {
-            const rect = card.getBoundingClientRect();
-            const x = e.clientX - rect.left;
-            const y = e.clientY - rect.top;
-            card.style.setProperty('--glow-x', x + 'px');
-            card.style.setProperty('--glow-y', y + 'px');
+    if (!isTouchDevice) {
+        document.querySelectorAll('.project-card').forEach(card => {
+            card.addEventListener('mousemove', (e) => {
+                const rect = card.getBoundingClientRect();
+                const x = e.clientX - rect.left;
+                const y = e.clientY - rect.top;
+                card.style.setProperty('--glow-x', x + 'px');
+                card.style.setProperty('--glow-y', y + 'px');
+            });
         });
-    });
+    }
 });
