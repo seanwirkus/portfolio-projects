@@ -51,6 +51,14 @@
                 linear-gradient(180deg, var(--bg-0) 0%, var(--bg-1) 44%, #02050b 100%);
         }
 
+        body.embedded {
+            background: #020617;
+        }
+
+        body.embedded .ambient {
+            display: none;
+        }
+
         .ambient {
             position: fixed;
             inset: auto;
@@ -89,6 +97,15 @@
             background:
                 linear-gradient(180deg, rgba(255, 255, 255, 0.04), transparent 18%),
                 rgba(2, 6, 23, 0.92);
+        }
+
+        body.embedded #game-container {
+            width: 100%;
+            height: 100%;
+            aspect-ratio: auto;
+            border-radius: 0;
+            border: 0;
+            box-shadow: none;
         }
 
         #game-container::before {
@@ -216,12 +233,119 @@
 
         .footer-bar {
             align-items: flex-end;
+            flex-wrap: wrap;
         }
 
         .power-widget {
             min-width: 250px;
             display: grid;
             gap: 8px;
+        }
+
+        .spin-widget {
+            min-width: 180px;
+            display: grid;
+            gap: 10px;
+            padding: 14px 16px;
+            border-radius: 20px;
+            border: 1px solid var(--panel-border);
+            background: var(--panel);
+            backdrop-filter: blur(18px);
+            -webkit-backdrop-filter: blur(18px);
+            box-shadow: 0 18px 36px rgba(0, 0, 0, 0.22);
+            pointer-events: auto;
+        }
+
+        .spin-widget-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 10px;
+            font-size: 0.72rem;
+            text-transform: uppercase;
+            letter-spacing: 0.12em;
+            color: var(--text-muted);
+        }
+
+        .spin-reset-btn {
+            appearance: none;
+            min-height: 30px;
+            padding: 0.3rem 0.7rem;
+            border-radius: 999px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            background: rgba(255, 255, 255, 0.04);
+            color: var(--text-main);
+            cursor: pointer;
+            font-size: 0.68rem;
+            font-weight: 700;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+        }
+
+        .spin-pad {
+            position: relative;
+            width: 92px;
+            height: 92px;
+            justify-self: center;
+            border-radius: 50%;
+            border: 1px solid rgba(255, 255, 255, 0.14);
+            background:
+                radial-gradient(circle at 35% 30%, rgba(255, 255, 255, 0.96), rgba(255, 255, 255, 0.82) 32%, rgba(203, 213, 225, 0.92) 58%, rgba(148, 163, 184, 0.72) 100%);
+            box-shadow:
+                inset -10px -12px 14px rgba(15, 23, 42, 0.18),
+                inset 8px 8px 12px rgba(255, 255, 255, 0.4),
+                0 12px 24px rgba(0, 0, 0, 0.22);
+            cursor: crosshair;
+            touch-action: none;
+        }
+
+        .spin-pad::before,
+        .spin-pad::after {
+            content: '';
+            position: absolute;
+            left: 50%;
+            top: 50%;
+            background: rgba(15, 23, 42, 0.18);
+            transform: translate(-50%, -50%);
+        }
+
+        .spin-pad::before {
+            width: 2px;
+            height: 68%;
+            border-radius: 999px;
+        }
+
+        .spin-pad::after {
+            width: 68%;
+            height: 2px;
+            border-radius: 999px;
+        }
+
+        .spin-ring-guide {
+            position: absolute;
+            inset: 12px;
+            border-radius: 50%;
+            border: 1px dashed rgba(15, 23, 42, 0.14);
+        }
+
+        .spin-marker {
+            position: absolute;
+            left: 50%;
+            top: 50%;
+            width: 16px;
+            height: 16px;
+            margin: -8px 0 0 -8px;
+            border-radius: 50%;
+            background: radial-gradient(circle at 35% 35%, #f8fafc, #0f172a 75%);
+            border: 2px solid rgba(16, 185, 129, 0.8);
+            box-shadow: 0 0 0 4px rgba(16, 185, 129, 0.14);
+        }
+
+        .spin-caption {
+            text-align: center;
+            color: var(--text-muted);
+            font-size: 0.82rem;
+            line-height: 1.4;
         }
 
         .power-label-row {
@@ -263,6 +387,7 @@
             gap: 12px;
             flex-wrap: wrap;
             justify-content: flex-end;
+            margin-left: auto;
         }
 
         button {
@@ -419,7 +544,8 @@
 
             .status-cluster,
             .brand-lockup,
-            .power-widget {
+            .power-widget,
+            .spin-widget {
                 min-width: 0;
             }
 
@@ -438,6 +564,15 @@
 
             .menu-card {
                 padding: 22px;
+            }
+
+            .spin-widget {
+                width: 100%;
+            }
+
+            .spin-pad {
+                width: 86px;
+                height: 86px;
             }
         }
     </style>
@@ -477,6 +612,18 @@
                         <div class="power-fill" id="power-fill"></div>
                     </div>
                     <div class="power-help" id="power-help">Drag away from the cue ball to line up a shot.</div>
+                </div>
+
+                <div class="spin-widget">
+                    <div class="spin-widget-header">
+                        <span>Cue spin</span>
+                        <button class="spin-reset-btn" id="spin-reset-btn" type="button">Reset</button>
+                    </div>
+                    <div class="spin-pad" id="spin-pad" aria-label="Cue spin control">
+                        <div class="spin-ring-guide"></div>
+                        <div class="spin-marker" id="spin-marker"></div>
+                    </div>
+                    <div class="spin-caption" id="spin-caption">Center ball</div>
                 </div>
 
                 <div class="controls">
@@ -528,6 +675,10 @@
         const ctx = canvas.getContext('2d');
         canvas.width = TABLE_WIDTH;
         canvas.height = TABLE_HEIGHT;
+        const isEmbedded = window.self !== window.top || new URLSearchParams(window.location.search).has('embed');
+        if (isEmbedded) {
+            document.body.classList.add('embedded');
+        }
 
         let balls = [];
         let state = 'menu';
@@ -539,6 +690,8 @@
         let dragCurrent = { x: 0, y: 0 };
         let pointerPoint = { x: TABLE_WIDTH * 0.78, y: TABLE_HEIGHT / 2 };
         let ripples = [];
+        let spin = { x: 0, y: 0 };
+        let spinDragging = false;
 
         const uiTurn = document.getElementById('turn-indicator');
         const turnDot = document.getElementById('turn-dot');
@@ -546,6 +699,9 @@
         const powerValue = document.getElementById('power-value');
         const powerHelp = document.getElementById('power-help');
         const menuEl = document.getElementById('menu');
+        const spinPad = document.getElementById('spin-pad');
+        const spinMarker = document.getElementById('spin-marker');
+        const spinCaption = document.getElementById('spin-caption');
 
         const pockets = [
             { x: 20, y: 20 },
@@ -568,6 +724,9 @@
                 this.active = true;
                 this.rotation = Math.random() * Math.PI * 2;
                 this.trail = [];
+                this.spinX = 0;
+                this.spinY = 0;
+                this.spinEnergy = 0;
             }
 
             updateTrail(speed) {
@@ -603,8 +762,13 @@
                 this.drawTrail(context);
 
                 context.beginPath();
-                context.ellipse(this.x + 4, this.y + BALL_RADIUS + 5, BALL_RADIUS * 0.92, BALL_RADIUS * 0.42, 0, 0, Math.PI * 2);
-                context.fillStyle = 'rgba(0, 0, 0, 0.24)';
+                context.ellipse(this.x + 4, this.y + BALL_RADIUS + 5.5, BALL_RADIUS * 0.96, BALL_RADIUS * 0.48, 0, 0, Math.PI * 2);
+                context.fillStyle = 'rgba(0, 0, 0, 0.28)';
+                context.fill();
+
+                context.beginPath();
+                context.ellipse(this.x + 1.5, this.y + BALL_RADIUS + 7.5, BALL_RADIUS * 0.78, BALL_RADIUS * 0.24, 0, 0, Math.PI * 2);
+                context.fillStyle = 'rgba(15, 23, 42, 0.18)';
                 context.fill();
 
                 const baseGrad = context.createRadialGradient(
@@ -886,15 +1050,73 @@
             };
         }
 
+        function getGuideColor(ball) {
+            if (!ball) return 'rgba(255, 255, 255, 0.32)';
+            if (ball.type === '8ball') return 'rgba(226, 232, 240, 0.28)';
+
+            const hex = ball.color.replace('#', '');
+            const rgb = Number.parseInt(hex, 16);
+            const r = (rgb >> 16) & 255;
+            const g = (rgb >> 8) & 255;
+            const b = rgb & 255;
+            return `rgba(${r}, ${g}, ${b}, 0.34)`;
+        }
+
+        function getPredictedContact(aim) {
+            if (!cueBall || !cueBall.active) return null;
+
+            const dirX = Math.cos(aim.angle);
+            const dirY = Math.sin(aim.angle);
+            const contactRadius = BALL_RADIUS * 2;
+            let best = null;
+
+            balls.forEach((ball) => {
+                if (!ball.active || ball.type === 'cue') return;
+
+                const relX = ball.x - cueBall.x;
+                const relY = ball.y - cueBall.y;
+                const along = relX * dirX + relY * dirY;
+                if (along <= BALL_RADIUS * 1.6) return;
+
+                const perp = Math.abs(relX * dirY - relY * dirX);
+                if (perp >= contactRadius) return;
+
+                const hitOffset = Math.sqrt((contactRadius * contactRadius) - (perp * perp));
+                const impactAlong = along - hitOffset;
+                if (impactAlong <= BALL_RADIUS || (best && impactAlong >= best.impactAlong)) return;
+
+                const impactX = cueBall.x + dirX * impactAlong;
+                const impactY = cueBall.y + dirY * impactAlong;
+                const objDirX = ball.x - impactX;
+                const objDirY = ball.y - impactY;
+                const objLen = Math.hypot(objDirX, objDirY) || 1;
+
+                best = {
+                    ball,
+                    impactAlong,
+                    impactX,
+                    impactY,
+                    objectDirX: objDirX / objLen,
+                    objectDirY: objDirY / objLen
+                };
+            });
+
+            return best;
+        }
+
         function drawCueGuide() {
             if (state !== 'aim' || !cueBall || !cueBall.active) return;
 
             const aim = getAimData();
             if (!aim) return;
 
+            const predicted = getPredictedContact(aim);
             const ghostDistance = Math.max(BALL_RADIUS * 3.2, Math.min(aim.lineLength * 0.58, 92));
-            const ghostX = cueBall.x + Math.cos(aim.angle) * ghostDistance;
-            const ghostY = cueBall.y + Math.sin(aim.angle) * ghostDistance;
+            const fallbackGhostX = cueBall.x + Math.cos(aim.angle) * ghostDistance;
+            const fallbackGhostY = cueBall.y + Math.sin(aim.angle) * ghostDistance;
+            const ghostX = predicted ? predicted.impactX : fallbackGhostX;
+            const ghostY = predicted ? predicted.impactY : fallbackGhostY;
+            const objectGuideColor = getGuideColor(predicted?.ball);
 
             ctx.save();
             for (let i = 1; i <= 4; i++) {
@@ -912,8 +1134,8 @@
             ctx.beginPath();
             ctx.moveTo(cueBall.x, cueBall.y);
             ctx.lineTo(
-                cueBall.x + Math.cos(aim.angle) * aim.lineLength,
-                cueBall.y + Math.sin(aim.angle) * aim.lineLength
+                predicted ? ghostX : cueBall.x + Math.cos(aim.angle) * aim.lineLength,
+                predicted ? ghostY : cueBall.y + Math.sin(aim.angle) * aim.lineLength
             );
             ctx.setLineDash([10, 10]);
             ctx.strokeStyle = `rgba(255, 255, 255, ${aim.lineAlpha})`;
@@ -921,10 +1143,25 @@
             ctx.stroke();
             ctx.restore();
 
+            if (predicted) {
+                ctx.save();
+                ctx.beginPath();
+                ctx.moveTo(predicted.ball.x, predicted.ball.y);
+                ctx.lineTo(
+                    predicted.ball.x + predicted.objectDirX * 92,
+                    predicted.ball.y + predicted.objectDirY * 92
+                );
+                ctx.setLineDash([8, 12]);
+                ctx.strokeStyle = objectGuideColor;
+                ctx.lineWidth = 3;
+                ctx.stroke();
+                ctx.restore();
+            }
+
             ctx.save();
             ctx.beginPath();
             ctx.arc(ghostX, ghostY, BALL_RADIUS, 0, Math.PI * 2);
-            ctx.fillStyle = 'rgba(255,255,255,0.08)';
+            ctx.fillStyle = predicted ? objectGuideColor.replace('0.34', '0.12') : 'rgba(255,255,255,0.08)';
             ctx.fill();
             ctx.strokeStyle = `rgba(255,255,255,${Math.max(0.18, aim.lineAlpha * 0.85)})`;
             ctx.lineWidth = 1.6;
@@ -956,8 +1193,8 @@
             ctx.translate(cueBall.x, cueBall.y);
             ctx.rotate(aim.angle + Math.PI);
 
-            ctx.fillStyle = 'rgba(0, 0, 0, 0.35)';
-            ctx.fillRect(aim.pullBack + 10, 8, 260, 5);
+            ctx.fillStyle = 'rgba(0, 0, 0, 0.32)';
+            ctx.fillRect(aim.pullBack + 12, 9, 260, 7);
 
             const cueGrad = ctx.createLinearGradient(aim.pullBack, 0, aim.pullBack + 280, 0);
             cueGrad.addColorStop(0, '#fef3c7');
@@ -965,6 +1202,15 @@
             cueGrad.addColorStop(0.32, '#d4a574');
             cueGrad.addColorStop(0.7, '#8b4513');
             cueGrad.addColorStop(1, '#2f1606');
+
+            ctx.fillStyle = 'rgba(0, 0, 0, 0.24)';
+            ctx.beginPath();
+            ctx.moveTo(aim.pullBack + 6, 2);
+            ctx.lineTo(aim.pullBack + 286, 0);
+            ctx.lineTo(aim.pullBack + 286, 11);
+            ctx.lineTo(aim.pullBack + 6, 14);
+            ctx.closePath();
+            ctx.fill();
 
             ctx.beginPath();
             ctx.moveTo(aim.pullBack, -3);
@@ -982,6 +1228,88 @@
             ctx.fillRect(aim.pullBack + 172, -5, 76, 10);
 
             ctx.restore();
+        }
+
+        function clampSpin(nextX, nextY) {
+            const magnitude = Math.hypot(nextX, nextY);
+            if (magnitude > 1) {
+                return {
+                    x: nextX / magnitude,
+                    y: nextY / magnitude
+                };
+            }
+            return { x: nextX, y: nextY };
+        }
+
+        function describeSpin() {
+            const parts = [];
+            if (spin.y < -0.25) parts.push('top');
+            if (spin.y > 0.25) parts.push('draw');
+            if (spin.x < -0.25) parts.push('left');
+            if (spin.x > 0.25) parts.push('right');
+            return parts.length ? `${parts.join(' + ')} spin` : 'Center ball';
+        }
+
+        function updateSpinUI() {
+            const radius = (spinPad.clientWidth / 2) - 18;
+            spinMarker.style.transform = `translate(${spin.x * radius}px, ${spin.y * radius}px)`;
+            spinCaption.textContent = describeSpin();
+        }
+
+        function setSpinFromClient(clientX, clientY) {
+            const rect = spinPad.getBoundingClientRect();
+            const centerX = rect.left + rect.width / 2;
+            const centerY = rect.top + rect.height / 2;
+            const normX = (clientX - centerX) / ((rect.width / 2) - 12);
+            const normY = (clientY - centerY) / ((rect.height / 2) - 12);
+            spin = clampSpin(normX, normY);
+            updateSpinUI();
+        }
+
+        function resetSpin() {
+            spin = { x: 0, y: 0 };
+            updateSpinUI();
+        }
+
+        function startSpinDrag(event) {
+            spinDragging = true;
+            setSpinFromClient(event.clientX, event.clientY);
+            event.preventDefault();
+        }
+
+        function moveSpinDrag(event) {
+            if (!spinDragging) return;
+            setSpinFromClient(event.clientX, event.clientY);
+        }
+
+        function endSpinDrag() {
+            spinDragging = false;
+        }
+
+        function strikeCueBall(power, angle) {
+            const forwardX = Math.cos(angle);
+            const forwardY = Math.sin(angle);
+            const tangentX = -forwardY;
+            const tangentY = forwardX;
+
+            cueBall.vx = forwardX * power;
+            cueBall.vy = forwardY * power;
+            cueBall.vx += tangentX * spin.x * power * 0.26;
+            cueBall.vy += tangentY * spin.x * power * 0.26;
+            cueBall.vx += forwardX * (-spin.y) * power * 0.1;
+            cueBall.vy += forwardY * (-spin.y) * power * 0.1;
+            cueBall.spinX = spin.x;
+            cueBall.spinY = spin.y;
+            cueBall.spinEnergy = power * 0.18;
+            state = 'moving';
+            spawnRipple(cueBall.x, cueBall.y, power * 0.35);
+        }
+
+        function startMatch(nextMode) {
+            mode = nextMode;
+            turn = 1;
+            menuEl.classList.add('hidden');
+            initTable();
         }
 
         function updatePowerUI() {
@@ -1040,6 +1368,9 @@
 
             pointerPoint = { x: TABLE_WIDTH * 0.78, y: TABLE_HEIGHT / 2 };
             dragging = false;
+            cueBall.spinX = 0;
+            cueBall.spinY = 0;
+            cueBall.spinEnergy = 0;
             state = 'aim';
             updateUI();
             updatePowerUI();
@@ -1060,21 +1391,41 @@
                     if (ball.x < BALL_RADIUS + RAIL_OFFSET) {
                         ball.x = BALL_RADIUS + RAIL_OFFSET;
                         ball.vx *= -RESTITUTION;
+                        if (ball.type === 'cue' && ball.spinEnergy > 0.02) {
+                            ball.vy += ball.spinX * 0.7;
+                            ball.spinX *= 0.74;
+                            ball.spinEnergy *= 0.92;
+                        }
                         spawnRipple(ball.x, ball.y, Math.abs(ball.vx));
                     }
                     if (ball.x > TABLE_WIDTH - BALL_RADIUS - RAIL_OFFSET) {
                         ball.x = TABLE_WIDTH - BALL_RADIUS - RAIL_OFFSET;
                         ball.vx *= -RESTITUTION;
+                        if (ball.type === 'cue' && ball.spinEnergy > 0.02) {
+                            ball.vy -= ball.spinX * 0.7;
+                            ball.spinX *= 0.74;
+                            ball.spinEnergy *= 0.92;
+                        }
                         spawnRipple(ball.x, ball.y, Math.abs(ball.vx));
                     }
                     if (ball.y < BALL_RADIUS + RAIL_OFFSET) {
                         ball.y = BALL_RADIUS + RAIL_OFFSET;
                         ball.vy *= -RESTITUTION;
+                        if (ball.type === 'cue' && ball.spinEnergy > 0.02) {
+                            ball.vx -= ball.spinX * 0.7;
+                            ball.spinX *= 0.74;
+                            ball.spinEnergy *= 0.92;
+                        }
                         spawnRipple(ball.x, ball.y, Math.abs(ball.vy));
                     }
                     if (ball.y > TABLE_HEIGHT - BALL_RADIUS - RAIL_OFFSET) {
                         ball.y = TABLE_HEIGHT - BALL_RADIUS - RAIL_OFFSET;
                         ball.vy *= -RESTITUTION;
+                        if (ball.type === 'cue' && ball.spinEnergy > 0.02) {
+                            ball.vx += ball.spinX * 0.7;
+                            ball.spinX *= 0.74;
+                            ball.spinEnergy *= 0.92;
+                        }
                         spawnRipple(ball.x, ball.y, Math.abs(ball.vy));
                     }
 
@@ -1092,6 +1443,9 @@
                                     ball.vx = 0;
                                     ball.vy = 0;
                                     ball.trail = [];
+                                    ball.spinX = 0;
+                                    ball.spinY = 0;
+                                    ball.spinEnergy = 0;
                                     pointerPoint = { x: TABLE_WIDTH * 0.78, y: TABLE_HEIGHT / 2 };
                                 }, 900);
                             }
@@ -1134,6 +1488,25 @@
                             b2.vx += transfer * nx;
                             b2.vy += transfer * ny;
 
+                            const cueBallInCollision = b1.type === 'cue' ? b1 : (b2.type === 'cue' ? b2 : null);
+                            if (cueBallInCollision && cueBallInCollision.spinEnergy > 0.02) {
+                                const cueNormalX = cueBallInCollision === b1 ? nx : -nx;
+                                const cueNormalY = cueBallInCollision === b1 ? ny : -ny;
+                                const tangentX = -cueNormalY;
+                                const tangentY = cueNormalX;
+                                const englishKick = cueBallInCollision.spinX * cueBallInCollision.spinEnergy * 0.42;
+                                const drawFollow = cueBallInCollision.spinY * cueBallInCollision.spinEnergy * 0.56;
+                                const otherBall = cueBallInCollision === b1 ? b2 : b1;
+
+                                cueBallInCollision.vx += tangentX * englishKick - cueNormalX * drawFollow;
+                                cueBallInCollision.vy += tangentY * englishKick - cueNormalY * drawFollow;
+                                otherBall.vx += tangentX * englishKick * 0.34;
+                                otherBall.vy += tangentY * englishKick * 0.34;
+                                cueBallInCollision.spinEnergy *= 0.54;
+                                cueBallInCollision.spinX *= 0.78;
+                                cueBallInCollision.spinY *= 0.72;
+                            }
+
                             spawnRipple((b1.x + b2.x) / 2, (b1.y + b2.y) / 2, Math.abs(impulse));
                         }
                     }
@@ -1152,6 +1525,18 @@
                 } else {
                     isMoving = true;
                     ball.rotation += speed * 0.05;
+                    if (ball.type === 'cue' && ball.spinEnergy > 0.01) {
+                        const dirX = ball.vx / speed;
+                        const dirY = ball.vy / speed;
+                        const tangentX = -dirY;
+                        const tangentY = dirX;
+                        ball.vx += tangentX * ball.spinX * ball.spinEnergy * 0.012;
+                        ball.vy += tangentY * ball.spinX * ball.spinEnergy * 0.012;
+                        const rollBias = -ball.spinY * ball.spinEnergy * 0.006;
+                        ball.vx += dirX * rollBias;
+                        ball.vy += dirY * rollBias;
+                        ball.spinEnergy *= 0.986;
+                    }
                 }
 
                 ball.updateTrail(speed);
@@ -1185,8 +1570,15 @@
                     const dy = activeObject.y - cueBall.y;
                     const angle = Math.atan2(dy, dx) + (Math.random() - 0.5) * 0.1;
                     const power = 15 + Math.random() * 10;
+                    cueBall.spinX = (Math.random() - 0.5) * 0.12;
+                    cueBall.spinY = -0.18 - Math.random() * 0.1;
+                    cueBall.spinEnergy = power * 0.12;
                     cueBall.vx = Math.cos(angle) * power;
                     cueBall.vy = Math.sin(angle) * power;
+                    cueBall.vx += -Math.sin(angle) * cueBall.spinX * power * 0.24;
+                    cueBall.vy += Math.cos(angle) * cueBall.spinX * power * 0.24;
+                    cueBall.vx += Math.cos(angle) * (-cueBall.spinY) * power * 0.08;
+                    cueBall.vy += Math.sin(angle) * (-cueBall.spinY) * power * 0.08;
                     state = 'moving';
                     spawnRipple(cueBall.x, cueBall.y, power * 0.35);
                 } else {
@@ -1256,10 +1648,7 @@
                 const power = Math.min(Math.hypot(dx, dy) * 0.15, 30);
                 if (power > 1) {
                     const angle = Math.atan2(dy, dx);
-                    cueBall.vx = Math.cos(angle) * power;
-                    cueBall.vy = Math.sin(angle) * power;
-                    state = 'moving';
-                    spawnRipple(cueBall.x, cueBall.y, power * 0.35);
+                    strikeCueBall(power, angle);
                 }
             }
         }
@@ -1292,19 +1681,18 @@
         window.addEventListener('touchmove', updateDrag, { passive: false });
         window.addEventListener('touchend', endDrag);
 
-        document.getElementById('btn-1p').onclick = () => {
-            mode = '1p';
-            turn = 1;
-            menuEl.classList.add('hidden');
-            initTable();
-        };
+        spinPad.addEventListener('pointerdown', (event) => {
+            spinPad.setPointerCapture(event.pointerId);
+            startSpinDrag(event);
+        });
+        spinPad.addEventListener('pointermove', moveSpinDrag);
+        spinPad.addEventListener('pointerup', endSpinDrag);
+        spinPad.addEventListener('pointercancel', endSpinDrag);
+        document.getElementById('spin-reset-btn').onclick = resetSpin;
 
-        document.getElementById('btn-2p').onclick = () => {
-            mode = '2p';
-            turn = 1;
-            menuEl.classList.add('hidden');
-            initTable();
-        };
+        document.getElementById('btn-1p').onclick = () => startMatch('1p');
+
+        document.getElementById('btn-2p').onclick = () => startMatch('2p');
 
         document.getElementById('reset-btn').onclick = () => {
             initTable();
@@ -1317,7 +1705,12 @@
         };
 
         initTable();
-        state = 'menu';
+        resetSpin();
+        if (isEmbedded) {
+            startMatch('1p');
+        } else {
+            state = 'menu';
+        }
         updatePowerUI();
         draw();
     </script>

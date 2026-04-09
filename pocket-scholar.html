@@ -126,7 +126,7 @@
                 <div class="project-stage-label">Live Pool Simulator</div>
                 <div class="project-stage-actions">
                     <a class="project-inline-link" href="PocketScholar/index.html" target="_blank" rel="noreferrer">Open direct runtime</a>
-                    <a class="project-inline-link" href="embeds/app-shell.html?src=../PocketScholar/index.html&amp;projectHref=../pocket-scholar.html&amp;title=Pocket%20Scholar&amp;accent=10b981" target="_blank" rel="noreferrer">Open framed app</a>
+                    <a class="project-inline-link" href="embeds/app-shell.html?src=../PocketScholar/index.html%3Fembed%3D1&amp;projectHref=../pocket-scholar.html&amp;title=Pocket%20Scholar&amp;accent=10b981" target="_blank" rel="noreferrer">Open framed app</a>
                 </div>
             </div>
             
@@ -148,14 +148,17 @@
                 </article>
             </div>
 
-            <div class="project-frame-shell pool-runtime-frame">
+            <div class="project-frame-shell pool-runtime-frame auto-resize">
                 <div class="pool-runtime-badge">Live physics runtime · drag to shoot</div>
                 <iframe
                     class="project-frame"
-                    src="PocketScholar/index.html"
+                    src="PocketScholar/index.html?embed=1"
                     title="Pocket Scholar runtime"
                     loading="eager"
                     scrolling="no"
+                    data-auto-resize
+                    data-min-height="500"
+                    data-max-height="760"
                 ></iframe>
             </div>
             <div class="project-stage-note">
