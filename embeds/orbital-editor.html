@@ -1,0 +1,680 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Orbital Editor Embed</title>
+    <style>
+        :root {
+            --bg: #071b16;
+            --panel: rgba(255, 255, 255, 0.05);
+            --border: rgba(255, 255, 255, 0.08);
+            --text: #edf8f4;
+            --muted: #9dc6ba;
+            --green: #10b981;
+            --teal: #14b8a6;
+            --blue: #3b82f6;
+            --amber: #f59e0b;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        html,
+        body {
+            margin: 0;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            background:
+                radial-gradient(circle at top left, rgba(16, 185, 129, 0.2), transparent 26%),
+                radial-gradient(circle at bottom right, rgba(59, 130, 246, 0.18), transparent 28%),
+                linear-gradient(180deg, #04100d 0%, var(--bg) 100%);
+            color: var(--text);
+            font-family: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+        }
+
+        body {
+            padding: 16px;
+        }
+
+        .app {
+            width: 100%;
+            height: 100%;
+            display: grid;
+            grid-template-columns: 316px minmax(0, 1fr);
+            gap: 16px;
+        }
+
+        .panel {
+            border-radius: 28px;
+            border: 1px solid var(--border);
+            background: var(--panel);
+            backdrop-filter: blur(18px);
+        }
+
+        .sidebar {
+            padding: 22px;
+            display: grid;
+            grid-template-rows: auto auto auto auto 1fr auto;
+            gap: 14px;
+        }
+
+        .eyebrow {
+            font-size: 0.78rem;
+            text-transform: uppercase;
+            letter-spacing: 0.16em;
+            color: var(--muted);
+        }
+
+        h1 {
+            margin: 0.35rem 0 0;
+            font-size: 2rem;
+            line-height: 1;
+            letter-spacing: -0.05em;
+        }
+
+        .subtitle {
+            margin: 0.6rem 0 0;
+            color: var(--muted);
+            font-size: 0.94rem;
+            line-height: 1.7;
+        }
+
+        .sidebar-card {
+            padding: 14px;
+            border-radius: 18px;
+            background: rgba(255, 255, 255, 0.04);
+            border: 1px solid rgba(255, 255, 255, 0.06);
+        }
+
+        .sidebar-card span {
+            display: block;
+            color: var(--muted);
+            font-size: 0.72rem;
+            text-transform: uppercase;
+            letter-spacing: 0.12em;
+        }
+
+        .sidebar-card strong {
+            display: block;
+            margin-top: 0.35rem;
+            font-size: 1.02rem;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 10px;
+        }
+
+        .button-group,
+        .chip-group {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-top: 10px;
+        }
+
+        .tool,
+        .chip,
+        button {
+            border: 0;
+            cursor: pointer;
+            border-radius: 999px;
+            padding: 0.62rem 0.85rem;
+            font: inherit;
+            color: #fff;
+            background: rgba(255, 255, 255, 0.08);
+            border: 1px solid transparent;
+            transition: transform 0.18s ease, background 0.18s ease, border-color 0.18s ease;
+        }
+
+        .tool:hover,
+        .chip:hover,
+        button:hover {
+            transform: translateY(-1px);
+            background: rgba(255, 255, 255, 0.14);
+        }
+
+        .tool.active,
+        .chip.active {
+            background: rgba(16, 185, 129, 0.18);
+            border-color: rgba(16, 185, 129, 0.45);
+            box-shadow: 0 0 20px rgba(16, 185, 129, 0.18);
+        }
+
+        .stage {
+            display: grid;
+            grid-template-rows: auto auto 1fr auto;
+            overflow: hidden;
+            min-height: 0;
+        }
+
+        .stage-header,
+        .stage-toolbar,
+        .stage-footer {
+            padding: 16px 18px;
+            display: flex;
+            justify-content: space-between;
+            gap: 1rem;
+            align-items: center;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+        }
+
+        .stage-toolbar {
+            flex-wrap: wrap;
+        }
+
+        .stage-footer {
+            border-top: 1px solid rgba(255, 255, 255, 0.06);
+            border-bottom: 0;
+            font-size: 0.9rem;
+            color: var(--muted);
+        }
+
+        .badge {
+            padding: 0.45rem 0.78rem;
+            border-radius: 999px;
+            background: rgba(16, 185, 129, 0.14);
+            border: 1px solid rgba(16, 185, 129, 0.3);
+            color: #bbf7d0;
+            font-size: 0.8rem;
+        }
+
+        .canvas-wrap {
+            position: relative;
+            min-height: 0;
+            padding: 16px 18px;
+            display: grid;
+        }
+
+        #editor {
+            width: 100%;
+            height: 100%;
+            min-height: 0;
+            border-radius: 24px;
+            background:
+                linear-gradient(180deg, rgba(255,255,255,0.05), transparent 16%),
+                radial-gradient(circle at center, rgba(16,185,129,0.04), transparent 38%),
+                #f8fffc;
+            border: 1px solid rgba(255, 255, 255, 0.06);
+        }
+
+        .legend {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .legend-pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.45rem;
+            padding: 0.45rem 0.7rem;
+            border-radius: 999px;
+            background: rgba(255, 255, 255, 0.06);
+            color: var(--muted);
+            font-size: 0.84rem;
+        }
+
+        .legend-pill::before {
+            content: "";
+            width: 0.65rem;
+            height: 0.65rem;
+            border-radius: 999px;
+            background: currentColor;
+            opacity: 0.75;
+        }
+
+        .legend-pill.nitrogen { color: #3050f8; }
+        .legend-pill.oxygen { color: #ff0d0d; }
+        .legend-pill.sulfur { color: #c4b500; }
+        .legend-pill.carbon { color: #444; }
+
+        body.preview-mode .app {
+            grid-template-columns: 248px minmax(0, 1fr);
+        }
+
+        body.preview-mode .sidebar {
+            padding: 18px;
+            gap: 10px;
+        }
+
+        body.preview-mode .sidebar-card:last-of-type,
+        body.preview-mode #preset-glycine {
+            display: none;
+        }
+
+        @media (max-width: 920px) {
+            body {
+                padding: 10px;
+            }
+
+            .app {
+                grid-template-columns: 1fr;
+                grid-template-rows: auto 1fr;
+            }
+
+            .sidebar {
+                grid-template-rows: auto auto auto auto auto;
+            }
+
+            .canvas-wrap {
+                min-height: 560px;
+            }
+        }
+
+        @media (max-width: 700px) {
+            .button-group,
+            .chip-group {
+                display: grid;
+                grid-template-columns: 1fr 1fr;
+            }
+
+            .tool,
+            .chip,
+            button {
+                min-height: 46px;
+            }
+
+            .stage-header,
+            .stage-toolbar,
+            .stage-footer {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+
+            .canvas-wrap {
+                min-height: 420px;
+                padding: 12px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="app">
+        <aside class="panel sidebar">
+            <div>
+                <div class="eyebrow">Chemical synthesis planner</div>
+                <h1>Orbital</h1>
+                <p class="subtitle">Live editor built on the project’s own molecule model, drawing tools, and renderer. Place atoms, draw bonds, erase structures, and auto-organize the current scaffold.</p>
+            </div>
+
+            <div class="stats-grid">
+                <div class="sidebar-card">
+                    <span>Formula</span>
+                    <strong id="formula">-</strong>
+                </div>
+                <div class="sidebar-card">
+                    <span>Molecular weight</span>
+                    <strong id="weight">0.00</strong>
+                </div>
+                <div class="sidebar-card">
+                    <span>Atoms</span>
+                    <strong id="atom-count">0</strong>
+                </div>
+                <div class="sidebar-card">
+                    <span>Bonds</span>
+                    <strong id="bond-count">0</strong>
+                </div>
+            </div>
+
+            <div class="sidebar-card">
+                <span>Tools</span>
+                <div class="button-group" id="tool-buttons">
+                    <button class="tool active" data-tool="atom">Atom</button>
+                    <button class="tool" data-tool="bond">Bond</button>
+                    <button class="tool" data-tool="erase">Erase</button>
+                </div>
+            </div>
+
+            <div class="sidebar-card">
+                <span>Elements</span>
+                <div class="chip-group" id="element-buttons">
+                    <button class="chip active" data-element="C">Carbon</button>
+                    <button class="chip" data-element="N">Nitrogen</button>
+                    <button class="chip" data-element="O">Oxygen</button>
+                    <button class="chip" data-element="S">Sulfur</button>
+                    <button class="chip" data-element="Cl">Chlorine</button>
+                </div>
+            </div>
+
+            <div class="sidebar-card">
+                <span>Presets</span>
+                <div class="button-group">
+                    <button id="preset-ethanol">Ethanol</button>
+                    <button id="preset-benzene">Benzene</button>
+                    <button id="preset-glycine">Glycine</button>
+                </div>
+            </div>
+
+            <div class="button-group">
+                <button id="organize">Auto organize</button>
+                <button id="clear">Clear canvas</button>
+            </div>
+        </aside>
+
+        <section class="panel stage">
+            <div class="stage-header">
+                <strong id="tool-readout">Atom tool · Carbon</strong>
+                <div class="badge" id="status">Ready to draw</div>
+            </div>
+
+            <div class="stage-toolbar">
+                <div class="legend">
+                    <div class="legend-pill carbon">Carbon</div>
+                    <div class="legend-pill nitrogen">Nitrogen</div>
+                    <div class="legend-pill oxygen">Oxygen</div>
+                    <div class="legend-pill sulfur">Sulfur</div>
+                </div>
+                <div class="button-group" id="bond-buttons">
+                    <button class="chip active" data-order="1">Single</button>
+                    <button class="chip" data-order="2">Double</button>
+                    <button class="chip" data-order="3">Triple</button>
+                </div>
+            </div>
+
+            <div class="canvas-wrap">
+                <canvas id="editor" aria-label="Orbital molecule editor"></canvas>
+            </div>
+
+            <div class="stage-footer">
+                Click to place atoms. Switch to bond mode to connect atoms or create chains. Auto organize reflows the current graph into a cleaner layout.
+            </div>
+        </section>
+    </div>
+
+    <script src="../Orbital/src/js/elements.js"></script>
+    <script src="../Orbital/src/js/core/Molecule.js"></script>
+    <script src="../Orbital/src/js/rendering/renderer-v2.js"></script>
+    <script src="../Orbital/src/js/tools/base-tool.js"></script>
+    <script src="../Orbital/src/js/tools/atom-tool.js"></script>
+    <script src="../Orbital/src/js/tools/bond-tool.js"></script>
+    <script src="../Orbital/src/js/tools/erase-tool.js"></script>
+    <script>
+        const previewMode = new URLSearchParams(window.location.search).get("mode") === "preview";
+        if (previewMode) {
+            document.body.classList.add("preview-mode");
+        }
+
+        const canvas = document.getElementById("editor");
+        const renderer = new RendererV2(canvas);
+        const atomTool = new AtomTool();
+        const bondTool = new BondTool();
+        const eraseTool = new EraseTool();
+
+        const state = {
+            molecule: new Molecule(),
+            currentTool: "atom",
+            currentElement: "C",
+            bondOrder: 1,
+            isBonding: false
+        };
+
+        const formulaEl = document.getElementById("formula");
+        const weightEl = document.getElementById("weight");
+        const atomCountEl = document.getElementById("atom-count");
+        const bondCountEl = document.getElementById("bond-count");
+        const toolReadoutEl = document.getElementById("tool-readout");
+        const statusEl = document.getElementById("status");
+
+        const presetData = {
+            ethanol: {
+                atoms: [
+                    { id: "atom_0", element: "C", position: { x: 270, y: 280 } },
+                    { id: "atom_1", element: "C", position: { x: 380, y: 280 } },
+                    { id: "atom_2", element: "O", position: { x: 490, y: 240 } }
+                ],
+                bonds: [
+                    { id: "bond_0", atom1: "atom_0", atom2: "atom_1", order: 1 },
+                    { id: "bond_1", atom1: "atom_1", atom2: "atom_2", order: 1 }
+                ]
+            },
+            benzene: {
+                atoms: [
+                    { id: "atom_0", element: "C", position: { x: 330, y: 180 } },
+                    { id: "atom_1", element: "C", position: { x: 430, y: 240 } },
+                    { id: "atom_2", element: "C", position: { x: 430, y: 360 } },
+                    { id: "atom_3", element: "C", position: { x: 330, y: 420 } },
+                    { id: "atom_4", element: "C", position: { x: 230, y: 360 } },
+                    { id: "atom_5", element: "C", position: { x: 230, y: 240 } }
+                ],
+                bonds: [
+                    { id: "bond_0", atom1: "atom_0", atom2: "atom_1", order: 2 },
+                    { id: "bond_1", atom1: "atom_1", atom2: "atom_2", order: 1 },
+                    { id: "bond_2", atom1: "atom_2", atom2: "atom_3", order: 2 },
+                    { id: "bond_3", atom1: "atom_3", atom2: "atom_4", order: 1 },
+                    { id: "bond_4", atom1: "atom_4", atom2: "atom_5", order: 2 },
+                    { id: "bond_5", atom1: "atom_5", atom2: "atom_0", order: 1 }
+                ]
+            },
+            glycine: {
+                atoms: [
+                    { id: "atom_0", element: "N", position: { x: 220, y: 300 } },
+                    { id: "atom_1", element: "C", position: { x: 330, y: 300 } },
+                    { id: "atom_2", element: "C", position: { x: 440, y: 300 } },
+                    { id: "atom_3", element: "O", position: { x: 540, y: 240 } },
+                    { id: "atom_4", element: "O", position: { x: 540, y: 360 } }
+                ],
+                bonds: [
+                    { id: "bond_0", atom1: "atom_0", atom2: "atom_1", order: 1 },
+                    { id: "bond_1", atom1: "atom_1", atom2: "atom_2", order: 1 },
+                    { id: "bond_2", atom1: "atom_2", atom2: "atom_3", order: 2 },
+                    { id: "bond_3", atom1: "atom_2", atom2: "atom_4", order: 1 }
+                ]
+            }
+        };
+
+        function updateTooling() {
+            atomTool.setElement(state.currentElement);
+            bondTool.setBondOrder(state.bondOrder);
+            toolReadoutEl.textContent = `${capitalize(state.currentTool)} tool · ${labelForElement(state.currentElement)}${state.currentTool === "bond" ? ` · ${bondLabel(state.bondOrder)}` : ""}`;
+        }
+
+        function capitalize(value) {
+            return value.charAt(0).toUpperCase() + value.slice(1);
+        }
+
+        function labelForElement(element) {
+            const names = { C: "Carbon", N: "Nitrogen", O: "Oxygen", S: "Sulfur", Cl: "Chlorine" };
+            return names[element] || element;
+        }
+
+        function bondLabel(order) {
+            return order === 1 ? "Single bond" : order === 2 ? "Double bond" : "Triple bond";
+        }
+
+        function getPos(event) {
+            const rect = canvas.getBoundingClientRect();
+            return {
+                x: event.clientX - rect.left,
+                y: event.clientY - rect.top
+            };
+        }
+
+        function loadPreset(name) {
+            state.molecule = Molecule.fromArray(presetData[name]);
+            statusEl.textContent = `${capitalize(name)} loaded`;
+            render();
+        }
+
+        function render() {
+            const atoms = Array.from(state.molecule.atoms.values());
+            const bonds = Array.from(state.molecule.bonds.values());
+            renderer.render(state.molecule, { showImplicitH: false });
+
+            formulaEl.textContent = state.molecule.metadata.formula || "-";
+            weightEl.textContent = state.molecule.metadata.molecularWeight.toFixed(2);
+            atomCountEl.textContent = atoms.length;
+            bondCountEl.textContent = bonds.length;
+            updateTooling();
+        }
+
+        function setPreview(event) {
+            const pos = getPos(event);
+            const hoverAtom = atomTool.getAtomAtPosition(pos.x, pos.y, state.molecule, 24);
+            const hoverBond = !hoverAtom ? bondTool.getBondAtPosition(pos.x, pos.y, state.molecule, 10) : null;
+
+            if (state.currentTool === "atom") {
+                renderer.setPreviewState({
+                    previewAtom: { x: pos.x, y: pos.y, element: state.currentElement },
+                    previewBond: null,
+                    hoverAtom,
+                    hoverBond
+                });
+            } else if (state.currentTool === "bond" && bondTool.bondStartAtom) {
+                renderer.setPreviewState({
+                    previewAtom: null,
+                    previewBond: {
+                        from: bondTool.bondStartAtom,
+                        to: { x: pos.x, y: pos.y },
+                        order: state.bondOrder
+                    },
+                    hoverAtom,
+                    hoverBond
+                });
+            } else {
+                renderer.setPreviewState({
+                    previewAtom: null,
+                    previewBond: null,
+                    hoverAtom,
+                    hoverBond
+                });
+            }
+
+            renderer.render(state.molecule, { showImplicitH: false });
+        }
+
+        canvas.addEventListener("pointermove", event => {
+            setPreview(event);
+        });
+
+        canvas.addEventListener("pointerleave", () => {
+            renderer.setPreviewState({ previewAtom: null, previewBond: null, hoverAtom: null, hoverBond: null });
+            renderer.render(state.molecule, { showImplicitH: false });
+        });
+
+        canvas.addEventListener("click", event => {
+            const pos = getPos(event);
+            if (state.currentTool === "atom") {
+                state.molecule = atomTool.onClick(pos.x, pos.y, state.molecule, renderer);
+                statusEl.textContent = `${labelForElement(state.currentElement)} atom placed`;
+            } else if (state.currentTool === "erase") {
+                state.molecule = eraseTool.onClick(pos.x, pos.y, state.molecule, renderer);
+                statusEl.textContent = "Erase pass applied";
+            }
+            render();
+        });
+
+        canvas.addEventListener("pointerdown", event => {
+            if (state.currentTool !== "bond") return;
+            const pos = getPos(event);
+            state.molecule = bondTool.onMouseDown(pos.x, pos.y, state.molecule, renderer);
+            statusEl.textContent = "Bond anchor selected";
+            render();
+        });
+
+        canvas.addEventListener("pointerup", event => {
+            if (state.currentTool !== "bond") return;
+            const pos = getPos(event);
+            state.molecule = bondTool.onMouseUp(pos.x, pos.y, state.molecule, renderer);
+            renderer.setPreviewState({ previewBond: null });
+            statusEl.textContent = "Bond route updated";
+            render();
+        });
+
+        document.getElementById("tool-buttons").addEventListener("click", event => {
+            const target = event.target.closest("[data-tool]");
+            if (!target) return;
+            state.currentTool = target.dataset.tool;
+            document.querySelectorAll("#tool-buttons [data-tool]").forEach(button => button.classList.toggle("active", button === target));
+            statusEl.textContent = `${capitalize(state.currentTool)} tool active`;
+            updateTooling();
+        });
+
+        document.getElementById("element-buttons").addEventListener("click", event => {
+            const target = event.target.closest("[data-element]");
+            if (!target) return;
+            state.currentElement = target.dataset.element;
+            document.querySelectorAll("#element-buttons [data-element]").forEach(button => button.classList.toggle("active", button === target));
+            statusEl.textContent = `${labelForElement(state.currentElement)} selected`;
+            updateTooling();
+        });
+
+        document.getElementById("bond-buttons").addEventListener("click", event => {
+            const target = event.target.closest("[data-order]");
+            if (!target) return;
+            state.bondOrder = Number(target.dataset.order);
+            document.querySelectorAll("#bond-buttons [data-order]").forEach(button => button.classList.toggle("active", button === target));
+            statusEl.textContent = `${bondLabel(state.bondOrder)} ready`;
+            updateTooling();
+        });
+
+        document.getElementById("clear").addEventListener("click", () => {
+            state.molecule = new Molecule();
+            statusEl.textContent = "Canvas cleared";
+            render();
+        });
+
+        document.getElementById("preset-ethanol").addEventListener("click", () => loadPreset("ethanol"));
+        document.getElementById("preset-benzene").addEventListener("click", () => loadPreset("benzene"));
+        document.getElementById("preset-glycine").addEventListener("click", () => loadPreset("glycine"));
+
+        document.getElementById("organize").addEventListener("click", () => {
+            const atoms = Array.from(state.molecule.atoms.values());
+            if (!atoms.length) return;
+
+            const rect = canvas.getBoundingClientRect();
+            const centerX = rect.width / 2;
+            const centerY = rect.height / 2;
+            const adjacency = new Map(atoms.map(atom => [atom.id, []]));
+            Array.from(state.molecule.bonds.values()).forEach(bond => {
+                adjacency.get(bond.atom1)?.push(bond.atom2);
+                adjacency.get(bond.atom2)?.push(bond.atom1);
+            });
+
+            const visited = new Set();
+            const levels = [];
+            const queue = [{ id: atoms[0].id, depth: 0 }];
+
+            while (queue.length) {
+                const current = queue.shift();
+                if (visited.has(current.id)) continue;
+                visited.add(current.id);
+                if (!levels[current.depth]) levels[current.depth] = [];
+                levels[current.depth].push(current.id);
+                (adjacency.get(current.id) || []).forEach(id => {
+                    if (!visited.has(id)) queue.push({ id, depth: current.depth + 1 });
+                });
+            }
+
+            atoms.forEach(atom => {
+                if (!visited.has(atom.id)) {
+                    if (!levels[levels.length]) levels[levels.length] = [];
+                    levels[levels.length].push(atom.id);
+                }
+            });
+
+            const cloned = state.molecule.clone();
+            levels.forEach((level, depth) => {
+                const y = centerY + (depth - (levels.length - 1) / 2) * 110;
+                level.forEach((id, index) => {
+                    const x = centerX + (index - (level.length - 1) / 2) * 120;
+                    const atom = cloned.atoms.get(id);
+                    if (atom) {
+                        atom.position = { x, y };
+                    }
+                });
+            });
+
+            state.molecule = cloned;
+            statusEl.textContent = "Graph organized";
+            render();
+        });
+
+        loadPreset("benzene");
+    </script>
+</body>
+</html>

@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>UCSD Radiology | Sean</title>
+    <meta name="description" content="Department of Radiology website for UC San Diego School of Medicine.">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="cursor-dot"></div>
+    <div class="cursor-outline"></div>
+    <div class="bg-gradient bg-gradient-1"></div>
+    <div class="bg-gradient bg-gradient-2"></div>
+    <div class="bg-noise"></div>
+
+    <nav class="navbar">
+        <div class="nav-content">
+            <div class="logo magnetic" onclick="window.location.href='index.html'">S.</div>
+            <ul class="nav-links">
+                <li><a href="index.html#projects" class="magnetic">Back to Portfolio</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <main class="container project-page" style="--project-accent:#3b82f6;--project-accent-alt:#1e3a5f;">
+        <header class="project-page-header section-animate">
+            <a href="index.html#projects" class="back-link magnetic">&larr; Back to projects</a>
+            <div class="project-kicker">Web Developer</div>
+            <h1 class="project-page-title">UCSD Radiology</h1>
+            <p class="project-summary">
+                Built and maintained the Department of Radiology website for UC San Diego School of Medicine. This comprehensive healthcare web project includes faculty directories, research pages, education resources, patient care information, and accessibility-compliant content delivery.
+            </p>
+        </header>
+
+        <section class="project-stage-card section-animate">
+            <div class="project-stage-bar">
+                <div class="project-stage-label">Live Site Preview</div>
+                <div class="project-stage-actions">
+                    <a class="project-inline-link" href="UCSD-Radiology/index.html" target="_blank" rel="noreferrer">Open full site</a>
+                </div>
+            </div>
+            <div class="project-stage-insights">
+                <article class="project-stage-insight">
+                    <span>Scope</span>
+                    <strong>Full department website</strong>
+                    <p>Faculty, research, education, patient care, and administrative pages for the radiology department.</p>
+                </article>
+                <article class="project-stage-insight">
+                    <span>Standards</span>
+                    <strong>Healthcare accessibility</strong>
+                    <p>ADA-compliant, HIPAA-aware content presentation for patients and medical professionals.</p>
+                </article>
+                <article class="project-stage-insight">
+                    <span>Stack</span>
+                    <strong>Webflow + Custom</strong>
+                    <p>Webflow-based CMS with custom styling, responsive layouts, and interactive components.</p>
+                </article>
+            </div>
+            <div class="project-frame-shell project-frame-shell--preview" style="--frame-height:720px; --frame-ratio:16 / 9;">
+                <iframe
+                    class="project-frame"
+                    src="embeds/preview-shell.html?src=../UCSD-Radiology/index.html&width=1280&height=720&accent=3b82f6&label=Live%20site%20build&sizeLabel=1280%20%C3%97%20720"
+                    title="UCSD Radiology preview"
+                    loading="eager"
+                    scrolling="no"
+                ></iframe>
+            </div>
+        </section>
+
+        <section class="project-meta-grid section-animate">
+            <article class="project-meta-card">
+                <h3>Built With</h3>
+                <div class="project-tag-list">
+                    <span class="tag">HTML5</span>
+                    <span class="tag">CSS3</span>
+                    <span class="tag">JavaScript</span>
+                    <span class="tag">Webflow</span>
+                    <span class="tag">Responsive Design</span>
+                    <span class="tag">ADA Compliance</span>
+                </div>
+            </article>
+            <article class="project-meta-card">
+                <h3>About the Project</h3>
+                <p>
+                    Developed for the UC San Diego School of Medicine Department of Radiology, this site serves as the primary digital presence for faculty, research initiatives, education programs, and patient resources within the department.
+                </p>
+            </article>
+            <article class="project-meta-card">
+                <h3>Key Features</h3>
+                <ul class="project-points">
+                    <li>Faculty directory with research profiles and breakthrough technology pages</li>
+                    <li>Patient care and education resource sections</li>
+                    <li>Responsive design optimized for desktop and mobile</li>
+                    <li>Accessibility-first content structure for healthcare audiences</li>
+                </ul>
+            </article>
+        </section>
+    </main>
+
+    <script src="script.js"></script>
+</body>
+</html>

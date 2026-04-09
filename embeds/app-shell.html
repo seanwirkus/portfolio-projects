@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Project App Shell</title>
+    <style>
+        :root {
+            color-scheme: dark;
+            --shell-accent: rgba(99, 102, 241, 0.22);
+            --shell-accent-soft: rgba(59, 130, 246, 0.12);
+            --shell-bg: #020617;
+            --shell-text: #f8fafc;
+            --shell-muted: rgba(226, 232, 240, 0.72);
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        html,
+        body {
+            width: 100%;
+            height: 100%;
+            margin: 0;
+            overflow: hidden;
+            font-family: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+            background:
+                radial-gradient(circle at top left, var(--shell-accent), transparent 38%),
+                radial-gradient(circle at bottom right, var(--shell-accent-soft), transparent 34%),
+                linear-gradient(180deg, #020617 0%, #07101f 100%);
+            color: var(--shell-text);
+        }
+
+        .shell-page {
+            width: 100%;
+            height: 100%;
+            padding: 18px;
+            display: grid;
+            grid-template-rows: auto 1fr;
+            gap: 14px;
+        }
+
+        .shell-nav {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 1rem;
+            padding: 0.95rem 1rem;
+            border-radius: 22px;
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            background: rgba(2, 6, 23, 0.58);
+            backdrop-filter: blur(18px);
+        }
+
+        .shell-title {
+            min-width: 0;
+        }
+
+        .shell-title span {
+            display: block;
+            font-size: 0.74rem;
+            text-transform: uppercase;
+            letter-spacing: 0.14em;
+            color: var(--shell-muted);
+        }
+
+        .shell-title strong {
+            display: block;
+            margin-top: 0.3rem;
+            font-size: 1.15rem;
+            line-height: 1.1;
+            text-wrap: balance;
+            overflow-wrap: anywhere;
+        }
+
+        .shell-links {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: flex-end;
+            gap: 10px;
+        }
+
+        .shell-link {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 44px;
+            padding: 0.7rem 0.95rem;
+            border-radius: 999px;
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            background: rgba(255, 255, 255, 0.05);
+            color: var(--shell-text);
+            text-decoration: none;
+            white-space: nowrap;
+        }
+
+        .shell-link.primary {
+            background: rgba(255, 255, 255, 0.12);
+        }
+
+        .shell-frame-wrap {
+            border-radius: 28px;
+            overflow: hidden;
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            background:
+                linear-gradient(180deg, rgba(255, 255, 255, 0.04), transparent 18%),
+                rgba(2, 6, 23, 0.6);
+            box-shadow:
+                0 28px 72px rgba(2, 6, 23, 0.35),
+                inset 0 0 0 1px rgba(255, 255, 255, 0.04);
+            min-height: 0;
+        }
+
+        .shell-frame {
+            width: 100%;
+            height: 100%;
+            border: 0;
+            display: block;
+            background: var(--shell-bg);
+        }
+
+        .shell-empty {
+            height: 100%;
+            display: grid;
+            place-items: center;
+            padding: 24px;
+            text-align: center;
+            color: var(--shell-muted);
+            line-height: 1.6;
+        }
+
+        @media (max-width: 720px) {
+            .shell-page {
+                padding: 12px;
+                gap: 12px;
+            }
+
+            .shell-nav {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+
+            .shell-links {
+                width: 100%;
+                justify-content: stretch;
+            }
+
+            .shell-link {
+                flex: 1 1 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="shell-page">
+        <nav class="shell-nav">
+            <div class="shell-title">
+                <span>Project app</span>
+                <strong id="shell-title">Interactive runtime</strong>
+            </div>
+            <div class="shell-links">
+                <a class="shell-link" id="project-link" href="../index.html#projects">Project page</a>
+                <a class="shell-link primary" href="../index.html#projects">Back to portfolio</a>
+            </div>
+        </nav>
+        <div class="shell-frame-wrap">
+            <iframe class="shell-frame" id="shell-frame" title="Project app frame" scrolling="auto"></iframe>
+            <div class="shell-empty" id="shell-empty" hidden>
+                This app shell could not load because no source was provided.
+            </div>
+        </div>
+    </div>
+    <script>
+        const params = new URLSearchParams(window.location.search);
+        const shellFrame = document.getElementById('shell-frame');
+        const shellEmpty = document.getElementById('shell-empty');
+        const shellTitle = document.getElementById('shell-title');
+        const projectLink = document.getElementById('project-link');
+
+        const toRgba = (hex, alpha) => {
+            const cleaned = (hex || '').replace('#', '').trim();
+            if (!/^[0-9a-fA-F]{6}$/.test(cleaned)) return null;
+            const red = Number.parseInt(cleaned.slice(0, 2), 16);
+            const green = Number.parseInt(cleaned.slice(2, 4), 16);
+            const blue = Number.parseInt(cleaned.slice(4, 6), 16);
+            return `rgba(${red}, ${green}, ${blue}, ${alpha})`;
+        };
+
+        const src = params.get('src');
+        const title = params.get('title') || 'Interactive runtime';
+        const projectHref = params.get('projectHref') || '../index.html#projects';
+        const accent = params.get('accent');
+        const allow = params.get('allow');
+
+        shellTitle.textContent = title;
+        projectLink.href = projectHref;
+
+        if (accent) {
+            const strongAccent = toRgba(accent, 0.22);
+            const softAccent = toRgba(accent, 0.12);
+            if (strongAccent) document.documentElement.style.setProperty('--shell-accent', strongAccent);
+            if (softAccent) document.documentElement.style.setProperty('--shell-accent-soft', softAccent);
+        }
+
+        if (!src) {
+            shellFrame.hidden = true;
+            shellEmpty.hidden = false;
+        } else {
+            shellFrame.src = src;
+            if (allow) shellFrame.setAttribute('allow', allow);
+        }
+    </script>
+</body>
+</html>

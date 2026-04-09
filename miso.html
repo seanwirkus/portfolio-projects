@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>miSO | Sean</title>
+    <meta name="description" content="miSO - a macOS virtual machine management wizard built with Swift.">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="cursor-dot"></div>
+    <div class="cursor-outline"></div>
+    <div class="bg-gradient bg-gradient-1"></div>
+    <div class="bg-gradient bg-gradient-2"></div>
+    <div class="bg-noise"></div>
+
+    <nav class="navbar">
+        <div class="nav-content">
+            <div class="logo magnetic" onclick="window.location.href='index.html'">S.</div>
+            <ul class="nav-links">
+                <li><a href="index.html#projects" class="magnetic">Back to Portfolio</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <main class="container project-page" style="--project-accent:#8b5cf6;--project-accent-alt:#7c3aed;">
+        <header class="project-page-header section-animate">
+            <a href="index.html#projects" class="back-link magnetic">&larr; Back to projects</a>
+            <div class="project-kicker">macOS / Swift Developer</div>
+            <h1 class="project-page-title">miSO</h1>
+            <p class="project-summary">
+                A native macOS virtual machine manager with a guided wizard interface for creating, configuring, and running VMs. Built with Swift using MVVM architecture, miSO provides a clean step-by-step workflow for setting up virtual machine configurations and managing VM instances.
+            </p>
+        </header>
+
+        <section class="project-stage-card section-animate">
+            <div class="project-stage-bar">
+                <div class="project-stage-label">Application UI Simulation</div>
+            </div>
+            <div class="project-frame-shell" style="height:420px; min-height:0; aspect-ratio:unset; overflow:hidden; position:relative;">
+                <canvas id="misoCanvas" width="960" height="420" style="width:100%; height:100%; display:block;"></canvas>
+                <script>
+                (function(){
+                    const c = document.getElementById('misoCanvas');
+                    const ctx = c.getContext('2d');
+                    let step = 0, hoverBtn = -1, t = 0;
+                    const steps = ['Select OS','Configure CPU & RAM','Set Disk Size','Review & Create'];
+                    const configs = [
+                        {label:'macOS Sonoma',icon:'🍎',opts:['macOS Sonoma','Ubuntu 22.04','Windows 11','Fedora 39']},
+                        {label:'CPU & Memory',icon:'⚡',vals:['4 Cores','8 GB RAM']},
+                        {label:'Storage',icon:'💾',vals:['64 GB']},
+                        {label:'Summary',icon:'✅',vals:[]}
+                    ];
+
+                    function drawRoundRect(x,y,w,h,r){ctx.beginPath();ctx.moveTo(x+r,y);ctx.lineTo(x+w-r,y);ctx.quadraticCurveTo(x+w,y,x+w,y+r);ctx.lineTo(x+w,y+h-r);ctx.quadraticCurveTo(x+w,y+h,x+w-r,y+h);ctx.lineTo(x+r,y+h);ctx.quadraticCurveTo(x,y+h,x,y+h-r);ctx.lineTo(x,y+r);ctx.quadraticCurveTo(x,y,x+r,y);ctx.closePath();}
+
+                    function draw(){
+                        t += 0.02;
+                        ctx.clearRect(0,0,960,420);
+                        // Window bg
+                        ctx.fillStyle='#1a1a2e'; ctx.fillRect(0,0,960,420);
+                        // Title bar
+                        drawRoundRect(0,0,960,36,0); ctx.fillStyle='#16162a'; ctx.fill();
+                        ctx.fillStyle='#ff5f57'; ctx.beginPath(); ctx.arc(18,18,6,0,Math.PI*2); ctx.fill();
+                        ctx.fillStyle='#febc2e'; ctx.beginPath(); ctx.arc(38,18,6,0,Math.PI*2); ctx.fill();
+                        ctx.fillStyle='#28c840'; ctx.beginPath(); ctx.arc(58,18,6,0,Math.PI*2); ctx.fill();
+                        ctx.fillStyle='rgba(255,255,255,0.5)'; ctx.font='13px Inter,sans-serif'; ctx.textAlign='center';
+                        ctx.fillText('miSO — New Virtual Machine',480,23);
+                        // Sidebar
+                        ctx.fillStyle='#12122a'; ctx.fillRect(0,36,220,384);
+                        ctx.strokeStyle='rgba(255,255,255,0.06)'; ctx.beginPath(); ctx.moveTo(220,36); ctx.lineTo(220,420); ctx.stroke();
+                        for(let i=0;i<steps.length;i++){
+                            let y=56+i*52;
+                            if(i===step){drawRoundRect(8,y,204,42,8);ctx.fillStyle='rgba(139,92,246,0.2)';ctx.fill();}
+                            ctx.fillStyle=i===step?'#8b5cf6':i<step?'#10b981':'rgba(255,255,255,0.3)';
+                            ctx.font='600 13px Inter,sans-serif'; ctx.textAlign='left';
+                            ctx.fillText((i<step?'✓ ':'')+(i+1)+'. '+steps[i],20,y+26);
+                        }
+                        // Progress
+                        let prog = (step+1)/steps.length;
+                        ctx.fillStyle='rgba(255,255,255,0.05)'; drawRoundRect(16,280,188,6,3); ctx.fill();
+                        ctx.fillStyle='#8b5cf6'; drawRoundRect(16,280,188*prog,6,3); ctx.fill();
+                        ctx.fillStyle='rgba(255,255,255,0.3)'; ctx.font='11px Inter,sans-serif';
+                        ctx.fillText(Math.round(prog*100)+'% complete',16,305);
+                        // Content
+                        let cx=240,cy=56;
+                        ctx.fillStyle='#e2e8f0'; ctx.font='600 22px Outfit,sans-serif'; ctx.textAlign='left';
+                        ctx.fillText(configs[step].icon+' '+configs[step].label,cx,cy+24);
+                        if(step===0){
+                            for(let i=0;i<configs[0].opts.length;i++){
+                                let oy=cy+50+i*58;
+                                drawRoundRect(cx,oy,680,48,10);
+                                ctx.fillStyle=i===0?'rgba(139,92,246,0.15)':'rgba(255,255,255,0.04)';ctx.fill();
+                                ctx.strokeStyle=i===0?'#8b5cf6':'rgba(255,255,255,0.08)';ctx.stroke();
+                                ctx.fillStyle=i===0?'#c4b5fd':'#94a3b8';ctx.font='500 15px Inter,sans-serif';
+                                ctx.fillText(configs[0].opts[i],cx+16,oy+30);
+                                if(i===0){ctx.fillStyle='#8b5cf6';ctx.beginPath();ctx.arc(cx+660,oy+24,8,0,Math.PI*2);ctx.fill();ctx.fillStyle='#fff';ctx.font='bold 12px sans-serif';ctx.fillText('✓',cx+656,oy+28);}
+                            }
+                        } else if(step===1){
+                            // CPU slider
+                            ctx.fillStyle='#94a3b8';ctx.font='13px Inter,sans-serif';ctx.fillText('CPU Cores',cx,cy+60);
+                            ctx.fillStyle='rgba(255,255,255,0.06)';drawRoundRect(cx,cy+68,680,8,4);ctx.fill();
+                            let sx=cx+680*0.375;
+                            ctx.fillStyle='#8b5cf6';drawRoundRect(cx,cy+68,sx-cx,8,4);ctx.fill();
+                            ctx.beginPath();ctx.arc(sx,cy+72,12,0,Math.PI*2);ctx.fillStyle='#8b5cf6';ctx.fill();
+                            ctx.fillStyle='#fff';ctx.font='bold 11px sans-serif';ctx.textAlign='center';ctx.fillText('4',sx,cy+76);ctx.textAlign='left';
+                            // RAM slider
+                            ctx.fillStyle='#94a3b8';ctx.font='13px Inter,sans-serif';ctx.fillText('Memory (GB)',cx,cy+120);
+                            ctx.fillStyle='rgba(255,255,255,0.06)';drawRoundRect(cx,cy+128,680,8,4);ctx.fill();
+                            let rx=cx+680*0.5;
+                            ctx.fillStyle='#8b5cf6';drawRoundRect(cx,cy+128,rx-cx,8,4);ctx.fill();
+                            ctx.beginPath();ctx.arc(rx,cy+132,12,0,Math.PI*2);ctx.fillStyle='#8b5cf6';ctx.fill();
+                            ctx.fillStyle='#fff';ctx.font='bold 11px sans-serif';ctx.textAlign='center';ctx.fillText('8',rx,cy+136);ctx.textAlign='left';
+                            // Info cards
+                            drawRoundRect(cx,cy+170,330,80,10);ctx.fillStyle='rgba(139,92,246,0.08)';ctx.fill();
+                            ctx.fillStyle='#c4b5fd';ctx.font='600 14px Inter,sans-serif';ctx.fillText('4 CPU Cores',cx+16,cy+205);
+                            ctx.fillStyle='#64748b';ctx.font='12px Inter,sans-serif';ctx.fillText('Apple Silicon performance cores',cx+16,cy+225);
+                            drawRoundRect(cx+350,cy+170,330,80,10);ctx.fillStyle='rgba(139,92,246,0.08)';ctx.fill();
+                            ctx.fillStyle='#c4b5fd';ctx.font='600 14px Inter,sans-serif';ctx.fillText('8 GB RAM',cx+366,cy+205);
+                            ctx.fillStyle='#64748b';ctx.font='12px Inter,sans-serif';ctx.fillText('Shared with host memory pool',cx+366,cy+225);
+                        } else if(step===2){
+                            ctx.fillStyle='#94a3b8';ctx.font='13px Inter,sans-serif';ctx.fillText('Disk Allocation',cx,cy+60);
+                            ctx.fillStyle='rgba(255,255,255,0.06)';drawRoundRect(cx,cy+68,680,8,4);ctx.fill();
+                            let dx=cx+680*0.25;
+                            ctx.fillStyle='#8b5cf6';drawRoundRect(cx,cy+68,dx-cx,8,4);ctx.fill();
+                            ctx.beginPath();ctx.arc(dx,cy+72,12,0,Math.PI*2);ctx.fillStyle='#8b5cf6';ctx.fill();
+                            ctx.fillStyle='#fff';ctx.font='bold 10px sans-serif';ctx.textAlign='center';ctx.fillText('64',dx,cy+76);ctx.textAlign='left';
+                            drawRoundRect(cx,cy+110,680,90,10);ctx.fillStyle='rgba(255,255,255,0.03)';ctx.fill();
+                            ctx.strokeStyle='rgba(255,255,255,0.06)';ctx.stroke();
+                            ctx.fillStyle='#e2e8f0';ctx.font='600 15px Inter,sans-serif';ctx.fillText('64 GB Virtual Disk',cx+16,cy+140);
+                            ctx.fillStyle='#64748b';ctx.font='13px Inter,sans-serif';ctx.fillText('Dynamically allocated — grows as needed up to max size',cx+16,cy+165);
+                        } else {
+                            let summary=[['OS','macOS Sonoma'],['CPU','4 Cores'],['RAM','8 GB'],['Disk','64 GB'],['Network','Shared NAT']];
+                            for(let i=0;i<summary.length;i++){
+                                let sy=cy+48+i*46;
+                                drawRoundRect(cx,sy,680,38,8);ctx.fillStyle=i%2===0?'rgba(255,255,255,0.03)':'rgba(255,255,255,0.015)';ctx.fill();
+                                ctx.fillStyle='#94a3b8';ctx.font='13px Inter,sans-serif';ctx.fillText(summary[i][0],cx+16,sy+24);
+                                ctx.fillStyle='#e2e8f0';ctx.font='500 14px Inter,sans-serif';ctx.fillText(summary[i][1],cx+200,sy+24);
+                            }
+                        }
+                        // Nav buttons
+                        if(step>0){drawRoundRect(cx,370,120,38,8);ctx.fillStyle='rgba(255,255,255,0.06)';ctx.fill();ctx.strokeStyle='rgba(255,255,255,0.1)';ctx.stroke();ctx.fillStyle='#e2e8f0';ctx.font='500 14px Inter,sans-serif';ctx.textAlign='center';ctx.fillText('← Back',cx+60,393);ctx.textAlign='left';}
+                        let nbx=step<3?800:780,nbl=step<3?'Next →':'Create VM ✓';
+                        drawRoundRect(nbx,370,step<3?120:140,38,8);ctx.fillStyle='#8b5cf6';ctx.fill();
+                        ctx.fillStyle='#fff';ctx.font='600 14px Inter,sans-serif';ctx.textAlign='center';ctx.fillText(nbl,nbx+(step<3?60:70),393);ctx.textAlign='left';
+                        requestAnimationFrame(draw);
+                    }
+                    draw();
+                    // Auto-step through wizard
+                    setInterval(()=>{step=(step+1)%4;},3000);
+                })();
+                </script>
+            </div>
+            <div class="project-stage-note">
+                Interactive simulation of miSO's step-by-step VM creation wizard interface.
+            </div>
+        </section>
+
+        <section class="project-meta-grid section-animate">
+            <article class="project-meta-card">
+                <h3>Built With</h3>
+                <div class="project-tag-list">
+                    <span class="tag">Swift</span>
+                    <span class="tag">SwiftUI</span>
+                    <span class="tag">Virtualization.framework</span>
+                    <span class="tag">MVVM</span>
+                    <span class="tag">macOS</span>
+                </div>
+            </article>
+            <article class="project-meta-card">
+                <h3>About the Project</h3>
+                <p>
+                    miSO simplifies virtual machine management on macOS through a wizard-driven UI. Users step through configuration options to set up VMs, then launch and manage them from a central list view. The app leverages Apple's Virtualization framework for native VM performance.
+                </p>
+            </article>
+            <article class="project-meta-card">
+                <h3>Key Features</h3>
+                <ul class="project-points">
+                    <li>Step-by-step VM creation wizard with guided configuration</li>
+                    <li>VM list view for managing multiple virtual machines</li>
+                    <li>Native macOS Virtualization framework integration</li>
+                    <li>MVVM architecture with clean separation of concerns</li>
+                    <li>VM display view for interacting with running instances</li>
+                </ul>
+            </article>
+        </section>
+
+        <section class="project-copy-grid section-animate">
+            <article class="project-copy-card">
+                <h3>Architecture</h3>
+                <p>
+                    The app follows MVVM with a WizardContainerView orchestrating multi-step VM creation, VMListView for instance management, and VMDisplayView for live VM interaction. The Models layer defines VMConfiguration and WizardStep data, while Services handle Virtualization framework bridging.
+                </p>
+            </article>
+            <article class="project-copy-card">
+                <h3>Native Performance</h3>
+                <p>
+                    By building on Apple's Virtualization framework rather than third-party hypervisors, miSO achieves near-native VM performance on Apple Silicon Macs with minimal overhead and tight system integration.
+                </p>
+            </article>
+        </section>
+    </main>
+
+    <script src="script.js"></script>
+</body>
+</html>

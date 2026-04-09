@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PianoViz | Sean</title>
+    <meta name="description" content="PianoViz project page with an embedded MIDI visualizer preview and Logic Pro companion workflow support.">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="cursor-dot"></div>
+    <div class="cursor-outline"></div>
+    <div class="bg-gradient bg-gradient-1"></div>
+    <div class="bg-gradient bg-gradient-2"></div>
+    <div class="bg-noise"></div>
+
+    <nav class="navbar">
+        <div class="nav-content">
+            <div class="logo magnetic" onclick="window.location.href='index.html'">S.</div>
+            <ul class="nav-links">
+                <li><a href="index.html#projects" class="magnetic">Back to Portfolio</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <main class="container project-page" style="--project-accent:#8b5cf6;--project-accent-alt:#3b82f6;">
+        <header class="project-page-header section-animate">
+            <a href="index.html#projects" class="back-link magnetic">← Back to projects</a>
+            <div class="project-kicker">Audio Tooling Developer</div>
+            <h1 class="project-page-title">PianoViz</h1>
+            <p class="project-summary">
+                PianoViz is the MIDI visualization, practice, and session-management surface for analyzing notes, chords, playback, and arrangement ideas. This page now uses a dedicated preview shell so the app stays fully visible in the portfolio without nested scrollbars or clipped panels.
+            </p>
+            <div class="project-callout"><strong>Embedded here:</strong> a scaled live preview of the real PianoViz build fitted cleanly into the page.</div>
+        </header>
+
+        <section class="project-stage-card section-animate">
+            <div class="project-stage-bar">
+                <div class="project-stage-label">Live PianoViz App</div>
+                <div class="project-stage-actions">
+                    <a class="project-inline-link" href="embeds/app-shell.html?src=../PianoViz/React/MIDI%20Piano%20Keyboard%20App/dist/index.html&amp;projectHref=../pianoviz.html&amp;title=PianoViz&amp;accent=8b5cf6&amp;allow=midi%3B%20clipboard-read%3B%20clipboard-write" target="_blank" rel="noreferrer">Open full app</a>
+                </div>
+            </div>
+            <div class="project-stage-insights">
+                <article class="project-stage-insight">
+                    <span>Primary surface</span>
+                    <strong>MIDI practice workspace</strong>
+                    <p>Keyboard interaction, note analysis, playback, and projects live in one browser surface.</p>
+                </article>
+                <article class="project-stage-insight">
+                    <span>Workflow</span>
+                    <strong>Browser + Logic Pro</strong>
+                    <p>The preview centers the main app while the product still supports DAW-side companion use.</p>
+                </article>
+                <article class="project-stage-insight">
+                    <span>Mobile fit</span>
+                    <strong>Scaled live build</strong>
+                    <p>The full interface stays visible inside the page instead of clipping the keyboard or side panels.</p>
+                </article>
+            </div>
+            <div class="project-frame-shell project-frame-shell--preview" style="--frame-height:720px; --frame-ratio:16 / 9;">
+                <iframe
+                    class="project-frame"
+                    src="embeds/preview-shell.html?src=../PianoViz/React/MIDI%20Piano%20Keyboard%20App/dist/index.html&amp;width=1280&amp;height=720&amp;accent=8b5cf6&amp;label=Live%20browser%20build&amp;sizeLabel=1280%20%C3%97%20720&amp;allow=midi%3B%20clipboard-read%3B%20clipboard-write"
+                    title="PianoViz preview"
+                    loading="eager"
+                    allow="midi; clipboard-read; clipboard-write"
+                    scrolling="no"
+                ></iframe>
+            </div>
+            <div class="project-stage-note">
+                The shared preview shell now frames PianoViz the same way as the other projects, while still loading the real built app from the repo under the hood.
+            </div>
+        </section>
+
+        <section class="project-meta-grid section-animate">
+            <article class="project-meta-card">
+                <h3>Built With</h3>
+                <div class="project-tag-list">
+                    <span class="tag">React</span>
+                    <span class="tag">Vite</span>
+                    <span class="tag">Web MIDI</span>
+                    <span class="tag">Web Audio</span>
+                    <span class="tag">Swift 5.9</span>
+                    <span class="tag">Audio Unit</span>
+                </div>
+            </article>
+            <article class="project-meta-card">
+                <h3>Primary Product</h3>
+                <p>
+                    PianoViz is the user-facing environment for visualization, guided practice, and MIDI-based exploration. It is the part of the system that is easiest to run, demo, and iterate on directly in the browser.
+                </p>
+            </article>
+            <article class="project-meta-card">
+                <h3>Logic Pro Companion</h3>
+                <ul class="project-points">
+                    <li>PianoViz is presented as a single product rather than split across separate names</li>
+                    <li>The Logic Pro side is treated as a companion workflow for routing, playback, and production use</li>
+                    <li>The browser surface remains the fastest way to demo note analysis, practice tools, and MIDI interaction</li>
+                </ul>
+            </article>
+        </section>
+
+        <section class="project-copy-grid section-animate">
+            <article class="project-copy-card">
+                <h3>Browser Surface</h3>
+                <p>
+                    The embedded app demonstrates the live interaction layer: dynamic keyboard range, MIDI device status, note analysis, project saving, and practice workflows that are visible and runnable directly inside the portfolio.
+                </p>
+            </article>
+            <article class="project-copy-card">
+                <h3>Logic Pro Positioning</h3>
+                <p>
+                    The Logic Pro integration is now described as part of the PianoViz workflow instead of as a separate brand. That keeps the product story cleaner while still leaving room for native Audio Unit or DAW-specific packaging behind the same core experience.
+                </p>
+            </article>
+        </section>
+    </main>
+
+    <script src="script.js"></script>
+</body>
+</html>

@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ESP32-CAR | Sean</title>
+    <meta name="description" content="ESP32-CAM based RC car with camera streaming, ultrasonic sensor, and LCD display.">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="cursor-dot"></div>
+    <div class="cursor-outline"></div>
+    <div class="bg-gradient bg-gradient-1"></div>
+    <div class="bg-gradient bg-gradient-2"></div>
+    <div class="bg-noise"></div>
+
+    <nav class="navbar">
+        <div class="nav-content">
+            <div class="logo magnetic" onclick="window.location.href='index.html'">S.</div>
+            <ul class="nav-links">
+                <li><a href="index.html#projects" class="magnetic">Back to Portfolio</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <main class="container project-page" style="--project-accent:#f59e0b;--project-accent-alt:#d97706;">
+        <header class="project-page-header section-animate">
+            <a href="index.html#projects" class="back-link magnetic">&larr; Back to projects</a>
+            <div class="project-kicker">Embedded Systems Developer</div>
+            <h1 class="project-page-title">ESP32-CAR</h1>
+            <p class="project-summary">
+                A camera-equipped RC car built on the ESP32-CAM platform with real-time video streaming, ultrasonic distance sensing, I2C LCD display feedback, and high-speed UART communication to an ESP32-S3 display module. Built with PlatformIO and the Arduino framework.
+            </p>
+        </header>
+
+        <section class="project-stage-card section-animate">
+            <div class="project-stage-bar">
+                <div class="project-stage-label">Hardware Operations Simulation</div>
+            </div>
+            <div class="project-frame-shell" style="height:450px; min-height:0; aspect-ratio:unset; position:relative; overflow:hidden; border-radius: 0 0 12px 12px;">
+                <canvas id="espCarCanvas" width="800" height="450" style="width:100%; height:100%; display:block; cursor:crosshair;"></canvas>
+                <div style="position: absolute; bottom: 16px; left: 16px; background: rgba(15,23,42,0.85); padding: 12px 16px; border-radius: 8px; font-family: monospace; font-size: 13px; color: #e2e8f0; border: 1px solid rgba(255,255,255,0.1); backdrop-filter: blur(4px);">
+                    <div style="margin-bottom:6px; color:#f59e0b; font-weight:bold;">ESP32-CAR TELEMETRY</div>
+                    Action: [W A S D] or Arrows to drive<br>
+                    HC-SR04: <span id="simDist" style="font-weight:bold;">--</span> cm
+                </div>
+                <script>
+                    (function() {
+                        const canvas = document.getElementById('espCarCanvas');
+                        const ctx = canvas.getContext('2d');
+                        const distEl = document.getElementById('simDist');
+                        
+                        let car = { x: 400, y: 350, angle: 0, speed: 0 };
+                        const keys = { w: false, a: false, s: false, d: false, ArrowUp: false, ArrowLeft: false, ArrowDown: false, ArrowRight: false };
+                        
+                        const boxes = [
+                            {x: 200, y: 120, w: 120, h: 40},
+                            {x: 520, y: 80, w: 80, h: 80},
+                            {x: 600, y: 300, w: 140, h: 30},
+                            {x: 80, y: 280, w: 40, h: 100}
+                        ];
+
+                        window.addEventListener('keydown', e => { 
+                            if (keys.hasOwnProperty(e.key)) { 
+                                keys[e.key] = true; 
+                                if(["ArrowUp","ArrowDown","ArrowLeft","ArrowRight"," "].indexOf(e.key) > -1) {
+                                    e.preventDefault();
+                                }
+                            } 
+                        });
+                        window.addEventListener('keyup', e => { if (keys.hasOwnProperty(e.key)) keys[e.key] = false; });
+                        
+                        function raycast(ox, oy, angle) {
+                            let dist = 0;
+                            const maxDist = 350;
+                            const step = 2;
+                            while(dist < maxDist) {
+                                let rx = ox + Math.cos(angle) * dist;
+                                let ry = oy + Math.sin(angle) * dist;
+                                
+                                if (rx < 0 || rx > 800 || ry < 0 || ry > 450) return dist;
+                                
+                                for (let b of boxes) {
+                                    if (rx >= b.x && rx <= b.x+b.w && ry >= b.y && ry <= b.y+b.h) {
+                                        return dist;
+                                    }
+                                }
+                                dist += step;
+                            }
+                            return maxDist;
+                        }
+
+                        function update() {
+                            const up = keys.w || keys.ArrowUp;
+                            const down = keys.s || keys.ArrowDown;
+                            const left = keys.a || keys.ArrowLeft;
+                            const right = keys.d || keys.ArrowRight;
+                            
+                            if (up) car.speed += 0.25;
+                            else if (down) car.speed -= 0.25;
+                            else car.speed *= 0.92;
+                            
+                            car.speed = Math.max(-2.5, Math.min(car.speed, 5));
+                            
+                            if (Math.abs(car.speed) > 0.1) {
+                                let turnMod = car.speed > 0 ? 1 : -1;
+                                if (left) car.angle -= 0.05 * turnMod;
+                                if (right) car.angle += 0.05 * turnMod;
+                            }
+                            
+                            car.x += Math.cos(car.angle - Math.PI/2) * car.speed;
+                            car.y += Math.sin(car.angle - Math.PI/2) * car.speed;
+                            
+                            car.x = Math.max(20, Math.min(800-20, car.x));
+                            car.y = Math.max(20, Math.min(450-20, car.y));
+                        }
+
+                        function draw() {
+                            ctx.clearRect(0, 0, 800, 450);
+                            
+                            ctx.fillStyle = 'rgba(255,255,255,0.03)';
+                            for(let i=0; i<800; i+=40) ctx.fillRect(i, 0, 1, 450);
+                            for(let j=0; j<450; j+=40) ctx.fillRect(0, j, 800, 1);
+
+                            ctx.fillStyle = '#334155';
+                            ctx.strokeStyle = '#94a3b8';
+                            ctx.lineWidth = 2;
+                            for (let b of boxes) {
+                                ctx.fillRect(b.x, b.y, b.w, b.h);
+                                ctx.strokeRect(b.x, b.y, b.w, b.h);
+                            }
+                            
+                            let sensorX = car.x + Math.cos(car.angle - Math.PI/2) * 20;
+                            let sensorY = car.y + Math.sin(car.angle - Math.PI/2) * 20;
+                            let rayDist = raycast(sensorX, sensorY, car.angle - Math.PI/2);
+                            
+                            ctx.save();
+                            ctx.translate(car.x, car.y);
+                            ctx.rotate(car.angle);
+                            
+                            ctx.strokeStyle = rayDist < 100 ? '#ef4444' : '#10b981';
+                            ctx.fillStyle = ctx.strokeStyle;
+                            
+                            ctx.beginPath();
+                            ctx.moveTo(0, -20);
+                            ctx.lineTo(-rayDist*0.35, -20 - rayDist);
+                            ctx.lineTo(rayDist*0.35, -20 - rayDist);
+                            ctx.closePath();
+                            ctx.globalAlpha = 0.2;
+                            ctx.fill();
+                            ctx.globalAlpha = 1.0;
+                            
+                            ctx.beginPath();
+                            ctx.moveTo(0, -20);
+                            ctx.lineTo(0, -20 - rayDist);
+                            ctx.lineWidth = 2;
+                            ctx.stroke();
+                            
+                            distEl.textContent = rayDist >= 350 ? '>350' : Math.round(rayDist);
+                            distEl.style.color = ctx.strokeStyle;
+                            
+                            ctx.fillStyle = '#f59e0b';
+                            ctx.shadowColor = 'rgba(245, 158, 11, 0.4)';
+                            ctx.shadowBlur = 10;
+                            ctx.fillRect(-16, -24, 32, 48); // Body
+                            ctx.shadowBlur = 0;
+
+                            ctx.fillStyle = 'rgba(56, 189, 248, 0.6)';
+                            ctx.fillRect(-12, -12, 24, 16); // Windshield
+                            
+                            ctx.fillStyle = 'rgba(0,0,0,0.4)';
+                            ctx.fillRect(-14, 12, 28, 8); // Rear
+
+                            ctx.fillStyle = '#1e293b';
+                            ctx.fillRect(-20, -16, 6, 14); // Wheels
+                            ctx.fillRect(14, -16, 6, 14);
+                            ctx.fillRect(-20, 12, 6, 14);
+                            ctx.fillRect(14, 12, 6, 14);
+                            
+                            ctx.fillStyle = '#cbd5e1';
+                            ctx.beginPath(); ctx.arc(-6, -22, 4, 0, Math.PI*2); ctx.fill(); // Sensors
+                            ctx.beginPath(); ctx.arc(6, -22, 4, 0, Math.PI*2); ctx.fill();
+                            
+                            ctx.restore();
+                        }
+
+                        function loop() {
+                            update();
+                            draw();
+                            requestAnimationFrame(loop);
+                        }
+                        loop();
+                    })();
+                </script>
+            </div>
+            <div class="project-stage-note">
+                Interactive HTML canvas simulation of the RC car hardware showing ultrasonic sensor raycasting and driving physics.
+            </div>
+        </section>
+
+        <section class="project-meta-grid section-animate">
+            <article class="project-meta-card">
+                <h3>Built With</h3>
+                <div class="project-tag-list">
+                    <span class="tag">C/C++</span>
+                    <span class="tag">ESP32-CAM</span>
+                    <span class="tag">PlatformIO</span>
+                    <span class="tag">Arduino</span>
+                    <span class="tag">I2C LCD</span>
+                    <span class="tag">HC-SR04</span>
+                </div>
+            </article>
+            <article class="project-meta-card">
+                <h3>About the Project</h3>
+                <p>
+                    This embedded systems project pairs an AI-Thinker ESP32-CAM with an ultrasonic sensor for obstacle detection, a LiquidCrystal I2C display for real-time feedback, and high-speed 2Mbaud UART communication to an ESP32-S3 display unit. The car supports live camera streaming alongside sensor data.
+                </p>
+            </article>
+            <article class="project-meta-card">
+                <h3>Key Features</h3>
+                <ul class="project-points">
+                    <li>Live camera streaming via ESP32-CAM module</li>
+                    <li>HC-SR04 ultrasonic distance sensing for obstacle avoidance</li>
+                    <li>I2C LCD display for real-time telemetry readout</li>
+                    <li>2Mbaud UART link to ESP32-S3 companion display</li>
+                    <li>Wireless receiver module for remote control input</li>
+                </ul>
+            </article>
+        </section>
+
+        <section class="project-copy-grid section-animate">
+            <article class="project-copy-card">
+                <h3>Hardware Architecture</h3>
+                <p>
+                    The system is split between an ESP32-CAM handling camera capture and sensor readings, and a separate receiver/display unit. Communication runs over a dedicated UART bus at 2Mbaud for low-latency telemetry and control data transfer between the two boards.
+                </p>
+            </article>
+            <article class="project-copy-card">
+                <h3>Embedded Stack</h3>
+                <p>
+                    Built with PlatformIO targeting the esp32cam board using the Arduino framework. The firmware integrates the ESP camera driver, Wire library for I2C peripherals, and LiquidCrystal_I2C for display output, all running on the ESP-IDF-backed Arduino core.
+                </p>
+            </article>
+        </section>
+    </main>
+
+    <script src="script.js"></script>
+</body>
+</html>

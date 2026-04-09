@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SupaSesh | Sean</title>
+    <meta name="description" content="SupaSesh project page with an embedded timeline scheduler simulator based on the app's session interactions.">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="cursor-dot"></div>
+    <div class="cursor-outline"></div>
+    <div class="bg-gradient bg-gradient-1"></div>
+    <div class="bg-gradient bg-gradient-2"></div>
+    <div class="bg-noise"></div>
+
+    <nav class="navbar">
+        <div class="nav-content">
+            <div class="logo magnetic" onclick="window.location.href='index.html'">S.</div>
+            <ul class="nav-links">
+                <li><a href="index.html#projects" class="magnetic">Back to Portfolio</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <main class="container project-page" style="--project-accent:#8b5cf6;--project-accent-alt:#ec4899;">
+        <header class="project-page-header section-animate">
+            <a href="index.html#projects" class="back-link magnetic">← Back to projects</a>
+            <div class="project-kicker">iOS / Swift Developer</div>
+            <h1 class="project-page-title">SupaSesh</h1>
+            <p class="project-summary">
+                SupaSesh is a native Apple-platform session tracker built around a drag-resize timeline. Since the source in this workspace is the portfolio surface rather than the shipping SwiftUI app itself, the page now embeds a browser simulation of the exact scheduling interaction model the project is about.
+            </p>
+            <div class="project-callout"><strong>Embedded here:</strong> a timeline planner that mirrors the app’s core session editing behavior.</div>
+        </header>
+
+        <section class="project-stage-card section-animate">
+            <div class="project-stage-bar">
+                <div class="project-stage-label">Session Timeline Simulator</div>
+                <div class="project-stage-actions">
+                    <a class="project-inline-link" href="embeds/app-shell.html?src=supasesh-app.html&amp;projectHref=../supasesh.html&amp;title=SupaSesh&amp;accent=8b5cf6" target="_blank" rel="noreferrer">Open full simulator</a>
+                </div>
+            </div>
+            <div class="project-stage-insights">
+                <article class="project-stage-insight">
+                    <span>Interaction model</span>
+                    <strong>Drag-resize timeline</strong>
+                    <p>The preview keeps direct manipulation front and center instead of hiding it behind forms.</p>
+                </article>
+                <article class="project-stage-insight">
+                    <span>Platform story</span>
+                    <strong>One scheduling metaphor</strong>
+                    <p>The same planning model has to hold across phone, desktop, and spatial layouts.</p>
+                </article>
+                <article class="project-stage-insight">
+                    <span>Mobile fit</span>
+                    <strong>Contained timeline stage</strong>
+                    <p>The full planner reads inside one framed surface before users open the standalone simulator.</p>
+                </article>
+            </div>
+            <div class="project-frame-shell project-frame-shell--preview" style="--frame-height:700px; --frame-ratio:1280 / 800;">
+                <iframe
+                    class="project-frame"
+                    src="embeds/preview-shell.html?src=supasesh-app.html&amp;width=1280&amp;height=800&amp;accent=8b5cf6&amp;label=Session%20planner&amp;sizeLabel=1280%20%C3%97%20800"
+                    title="SupaSesh preview"
+                    loading="eager"
+                    scrolling="no"
+                ></iframe>
+            </div>
+            <div class="project-stage-note">
+                The simulated surface focuses on the timeline itself: moving blocks, resizing sessions in place, snapping to useful increments, and summarizing the day as edits happen.
+            </div>
+        </section>
+
+        <section class="project-meta-grid section-animate">
+            <article class="project-meta-card">
+                <h3>Built With</h3>
+                <div class="project-tag-list">
+                    <span class="tag">Swift</span>
+                    <span class="tag">SwiftUI</span>
+                    <span class="tag">SwiftData</span>
+                    <span class="tag">iOS</span>
+                    <span class="tag">macOS</span>
+                    <span class="tag">visionOS</span>
+                </div>
+            </article>
+            <article class="project-meta-card">
+                <h3>Interaction Focus</h3>
+                <p>
+                    The product hinges on direct manipulation. You should be able to drag sessions, resize them fluidly, and reorganize a day without being pushed through forms for every small adjustment.
+                </p>
+            </article>
+            <article class="project-meta-card">
+                <h3>Product Logic</h3>
+                <ul class="project-points">
+                    <li>Blocks carry state as movable, editable time ranges</li>
+                    <li>Schedule summaries update immediately as the timeline changes</li>
+                    <li>The same metaphor has to hold across phone, desktop, and spatial layouts</li>
+                </ul>
+            </article>
+        </section>
+
+        <section class="project-copy-grid section-animate">
+            <article class="project-copy-card">
+                <h3>Native App Intent</h3>
+                <p>
+                    The actual product is built for the Apple ecosystem and uses native storage and UI frameworks. The design goal is not novelty for its own sake; it is making session planning feel tactile and continuous.
+                </p>
+            </article>
+            <article class="project-copy-card">
+                <h3>Why This Embed Works</h3>
+                <p>
+                    A browser port of the timeline interaction communicates the app far better than screenshots. Users can immediately understand the scheduling model that makes SupaSesh different from a static calendar layout.
+                </p>
+            </article>
+        </section>
+    </main>
+
+    <script src="script.js"></script>
+</body>
+</html>

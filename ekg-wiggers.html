@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EKG-Wiggers Diagram | Sean</title>
+    <meta name="description" content="EKG-Wiggers Diagram project page with the original embedded interactive medical education app.">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="cursor-dot"></div>
+    <div class="cursor-outline"></div>
+    <div class="bg-gradient bg-gradient-1"></div>
+    <div class="bg-gradient bg-gradient-2"></div>
+    <div class="bg-noise"></div>
+
+    <nav class="navbar">
+        <div class="nav-content">
+            <div class="logo magnetic" onclick="window.location.href='index.html'">S.</div>
+            <ul class="nav-links">
+                <li><a href="index.html#projects" class="magnetic">Back to Portfolio</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <main class="container project-page" style="--project-accent:#ec4899;--project-accent-alt:#3b82f6;">
+        <header class="project-page-header section-animate">
+            <a href="index.html#projects" class="back-link magnetic">← Back to projects</a>
+            <div class="project-kicker">Software Engineer</div>
+            <h1 class="project-page-title">EKG-Wiggers Diagram</h1>
+            <p class="project-summary">
+                This project is a real medical education application for exploring the cardiac cycle, hemodynamics, and waveform timing. The portfolio page now embeds the original interface from the project folder instead of a decorative heartbeat animation.
+            </p>
+            <div class="project-callout"><strong>Embedded here:</strong> the original interactive physiology app with condition switching and hemodynamic controls.</div>
+        </header>
+
+        <section class="project-stage-card section-animate">
+            <div class="project-stage-bar">
+                <div class="project-stage-label">Original Interactive App</div>
+                <div class="project-stage-actions">
+                    <a class="project-inline-link" href="embeds/app-shell.html?src=../EKG-Wiggers/index.html&amp;projectHref=../ekg-wiggers.html&amp;title=EKG-Wiggers%20Diagram&amp;accent=ec4899" target="_blank" rel="noreferrer">Open full app</a>
+                </div>
+            </div>
+            <div class="project-stage-insights">
+                <article class="project-stage-insight">
+                    <span>Learning mode</span>
+                    <strong>Cardiac cycle explorer</strong>
+                    <p>Waveforms, pressure traces, and timing remain synchronized in one surface.</p>
+                </article>
+                <article class="project-stage-insight">
+                    <span>Controls</span>
+                    <strong>Condition presets + rate</strong>
+                    <p>Users can switch clinical states and pace the diagram without leaving the view.</p>
+                </article>
+                <article class="project-stage-insight">
+                    <span>Mobile fit</span>
+                    <strong>Scaled original app</strong>
+                    <p>The preview preserves the original interface while keeping it visible on smaller screens.</p>
+                </article>
+            </div>
+            <div class="project-frame-shell project-frame-shell--preview" style="--frame-height:1024px; --frame-ratio:4 / 3;">
+                <iframe
+                    class="project-frame"
+                    src="embeds/preview-shell.html?src=../EKG-Wiggers/index.html&amp;width=1440&amp;height=1024&amp;accent=ec4899&amp;label=Original%20interactive%20app&amp;sizeLabel=1440%20%C3%97%201024"
+                    title="EKG-Wiggers preview"
+                    loading="eager"
+                    scrolling="no"
+                ></iframe>
+            </div>
+            <div class="project-stage-note">
+                The embedded build includes the clinical sidebar, rate controls, condition presets, and the synchronized visual layers used to connect ECG activity with ventricular pressure and blood-flow timing.
+            </div>
+        </section>
+
+        <section class="project-meta-grid section-animate">
+            <article class="project-meta-card">
+                <h3>Built With</h3>
+                <div class="project-tag-list">
+                    <span class="tag">HTML</span>
+                    <span class="tag">SVG</span>
+                    <span class="tag">JavaScript</span>
+                    <span class="tag">Clinical data mapping</span>
+                    <span class="tag">Responsive visualization</span>
+                </div>
+            </article>
+            <article class="project-meta-card">
+                <h3>Teaching Surface</h3>
+                <p>
+                    Learners can compare normal and abnormal states, adjust rhythm pacing, and read synchronized waveform layers without relying on prerecorded video.
+                </p>
+            </article>
+            <article class="project-meta-card">
+                <h3>Clinical Value</h3>
+                <ul class="project-points">
+                    <li>Connects electrical and mechanical cardiac events in one surface</li>
+                    <li>Supports condition-based comparisons for physiology teaching</li>
+                    <li>Keeps timing readable through layered color-coded traces</li>
+                </ul>
+            </article>
+        </section>
+
+        <section class="project-copy-grid section-animate">
+            <article class="project-copy-card">
+                <h3>Implementation</h3>
+                <p>
+                    The application uses direct SVG and DOM control so the waveforms can stay lightweight, scalable, and precise. That makes it easier to synchronize traces and side-panel controls than a video-driven approach.
+                </p>
+            </article>
+            <article class="project-copy-card">
+                <h3>Why This Matters</h3>
+                <p>
+                    The project turns a dense physiology concept into an explorable system. Students can reason about timing relationships instead of passively watching a fixed animation, which is the core educational payoff.
+                </p>
+            </article>
+        </section>
+    </main>
+
+    <script src="script.js"></script>
+</body>
+</html>

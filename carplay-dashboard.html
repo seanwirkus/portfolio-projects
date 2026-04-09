@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CarPlay Dashboard | Sean</title>
+    <meta name="description" content="CarPlay Dashboard project page with an embedded browser simulator based on the embedded UI logic.">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="cursor-dot"></div>
+    <div class="cursor-outline"></div>
+    <div class="bg-gradient bg-gradient-1"></div>
+    <div class="bg-gradient bg-gradient-2"></div>
+    <div class="bg-noise"></div>
+
+    <nav class="navbar">
+        <div class="nav-content">
+            <div class="logo magnetic" onclick="window.location.href='index.html'">S.</div>
+            <ul class="nav-links">
+                <li><a href="index.html#projects" class="magnetic">Back to Portfolio</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <main class="container project-page" style="--project-accent:#3b82f6;--project-accent-alt:#8b5cf6;">
+        <header class="project-page-header section-animate">
+            <a href="index.html#projects" class="back-link magnetic">← Back to projects</a>
+            <div class="project-kicker">Embedded UI Developer</div>
+            <h1 class="project-page-title">CarPlay Dashboard</h1>
+            <p class="project-summary">
+                The original project targets an embedded automotive display, so the portfolio now presents it as a browser simulator that mirrors the same dashboard logic: speed state, route guidance, media focus, and dense information packing on a fixed in-vehicle surface.
+            </p>
+            <div class="project-callout"><strong>Embedded here:</strong> a focused simulator built from the project’s embedded dashboard behavior and layout constraints.</div>
+        </header>
+
+        <section class="project-stage-card section-animate">
+            <div class="project-stage-bar">
+                <div class="project-stage-label">Embedded UI Simulator</div>
+                <div class="project-stage-actions">
+                    <a class="project-inline-link" href="embeds/app-shell.html?src=carplay-dashboard-app.html&amp;projectHref=../carplay-dashboard.html&amp;title=CarPlay%20Dashboard&amp;accent=3b82f6" target="_blank" rel="noreferrer">Open full simulator</a>
+                </div>
+            </div>
+            <div class="project-stage-insights">
+                <article class="project-stage-insight">
+                    <span>Target surface</span>
+                    <strong>1024 × 600 dashboard</strong>
+                    <p>Built around a fixed in-vehicle display with glance-first density.</p>
+                </article>
+                <article class="project-stage-insight">
+                    <span>Primary loop</span>
+                    <strong>Telemetry + navigation</strong>
+                    <p>Speed, route progress, and media all share one coherent state model.</p>
+                </article>
+                <article class="project-stage-insight">
+                    <span>Mobile fit</span>
+                    <strong>Scaled preview shell</strong>
+                    <p>The stage stays readable on phones without introducing nested scrolling.</p>
+                </article>
+            </div>
+            <div class="project-frame-shell project-frame-shell--preview" style="--frame-height:600px; --frame-ratio:1024 / 600;">
+                <iframe
+                    class="project-frame"
+                    src="embeds/preview-shell.html?src=carplay-dashboard-app.html&amp;width=1024&amp;height=600&amp;accent=3b82f6&amp;label=Automotive%20dashboard&amp;sizeLabel=1024%20%C3%97%20600"
+                    title="CarPlay Dashboard preview"
+                    loading="eager"
+                    scrolling="no"
+                ></iframe>
+            </div>
+            <div class="project-stage-note">
+                The simulator keeps the information hierarchy of the hardware UI intact: a central driving surface, route stack, media state, and secondary vehicle telemetry, all tuned for glanceability.
+            </div>
+        </section>
+
+        <section class="project-meta-grid section-animate">
+            <article class="project-meta-card">
+                <h3>Built With</h3>
+                <div class="project-tag-list">
+                    <span class="tag">C/C++</span>
+                    <span class="tag">LVGL</span>
+                    <span class="tag">ESP display stack</span>
+                    <span class="tag">CMake</span>
+                    <span class="tag">UI simulation</span>
+                </div>
+            </article>
+            <article class="project-meta-card">
+                <h3>What The Embed Shows</h3>
+                <p>
+                    A browser-runtime stand-in for the hardware interface, demonstrating the animation pacing, state transitions, and compositional density that define the real embedded dashboard.
+                </p>
+            </article>
+            <article class="project-meta-card">
+                <h3>Key Product Logic</h3>
+                <ul class="project-points">
+                    <li>Speed and telemetry update as one coherent vehicle state</li>
+                    <li>Navigation and media compete for attention without clutter</li>
+                    <li>All major information blocks fit a fixed automotive viewport</li>
+                </ul>
+            </article>
+        </section>
+
+        <section class="project-copy-grid section-animate">
+            <article class="project-copy-card">
+                <h3>Embedded Constraints</h3>
+                <p>
+                    Designing for a 1024×600 automotive display forces hard prioritization. Touch targets, typography, animation curves, and panel groupings need to read at a glance instead of feeling like a resized tablet app.
+                </p>
+            </article>
+            <article class="project-copy-card">
+                <h3>Portfolio Fit</h3>
+                <p>
+                    A browser simulator is the right bridge here because the original target hardware is not web-native. It still demonstrates the actual design logic of the system instead of reducing the project to screenshots and prose.
+                </p>
+            </article>
+        </section>
+    </main>
+
+    <script src="script.js"></script>
+</body>
+</html>

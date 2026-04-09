@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FreewayFrenzy | Sean</title>
+    <meta name="description" content="FreewayFrenzy project page with an embedded browser simulation of the distributed driving game.">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="cursor-dot"></div>
+    <div class="cursor-outline"></div>
+    <div class="bg-gradient bg-gradient-1"></div>
+    <div class="bg-gradient bg-gradient-2"></div>
+    <div class="bg-noise"></div>
+
+    <nav class="navbar">
+        <div class="nav-content">
+            <div class="logo magnetic" onclick="window.location.href='index.html'">S.</div>
+            <ul class="nav-links">
+                <li><a href="index.html#projects" class="magnetic">Back to Portfolio</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <main class="container project-page" style="--project-accent:#ef4444;--project-accent-alt:#f59e0b;">
+        <header class="project-page-header section-animate">
+            <a href="index.html#projects" class="back-link magnetic">← Back to projects</a>
+            <div class="project-kicker">Embedded Systems Developer</div>
+            <h1 class="project-page-title">FreewayFrenzy</h1>
+            <p class="project-summary">
+                FreewayFrenzy runs across two microcontrollers, splitting input and rendering responsibilities over UART. The page now embeds a browser simulation of that loop so the actual pacing, lane logic, HUD, and traffic difficulty are visible instead of being described abstractly.
+            </p>
+            <div class="project-callout"><strong>Embedded here:</strong> a game-surface port of the project’s lane-switching and distributed-state loop.</div>
+        </header>
+
+        <section class="project-stage-card section-animate">
+            <div class="project-stage-bar">
+                <div class="project-stage-label">Distributed Game Simulation</div>
+                <div class="project-stage-actions">
+                    <a class="project-inline-link" href="embeds/app-shell.html?src=../FreewayFrenzy/index.html&amp;projectHref=../freewayfrenzy.html&amp;title=FreewayFrenzy&amp;accent=ef4444" target="_blank" rel="noreferrer">Open full simulator</a>
+                </div>
+            </div>
+            <div class="project-stage-insights">
+                <article class="project-stage-insight">
+                    <span>Architecture</span>
+                    <strong>Two-controller split</strong>
+                    <p>Input and rendering stay separated to mirror the UART-driven embedded build.</p>
+                </article>
+                <article class="project-stage-insight">
+                    <span>Gameplay</span>
+                    <strong>Lane-switching core loop</strong>
+                    <p>Difficulty ramps through traffic cadence, speed, and HUD pressure instead of map size.</p>
+                </article>
+                <article class="project-stage-insight">
+                    <span>Mobile fit</span>
+                    <strong>Full-frame preview</strong>
+                    <p>The game surface is contained in one stage so the sidebar and canvas read together on mobile.</p>
+                </article>
+            </div>
+            <div class="project-frame-shell project-frame-shell--preview" style="--frame-height:640px; --frame-ratio:1024 / 600;">
+                <iframe
+                    class="project-frame"
+                    src="embeds/preview-shell.html?src=../FreewayFrenzy/index.html&amp;width=1024&amp;height=600&amp;accent=ef4444&amp;label=Full%20game%20port&amp;sizeLabel=1024%20%C3%97%20600"
+                    title="FreewayFrenzy — real game"
+                    loading="eager"
+                    scrolling="no"
+                ></iframe>
+            </div>
+            <div class="project-stage-note">
+                The browser version preserves the important parts of the embedded build: lane-based control, escalating traffic, HUD feedback, and the separation between input state and render state.
+            </div>
+        </section>
+
+        <section class="project-meta-grid section-animate">
+            <article class="project-meta-card">
+                <h3>Built With</h3>
+                <div class="project-tag-list">
+                    <span class="tag">ESP32-S3</span>
+                    <span class="tag">ESP32-C3</span>
+                    <span class="tag">C</span>
+                    <span class="tag">ESP-IDF</span>
+                    <span class="tag">LVGL</span>
+                    <span class="tag">UART</span>
+                </div>
+            </article>
+            <article class="project-meta-card">
+                <h3>System Split</h3>
+                <p>
+                    One controller handles player input while the display-side controller owns rendering and game-state presentation. That split is part of the point of the project, not an implementation detail.
+                </p>
+            </article>
+            <article class="project-meta-card">
+                <h3>Game Logic</h3>
+                <ul class="project-points">
+                    <li>Lane switching is discrete and optimized for low-latency input hardware</li>
+                    <li>Traffic cadence ramps with score to validate timing on-device</li>
+                    <li>HUD and render loop communicate state clearly under tight constraints</li>
+                </ul>
+            </article>
+        </section>
+
+        <section class="project-copy-grid section-animate">
+            <article class="project-copy-card">
+                <h3>Embedded Focus</h3>
+                <p>
+                    This was not just a small game. It was a testbed for communication between constrained devices, deterministic rendering, and responsive control surfaces on a microcontroller-class platform.
+                </p>
+            </article>
+            <article class="project-copy-card">
+                <h3>Why Simulate It Here</h3>
+                <p>
+                    A static page cannot communicate the feel of the loop. Embedding a browser port of the actual mechanics makes the architecture legible because users can see how the state machine behaves under input.
+                </p>
+            </article>
+        </section>
+    </main>
+
+    <script src="script.js"></script>
+</body>
+</html>

@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Orbital | Sean</title>
+    <meta name="description" content="Orbital project page with an embedded chemistry editor using the project's actual molecule graph and renderer.">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="cursor-dot"></div>
+    <div class="cursor-outline"></div>
+    <div class="bg-gradient bg-gradient-1"></div>
+    <div class="bg-gradient bg-gradient-2"></div>
+    <div class="bg-noise"></div>
+
+    <nav class="navbar">
+        <div class="nav-content">
+            <div class="logo magnetic" onclick="window.location.href='index.html'">S.</div>
+            <ul class="nav-links">
+                <li><a href="index.html#projects" class="magnetic">Back to Portfolio</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <main class="container project-page" style="--project-accent:#10b981;--project-accent-alt:#3b82f6;">
+        <header class="project-page-header section-animate">
+            <a href="index.html#projects" class="back-link magnetic">← Back to projects</a>
+            <div class="project-kicker">Full Stack Developer</div>
+            <h1 class="project-page-title">Orbital</h1>
+            <p class="project-summary">
+                Orbital is a chemistry workflow project with a molecule graph, rendering engine, editor tools, and planning surface. The original repo includes more than one direction of the product, so this page now embeds a clean editor runtime built directly from the project’s own model and renderer classes.
+            </p>
+            <div class="project-callout"><strong>Embedded here:</strong> a live editor powered by Orbital’s existing molecule model, bond tools, and renderer.</div>
+        </header>
+
+        <section class="project-stage-card section-animate">
+            <div class="project-stage-bar">
+                <div class="project-stage-label">Model-Driven Editor Embed</div>
+                <div class="project-stage-actions">
+                    <a class="project-inline-link" href="embeds/app-shell.html?src=orbital-editor.html&amp;projectHref=../orbital.html&amp;title=Orbital&amp;accent=10b981" target="_blank" rel="noreferrer">Open full editor</a>
+                </div>
+            </div>
+            <div class="project-stage-insights">
+                <article class="project-stage-insight">
+                    <span>Core model</span>
+                    <strong>Molecule graph editor</strong>
+                    <p>Atoms, bonds, and presets all resolve through the same underlying chemistry model.</p>
+                </article>
+                <article class="project-stage-insight">
+                    <span>Editing flow</span>
+                    <strong>Tool-based interaction</strong>
+                    <p>Placement, bonding, erase, and organize are all available without leaving the canvas.</p>
+                </article>
+                <article class="project-stage-insight">
+                    <span>Mobile fit</span>
+                    <strong>Readable editor stage</strong>
+                    <p>The preview keeps the drawing area and control context visible instead of collapsing awkwardly.</p>
+                </article>
+            </div>
+            <div class="project-frame-shell project-frame-shell--preview" style="--frame-height:900px; --frame-ratio:16 / 10;">
+                <iframe
+                    class="project-frame"
+                    src="embeds/preview-shell.html?src=orbital-editor.html%3Fmode%3Dpreview&amp;width=1440&amp;height=900&amp;accent=10b981&amp;label=Model-driven%20editor&amp;sizeLabel=1440%20%C3%97%20900"
+                    title="Orbital preview"
+                    loading="eager"
+                    scrolling="no"
+                ></iframe>
+            </div>
+            <div class="project-stage-note">
+                The embed is not a fake canvas sketch. It uses the project’s real `Molecule`, `RendererV2`, `AtomTool`, `BondTool`, and `EraseTool` classes so the behavior reflects the code that already exists in the repo.
+            </div>
+        </section>
+
+        <section class="project-meta-grid section-animate">
+            <article class="project-meta-card">
+                <h3>Built With</h3>
+                <div class="project-tag-list">
+                    <span class="tag">JavaScript</span>
+                    <span class="tag">Node.js</span>
+                    <span class="tag">Express</span>
+                    <span class="tag">Graph modeling</span>
+                    <span class="tag">Chemical data</span>
+                    <span class="tag">Canvas rendering</span>
+                </div>
+            </article>
+            <article class="project-meta-card">
+                <h3>Editor Surface</h3>
+                <p>
+                    The live surface demonstrates atom placement, bond creation, preset structures, graph metadata, and auto-organization using Orbital’s internal data model instead of a detached portfolio toy.
+                </p>
+            </article>
+            <article class="project-meta-card">
+                <h3>Architecture Direction</h3>
+                <ul class="project-points">
+                    <li>Immutable molecule graph for easier reasoning and state control</li>
+                    <li>Separate rendering layer for chemistry visuals</li>
+                    <li>Tool-based editing model for atom, bond, and erase workflows</li>
+                </ul>
+            </article>
+        </section>
+
+        <section class="project-copy-grid section-animate">
+            <article class="project-copy-card">
+                <h3>Why Reorganize The Page</h3>
+                <p>
+                    The old page showed only a floating-node sketch while the repo contained actual chemistry editing logic. Reframing the page around the working editor makes the project legible and respects the amount of architecture already present.
+                </p>
+            </article>
+            <article class="project-copy-card">
+                <h3>Long-Term Product</h3>
+                <p>
+                    The broader goal is synthesis planning, not just drawing structures. The editor is the front door: it establishes molecules, validates transformations, and provides the surface other planning and prediction workflows can build on.
+                </p>
+            </article>
+        </section>
+    </main>
+
+    <script src="script.js"></script>
+</body>
+</html>

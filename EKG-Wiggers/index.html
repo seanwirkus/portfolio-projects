@@ -1,0 +1,1373 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Interactive EKG &amp; Wiggers Diagram</title>
+<link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=IBM+Plex+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #060b14;
+    --panel: #0d1520;
+    --panel-border: #1c2736;
+    --sidebar-bg: #0a1018;
+    --ekg-green: #00e59b;
+    --lv-red: #ff5c5c;
+    --ao-gold: #ffc832;
+    --la-teal: #36d6b5;
+    --vol-blue: #4da6ff;
+    --s-orange: #ff8c42;
+    --text: #c8d3e0;
+    --text-dim: #5a6a80;
+    --accent: #3b82f6;
+    --selected: #1d4ed8;
+    --grid: rgba(255,255,255,0.04);
+    --card-hover: #111d2e;
+    --danger: #ef4444;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'IBM Plex Sans', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    height: 100vh;
+    overflow: hidden;
+    display: flex;
+  }
+
+  .sidebar {
+    width: 310px;
+    min-width: 310px;
+    background: var(--sidebar-bg);
+    border-right: 1px solid var(--panel-border);
+    display: flex;
+    flex-direction: column;
+    overflow-y: auto;
+    scrollbar-width: thin;
+    scrollbar-color: var(--panel-border) transparent;
+  }
+
+  .sidebar-header {
+    padding: 20px 20px 12px;
+    border-bottom: 1px solid var(--panel-border);
+  }
+
+  .sidebar-header h1 {
+    font-family: 'Space Mono', monospace;
+    font-size: 15px;
+    letter-spacing: 1.5px;
+    color: var(--ekg-green);
+    text-transform: uppercase;
+    margin-bottom: 4px;
+  }
+
+  .sidebar-header p {
+    font-size: 11px;
+    color: var(--text-dim);
+    line-height: 1.5;
+  }
+
+  .section-label {
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    color: var(--text-dim);
+    padding: 16px 20px 8px;
+    font-weight: 600;
+  }
+
+  .condition-list {
+    padding: 0 12px 8px;
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+  }
+
+  .condition-card {
+    padding: 10px 14px;
+    border-radius: 8px;
+    cursor: pointer;
+    border: 1px solid transparent;
+    transition: all 0.2s;
+    position: relative;
+  }
+
+  .condition-card:hover {
+    background: var(--card-hover);
+    border-color: var(--panel-border);
+  }
+
+  .condition-card.active {
+    background: rgba(59,130,246,0.12);
+    border-color: var(--accent);
+  }
+
+  .condition-card .name {
+    font-size: 13px;
+    font-weight: 600;
+    margin-bottom: 2px;
+  }
+
+  .condition-card .tag {
+    font-size: 10px;
+    color: var(--text-dim);
+    font-weight: 400;
+  }
+
+  .condition-card.active .name { color: #93bbfc; }
+
+  .controls {
+    padding: 8px 20px 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+  }
+
+  .control-group label {
+    display: flex;
+    justify-content: space-between;
+    font-size: 11px;
+    color: var(--text-dim);
+    margin-bottom: 6px;
+    font-weight: 500;
+  }
+
+  .control-group label span { color: var(--text); font-family: 'Space Mono', monospace; font-size: 12px; }
+
+  input[type="range"] {
+    -webkit-appearance: none;
+    width: 100%;
+    height: 4px;
+    background: var(--panel-border);
+    border-radius: 2px;
+    outline: none;
+  }
+
+  input[type="range"]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    background: var(--accent);
+    cursor: pointer;
+    border: 2px solid var(--bg);
+  }
+
+  .legend {
+    padding: 10px 20px 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  .legend-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 11px;
+    color: var(--text-dim);
+    cursor: pointer;
+    user-select: none;
+  }
+
+  .legend-item:hover { color: var(--text); }
+
+  .legend-swatch {
+    width: 16px;
+    height: 3px;
+    border-radius: 1px;
+    flex-shrink: 0;
+  }
+
+  .clinical-info {
+    padding: 12px 20px 20px;
+    border-top: 1px solid var(--panel-border);
+    margin-top: auto;
+  }
+
+  .clinical-info h3 {
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: var(--accent);
+    margin-bottom: 8px;
+    font-weight: 600;
+  }
+
+  .clinical-info p {
+    font-size: 12px;
+    line-height: 1.6;
+    color: var(--text-dim);
+  }
+
+  .hemodynamics {
+    padding: 8px 20px 12px;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 6px 16px;
+  }
+
+  .hemo-item {
+    display: flex;
+    justify-content: space-between;
+    font-size: 11px;
+  }
+
+  .hemo-item .hemo-label {
+    color: var(--text-dim);
+  }
+
+  .hemo-item .hemo-val {
+    font-family: 'Space Mono', monospace;
+    font-size: 11px;
+    color: var(--text);
+    font-weight: 600;
+  }
+
+  .condition-card:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: -2px;
+  }
+
+  .main {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    position: relative;
+  }
+
+  .diagram-container {
+    flex: 1;
+    position: relative;
+    min-height: 0;
+  }
+
+  .diagram-label {
+    position: absolute;
+    left: 16px;
+    font-family: 'Space Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    z-index: 2;
+    pointer-events: none;
+  }
+
+  .ekg-label {
+    top: 12px;
+    color: var(--ekg-green);
+  }
+
+  .wiggers-label {
+    top: 12px;
+    color: var(--ao-gold);
+  }
+
+  canvas {
+    display: block;
+    width: 100%;
+    height: 100%;
+  }
+
+  .divider {
+    height: 1px;
+    background: var(--panel-border);
+    position: relative;
+  }
+
+  .phase-bar {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 36px;
+    background: rgba(13,21,32,0.95);
+    border-top: 1px solid var(--panel-border);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 10;
+  }
+
+  .phase-text {
+    font-family: 'Space Mono', monospace;
+    font-size: 12px;
+    color: var(--text);
+    letter-spacing: 0.5px;
+  }
+
+  .phase-text .phase-name {
+    color: var(--ao-gold);
+    font-weight: 700;
+  }
+
+  .playback-controls {
+    position: absolute;
+    top: 12px;
+    right: 16px;
+    display: flex;
+    gap: 8px;
+    z-index: 10;
+  }
+
+  .play-btn {
+    width: 32px;
+    height: 32px;
+    border-radius: 6px;
+    background: var(--panel);
+    border: 1px solid var(--panel-border);
+    color: var(--text);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s;
+    font-size: 14px;
+  }
+
+  .play-btn:hover {
+    background: var(--card-hover);
+    border-color: var(--accent);
+  }
+
+  .speed-display {
+    height: 32px;
+    padding: 0 10px;
+    border-radius: 6px;
+    background: var(--panel);
+    border: 1px solid var(--panel-border);
+    color: var(--text-dim);
+    font-family: 'Space Mono', monospace;
+    font-size: 11px;
+    display: flex;
+    align-items: center;
+    cursor: pointer;
+    user-select: none;
+    transition: all 0.2s;
+  }
+
+  .speed-display:hover {
+    border-color: var(--accent);
+    color: var(--text);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    * { transition: none !important; }
+  }
+</style>
+</head>
+<body>
+
+<div class="sidebar">
+  <div class="sidebar-header">
+    <h1>EKG + Wiggers</h1>
+    <p>Interactive cardiac physiology explorer. Select a condition to see correlated EKG and hemodynamic changes.</p>
+  </div>
+
+  <div class="section-label">Conditions</div>
+  <div class="condition-list" id="conditionList"></div>
+
+  <div class="section-label">Parameters</div>
+  <div class="controls">
+    <div class="control-group">
+      <label>Heart Rate <span id="hrVal">75 bpm</span></label>
+      <input type="range" id="hrSlider" min="30" max="200" value="75">
+    </div>
+    <div class="control-group">
+      <label>Speed <span id="speedVal">25 mm/s</span></label>
+      <input type="range" id="speedSlider" min="10" max="50" value="25">
+    </div>
+  </div>
+
+  <div class="section-label">Hemodynamics</div>
+  <div class="hemodynamics" id="hemoPanel"></div>
+
+  <div class="section-label">Wiggers Traces</div>
+  <div class="legend" id="legend"></div>
+
+  <div class="clinical-info" id="clinicalInfo">
+    <h3>Clinical Notes</h3>
+    <p id="clinicalText">Select a condition to view clinical correlations.</p>
+  </div>
+</div>
+
+<div class="main">
+  <div class="playback-controls">
+    <button class="play-btn" id="playBtn" title="Play/Pause">&#9654;</button>
+    <div class="speed-display" id="speedDisplay" title="Click to cycle speed">1x</div>
+  </div>
+
+  <div class="diagram-container" id="ekgContainer">
+    <div class="diagram-label ekg-label">Lead II EKG</div>
+    <canvas id="ekgCanvas"></canvas>
+  </div>
+
+  <div class="divider"></div>
+
+  <div class="diagram-container" id="wiggersContainer">
+    <div class="diagram-label wiggers-label">Wiggers Diagram</div>
+    <canvas id="wiggersCanvas"></canvas>
+  </div>
+
+  <div class="phase-bar">
+    <div class="phase-text" id="phaseText">
+      <span class="phase-name">Diastasis</span> &mdash; All valves relaxed, passive ventricular filling
+    </div>
+  </div>
+</div>
+
+<script>
+const TRACES = [
+  { key: 'lv', label: 'LV Pressure', color: '#ff5c5c', visible: true },
+  { key: 'ao', label: 'Aortic Pressure', color: '#ffc832', visible: true },
+  { key: 'la', label: 'LA Pressure', color: '#36d6b5', visible: true },
+  { key: 'vol', label: 'LV Volume', color: '#4da6ff', visible: true },
+  { key: 'sounds', label: 'Heart Sounds', color: '#ff8c42', visible: true },
+];
+
+const CONDITIONS = {
+  normal: {
+    name: 'Normal Sinus Rhythm',
+    tag: 'Baseline — regular rate & rhythm',
+    clinical: 'Normal electrical conduction from SA node through AV node to ventricles. All intervals within normal limits. Wiggers diagram shows normal pressure-volume relationships with coordinated atrial and ventricular contraction.',
+    hr: 75,
+    ekg: {
+      pAmp: 0.12, pCenter: 0.1, pWidth: 0.028,
+      qAmp: -0.08, qCenter: 0.2, qWidth: 0.007,
+      rAmp: 1.0, rCenter: 0.215, rWidth: 0.009,
+      sAmp: -0.18, sCenter: 0.235, sWidth: 0.008,
+      tAmp: 0.25, tCenter: 0.36, tWidth: 0.04,
+      stElev: 0, noise: 0, irregularity: 0
+    },
+    wiggers: {
+      lvSys: 120, lvedp: 8, aoSys: 120, aoDia: 80,
+      laA: 10, laV: 14, edv: 130, esv: 55,
+      avOpenT: 0.12, avCloseT: 0.42, mvCloseT: 0.07, mvOpenT: 0.47,
+      sounds: ['S1', 'S2'], s3: false, s4: false
+    }
+  },
+  stemi: {
+    name: 'STEMI',
+    tag: 'ST-elevation myocardial infarction',
+    clinical: 'Acute coronary occlusion causes transmural ischemia. ST elevation on EKG reflects injury current. Reduced contractility lowers LV systolic pressure and stroke volume. Elevated LVEDP reflects impaired relaxation.',
+    hr: 95,
+    ekg: {
+      pAmp: 0.12, pCenter: 0.1, pWidth: 0.028,
+      qAmp: -0.15, qCenter: 0.2, qWidth: 0.009,
+      rAmp: 0.7, rCenter: 0.215, rWidth: 0.01,
+      sAmp: -0.1, sCenter: 0.235, sWidth: 0.009,
+      tAmp: 0.45, tCenter: 0.34, tWidth: 0.055,
+      stElev: 0.3, noise: 0, irregularity: 0
+    },
+    wiggers: {
+      lvSys: 95, lvedp: 18, aoSys: 95, aoDia: 65,
+      laA: 14, laV: 20, edv: 140, esv: 95,
+      avOpenT: 0.14, avCloseT: 0.40, mvCloseT: 0.07, mvOpenT: 0.46,
+      sounds: ['S1', 'S2'], s3: false, s4: true
+    }
+  },
+  afib: {
+    name: 'Atrial Fibrillation',
+    tag: 'Irregularly irregular — no P waves',
+    clinical: 'Chaotic atrial electrical activity replaces organized P waves. Loss of atrial contraction ("atrial kick") reduces ventricular filling by ~20%. The LA pressure tracing loses its a-wave. Irregular R-R intervals cause variable filling and stroke volume.',
+    hr: 85,
+    ekg: {
+      pAmp: 0, pCenter: 0.1, pWidth: 0.028,
+      qAmp: -0.08, qCenter: 0.2, qWidth: 0.007,
+      rAmp: 1.0, rCenter: 0.215, rWidth: 0.009,
+      sAmp: -0.18, sCenter: 0.235, sWidth: 0.008,
+      tAmp: 0.25, tCenter: 0.36, tWidth: 0.04,
+      stElev: 0, noise: 0.03, irregularity: 0.3
+    },
+    wiggers: {
+      lvSys: 110, lvedp: 6, aoSys: 110, aoDia: 75,
+      laA: 0, laV: 16, edv: 115, esv: 55,
+      avOpenT: 0.12, avCloseT: 0.42, mvCloseT: 0.07, mvOpenT: 0.47,
+      sounds: ['S1', 'S2'], s3: false, s4: false
+    }
+  },
+  firstDegree: {
+    name: '1st Degree AV Block',
+    tag: 'Prolonged PR interval > 200ms',
+    clinical: 'Delayed conduction through the AV node prolongs the PR interval beyond 200ms. Each P wave is followed by a QRS, but with a delay. In the Wiggers diagram, atrial contraction occurs earlier relative to ventricular systole, subtly altering filling dynamics.',
+    hr: 68,
+    ekg: {
+      pAmp: 0.12, pCenter: 0.06, pWidth: 0.028,
+      qAmp: -0.08, qCenter: 0.2, qWidth: 0.007,
+      rAmp: 1.0, rCenter: 0.215, rWidth: 0.009,
+      sAmp: -0.18, sCenter: 0.235, sWidth: 0.008,
+      tAmp: 0.25, tCenter: 0.36, tWidth: 0.04,
+      stElev: 0, noise: 0, irregularity: 0
+    },
+    wiggers: {
+      lvSys: 120, lvedp: 10, aoSys: 120, aoDia: 80,
+      laA: 12, laV: 14, edv: 135, esv: 55,
+      avOpenT: 0.12, avCloseT: 0.42, mvCloseT: 0.07, mvOpenT: 0.47,
+      sounds: ['S1', 'S2'], s3: false, s4: false
+    }
+  },
+  aorticStenosis: {
+    name: 'Aortic Stenosis',
+    tag: 'LVH pattern — pressure gradient',
+    clinical: 'Obstruction at the aortic valve forces the LV to generate much higher pressures to eject blood. The Wiggers diagram shows a large systolic pressure gradient between LV and aorta. The aortic pressure waveform rises slowly (pulsus parvus et tardus). EKG shows LVH with strain pattern.',
+    hr: 72,
+    ekg: {
+      pAmp: 0.12, pCenter: 0.1, pWidth: 0.028,
+      qAmp: -0.05, qCenter: 0.2, qWidth: 0.007,
+      rAmp: 1.6, rCenter: 0.215, rWidth: 0.01,
+      sAmp: -0.1, sCenter: 0.235, sWidth: 0.008,
+      tAmp: -0.2, tCenter: 0.38, tWidth: 0.045,
+      stElev: -0.1, noise: 0, irregularity: 0
+    },
+    wiggers: {
+      lvSys: 210, lvedp: 14, aoSys: 105, aoDia: 75,
+      laA: 14, laV: 18, edv: 145, esv: 60,
+      avOpenT: 0.14, avCloseT: 0.46, mvCloseT: 0.07, mvOpenT: 0.50,
+      sounds: ['S1', 'S2', 'murmur'], s3: false, s4: true
+    }
+  },
+  mitralRegurg: {
+    name: 'Mitral Regurgitation',
+    tag: 'Large v-wave — volume overload',
+    clinical: 'Incompetent mitral valve allows blood to flow back into the LA during ventricular systole. The LA pressure shows a prominent v-wave. The LV compensates with increased preload (larger EDV) to maintain forward cardiac output. EKG may show P-mitrale and LVH.',
+    hr: 78,
+    ekg: {
+      pAmp: 0.1, pCenter: 0.08, pWidth: 0.04,
+      qAmp: -0.08, qCenter: 0.2, qWidth: 0.007,
+      rAmp: 1.3, rCenter: 0.215, rWidth: 0.009,
+      sAmp: -0.18, sCenter: 0.235, sWidth: 0.008,
+      tAmp: 0.25, tCenter: 0.36, tWidth: 0.04,
+      stElev: 0, noise: 0, irregularity: 0
+    },
+    wiggers: {
+      lvSys: 125, lvedp: 12, aoSys: 115, aoDia: 75,
+      laA: 12, laV: 35, edv: 165, esv: 70,
+      avOpenT: 0.12, avCloseT: 0.40, mvCloseT: 0.07, mvOpenT: 0.44,
+      sounds: ['S1', 'S2', 'murmur'], s3: true, s4: false
+    }
+  },
+  heartFailure: {
+    name: 'Heart Failure (HFrEF)',
+    tag: 'Reduced EF — S3 gallop',
+    clinical: 'Dilated, weakly contracting ventricle with elevated filling pressures. Reduced systolic pressure generation leads to low cardiac output. Elevated LVEDP transmits back to LA and pulmonary vasculature. S3 gallop reflects rapid filling of a volume-overloaded ventricle. Wide QRS may indicate dyssynchrony.',
+    hr: 100,
+    ekg: {
+      pAmp: 0.08, pCenter: 0.1, pWidth: 0.028,
+      qAmp: -0.06, qCenter: 0.2, qWidth: 0.009,
+      rAmp: 0.5, rCenter: 0.215, rWidth: 0.014,
+      sAmp: -0.12, sCenter: 0.24, sWidth: 0.01,
+      tAmp: 0.12, tCenter: 0.38, tWidth: 0.04,
+      stElev: 0, noise: 0.005, irregularity: 0
+    },
+    wiggers: {
+      lvSys: 85, lvedp: 25, aoSys: 85, aoDia: 60,
+      laA: 20, laV: 28, edv: 200, esv: 155,
+      avOpenT: 0.15, avCloseT: 0.40, mvCloseT: 0.07, mvOpenT: 0.46,
+      sounds: ['S1', 'S2'], s3: true, s4: false
+    }
+  },
+  vtach: {
+    name: 'Ventricular Tachycardia',
+    tag: 'Wide complex — hemodynamic compromise',
+    clinical: 'Rapid ventricular rhythm originating below the AV node produces wide QRS complexes at rates 150-250 bpm. Very short filling time dramatically reduces preload and stroke volume. Aortic pressure drops. Loss of AV synchrony further impairs cardiac output. Medical emergency.',
+    hr: 180,
+    ekg: {
+      pAmp: 0, pCenter: 0.1, pWidth: 0.028,
+      qAmp: -0.1, qCenter: 0.15, qWidth: 0.02,
+      rAmp: 1.1, rCenter: 0.22, rWidth: 0.03,
+      sAmp: -0.6, sCenter: 0.32, sWidth: 0.025,
+      tAmp: 0.4, tCenter: 0.5, tWidth: 0.08,
+      stElev: 0, noise: 0.01, irregularity: 0
+    },
+    wiggers: {
+      lvSys: 80, lvedp: 15, aoSys: 75, aoDia: 50,
+      laA: 0, laV: 18, edv: 90, esv: 65,
+      avOpenT: 0.15, avCloseT: 0.50, mvCloseT: 0.08, mvOpenT: 0.55,
+      sounds: ['S1', 'S2'], s3: false, s4: false
+    }
+  }
+};
+
+const PHASES = [
+  { start: 0, end: 0.07, name: 'Atrial Systole', desc: 'Atrium contracts (a-wave), final ventricular filling ("atrial kick")' },
+  { start: 0.07, end: 0.12, name: 'Isovolumetric Contraction', desc: 'MV closes (S1) — LV pressure rises, all valves closed' },
+  { start: 0.12, end: 0.28, name: 'Rapid Ejection', desc: 'AoV opens — LV ejects blood into aorta, peak pressures reached' },
+  { start: 0.28, end: 0.42, name: 'Reduced Ejection', desc: 'Ejection slows, LV and aortic pressures begin to fall' },
+  { start: 0.42, end: 0.47, name: 'Isovolumetric Relaxation', desc: 'AoV closes (S2, dicrotic notch) — LV relaxes, all valves closed' },
+  { start: 0.47, end: 0.60, name: 'Rapid Filling', desc: 'MV opens — blood rushes from LA to LV (y-descent), possible S3' },
+  { start: 0.60, end: 0.88, name: 'Diastasis', desc: 'Slow passive filling, pressures equilibrate between LA and LV' },
+  { start: 0.88, end: 1.0, name: 'Late Diastole', desc: 'Pre-atrial contraction, SA node fires (P-wave begins)' },
+];
+
+/* ---- State ---- */
+let currentCondition = 'normal';
+let heartRate = 75;
+let paperSpeed = 25;
+let playing = true;
+let playbackSpeed = 1;
+let playheadT = 0;
+let ekgCanvas, wiggersCanvas, ekgCtx, wiggersCtx;
+let dpr = window.devicePixelRatio || 1;
+let lastFrame = 0;
+
+/* ---- Math Utilities ---- */
+function gaussian(x, amp, center, width) {
+  return amp * Math.exp(-((x - center) ** 2) / (2 * width * width));
+}
+
+function smoothstep(t) {
+  t = Math.max(0, Math.min(1, t));
+  return t * t * (3 - 2 * t);
+}
+
+function lerp(a, b, t) { return a + (b - a) * t; }
+
+function smoothLerp(a, b, t) { return lerp(a, b, smoothstep(t)); }
+
+function interpKeypoints(keypoints, t) {
+  t = ((t % 1) + 1) % 1;
+  for (let i = 0; i < keypoints.length - 1; i++) {
+    if (t >= keypoints[i].t && t <= keypoints[i + 1].t) {
+      const localT = (t - keypoints[i].t) / (keypoints[i + 1].t - keypoints[i].t);
+      return smoothLerp(keypoints[i].v, keypoints[i + 1].v, localT);
+    }
+  }
+  return keypoints[keypoints.length - 1].v;
+}
+
+/* ---- EKG Waveform Generation ---- */
+function ekgValue(t, params) {
+  t = ((t % 1) + 1) % 1;
+  let v = 0;
+  v += gaussian(t, params.pAmp, params.pCenter, params.pWidth);
+  v += gaussian(t, params.qAmp, params.qCenter, params.qWidth);
+  v += gaussian(t, params.rAmp, params.rCenter, params.rWidth);
+  v += gaussian(t, params.sAmp, params.sCenter, params.sWidth);
+  v += gaussian(t, params.tAmp, params.tCenter, params.tWidth);
+  if (params.stElev) {
+    const stCenter = (params.sCenter + params.tCenter) / 2;
+    v += params.stElev * gaussian(t, 1, stCenter, 0.035);
+  }
+  if (params.noise) {
+    v += (Math.random() - 0.5) * params.noise * 2;
+  }
+  return v;
+}
+
+/* ---- Wiggers Trace Generation ---- */
+function getLVPressure(w) {
+  return [
+    { t: 0, v: w.lvedp * 0.6 },
+    { t: 0.05, v: w.lvedp * 0.8 },
+    { t: w.mvCloseT, v: w.lvedp },
+    { t: w.avOpenT, v: w.aoDia },
+    { t: (w.avOpenT + w.avCloseT) / 2, v: w.lvSys },
+    { t: w.avCloseT, v: w.aoSys * 0.85 },
+    { t: w.mvOpenT, v: w.lvedp * 0.5 },
+    { t: 0.55, v: w.lvedp * 0.3 },
+    { t: 0.70, v: w.lvedp * 0.25 },
+    { t: 0.88, v: w.lvedp * 0.4 },
+    { t: 1.0, v: w.lvedp * 0.6 },
+  ];
+}
+
+function getAoPressure(w) {
+  const isAS = w.lvSys > w.aoSys * 1.4;
+  const riseT = isAS ? w.avOpenT + (w.avCloseT - w.avOpenT) * 0.6 : (w.avOpenT + w.avCloseT) / 2;
+  return [
+    { t: 0, v: w.aoDia },
+    { t: w.avOpenT, v: w.aoDia },
+    { t: riseT, v: w.aoSys },
+    { t: w.avCloseT - 0.01, v: w.aoSys * 0.88 },
+    { t: w.avCloseT, v: w.aoSys * 0.82 },
+    { t: w.avCloseT + 0.02, v: w.aoSys * 0.78 },
+    { t: 0.60, v: lerp(w.aoSys * 0.75, w.aoDia, 0.3) },
+    { t: 0.80, v: lerp(w.aoSys * 0.75, w.aoDia, 0.7) },
+    { t: 1.0, v: w.aoDia },
+  ];
+}
+
+function getLAPressure(w) {
+  return [
+    { t: 0, v: w.laA * 0.7 },
+    { t: 0.04, v: w.laA },
+    { t: 0.06, v: w.laA * 0.6 },
+    { t: w.mvCloseT + 0.02, v: w.laA * 0.7 },
+    { t: w.mvCloseT + 0.04, v: w.laA * 0.5 },
+    { t: (w.avOpenT + w.avCloseT) / 2, v: w.laV * 0.7 },
+    { t: w.avCloseT, v: w.laV },
+    { t: w.mvOpenT, v: w.laV * 0.9 },
+    { t: w.mvOpenT + 0.06, v: w.laV * 0.4 },
+    { t: 0.65, v: w.laA * 0.5 },
+    { t: 0.85, v: w.laA * 0.6 },
+    { t: 1.0, v: w.laA * 0.7 },
+  ];
+}
+
+function getVolume(w) {
+  return [
+    { t: 0, v: w.edv - (w.edv - w.esv) * 0.1 },
+    { t: w.mvCloseT, v: w.edv },
+    { t: w.avOpenT, v: w.edv },
+    { t: (w.avOpenT + w.avCloseT) * 0.45, v: lerp(w.edv, w.esv, 0.6) },
+    { t: w.avCloseT, v: w.esv },
+    { t: w.mvOpenT, v: w.esv },
+    { t: w.mvOpenT + 0.08, v: lerp(w.esv, w.edv, 0.6) },
+    { t: 0.65, v: lerp(w.esv, w.edv, 0.75) },
+    { t: 0.85, v: lerp(w.esv, w.edv, 0.85) },
+    { t: 1.0, v: w.edv - (w.edv - w.esv) * 0.1 },
+  ];
+}
+
+/* ---- Canvas Setup ---- */
+function resizeCanvases() {
+  dpr = window.devicePixelRatio || 1;
+  [ekgCanvas, wiggersCanvas].forEach(c => {
+    const rect = c.parentElement.getBoundingClientRect();
+    c.width = rect.width * dpr;
+    c.height = rect.height * dpr;
+    c.style.width = rect.width + 'px';
+    c.style.height = rect.height + 'px';
+  });
+}
+
+/* ---- Drawing: EKG ---- */
+function drawEKG() {
+  const c = ekgCanvas, ctx = ekgCtx;
+  const W = c.width, H = c.height;
+  if (W < 1 || H < 1) return;
+  ctx.clearRect(0, 0, W, H);
+
+  const pad = { top: 40 * dpr, bottom: 20 * dpr, left: 20 * dpr, right: 20 * dpr };
+  const plotW = W - pad.left - pad.right;
+  const plotH = H - pad.top - pad.bottom;
+  if (plotW < 1 || plotH < 1) return;
+  const midY = pad.top + plotH / 2;
+
+  drawGrid(ctx, pad.left, pad.top, plotW, plotH, 20 * dpr);
+
+  const cond = CONDITIONS[currentCondition];
+  const params = cond.ekg;
+  const cycleDuration = 60 / heartRate;
+  const numCycles = 3;
+  const totalTime = cycleDuration * numCycles;
+
+  ctx.beginPath();
+  ctx.strokeStyle = '#00e59b';
+  ctx.lineWidth = 2.2 * dpr;
+  ctx.lineJoin = 'round';
+  ctx.lineCap = 'round';
+
+  const shadowCanvas = document.createElement('canvas');
+  shadowCanvas.width = W;
+  shadowCanvas.height = H;
+  const sctx = shadowCanvas.getContext('2d');
+  sctx.strokeStyle = '#00e59b';
+  sctx.lineWidth = 6 * dpr;
+  sctx.globalAlpha = 0.15;
+  sctx.lineJoin = 'round';
+  sctx.lineCap = 'round';
+  sctx.beginPath();
+
+  const steps = Math.floor(plotW / dpr);
+  for (let i = 0; i <= steps; i++) {
+    const px = pad.left + (i / steps) * plotW;
+    const timeSec = (i / steps) * totalTime;
+    let cyclePhase = (timeSec / cycleDuration) % 1;
+
+    if (cond.ekg.irregularity > 0) {
+      const beatIdx = Math.floor(timeSec / cycleDuration);
+      const jitter = (Math.sin(beatIdx * 137.5) * 0.5 + 0.5) * cond.ekg.irregularity;
+      cyclePhase = ((timeSec + jitter * cycleDuration * 0.3) / cycleDuration) % 1;
+    }
+
+    let v = ekgValue(cyclePhase, params);
+    const y = midY - v * plotH * 0.35;
+
+    if (i === 0) {
+      ctx.moveTo(px, y);
+      sctx.moveTo(px, y);
+    } else {
+      ctx.lineTo(px, y);
+      sctx.lineTo(px, y);
+    }
+  }
+
+  sctx.stroke();
+  ctx.stroke();
+  ctx.drawImage(shadowCanvas, 0, 0);
+
+  drawPlayheadLine(ctx, pad, plotW, plotH, playheadT, numCycles);
+
+  drawEKGLabels(ctx, pad, plotW, plotH, cond, cycleDuration, numCycles);
+
+  drawEKGIntervals(ctx, W, H, cond);
+}
+
+function drawEKGLabels(ctx, pad, plotW, plotH, cond, cycleDuration, numCycles) {
+  ctx.font = `${10 * dpr}px 'Space Mono', monospace`;
+  ctx.fillStyle = '#5a6a80';
+  ctx.textAlign = 'center';
+
+  const totalTime = cycleDuration * numCycles;
+  const params = cond.ekg;
+
+  for (let c = 0; c < numCycles; c++) {
+    const cycleStart = c * cycleDuration;
+    const labels = [];
+
+    if (params.pAmp > 0) labels.push({ t: params.pCenter, label: 'P' });
+    if (params.qAmp !== 0) labels.push({ t: params.qCenter, label: 'Q' });
+    labels.push({ t: params.rCenter, label: 'R' });
+    if (params.sAmp !== 0) labels.push({ t: params.sCenter, label: 'S' });
+    if (params.tAmp !== 0) labels.push({ t: params.tCenter, label: 'T' });
+
+    labels.forEach(l => {
+      const timeSec = cycleStart + l.t * cycleDuration;
+      const px = pad.left + (timeSec / totalTime) * plotW;
+      const midY = pad.top + plotH / 2;
+      const v = ekgValue(l.t, params);
+      const y = midY - v * plotH * 0.35;
+      const offset = v > 0 ? -14 * dpr : 14 * dpr;
+      ctx.fillText(l.label, px, y + offset);
+    });
+  }
+}
+
+function drawEKGIntervals(ctx, W, H, cond) {
+  const p = cond.ekg;
+  const cycleDur = 60 / heartRate;
+  const prMs = Math.round((p.rCenter - p.pCenter) * cycleDur * 1000);
+  const qrsMs = Math.round((p.sCenter - p.qCenter) * cycleDur * 1000);
+
+  ctx.font = `${10 * dpr}px 'Space Mono', monospace`;
+  ctx.textAlign = 'right';
+  ctx.fillStyle = '#5a6a80';
+
+  const lines = [`HR: ${heartRate} bpm`];
+  if (p.pAmp > 0) lines.push(`PR: ${prMs}ms`);
+  lines.push(`QRS: ${qrsMs}ms`);
+  if (p.stElev > 0) lines.push('ST: \u2191 elevated');
+  else if (p.stElev < 0) lines.push('ST: \u2193 depressed');
+
+  lines.forEach((line, i) => {
+    ctx.fillText(line, W - 16 * dpr, (60 + i * 16) * dpr);
+  });
+}
+
+/* ---- Drawing: Wiggers ---- */
+function drawWiggers() {
+  const c = wiggersCanvas, ctx = wiggersCtx;
+  const W = c.width, H = c.height;
+  if (W < 1 || H < 1) return;
+  ctx.clearRect(0, 0, W, H);
+
+  const cond = CONDITIONS[currentCondition];
+  const w = cond.wiggers;
+
+  const pad = { top: 40 * dpr, bottom: 55 * dpr, left: 70 * dpr, right: 45 * dpr };
+  const plotW = W - pad.left - pad.right;
+  const plotH = H - pad.top - pad.bottom;
+
+  drawGrid(ctx, pad.left, pad.top, plotW, plotH, 20 * dpr);
+
+  const maxP = Math.max(w.lvSys, w.aoSys, 140) * 1.15;
+  const maxVol = Math.max(w.edv, 200) * 1.1;
+
+  const pressureH = plotH * 0.55;
+  const volumeH = plotH * 0.25;
+  const soundsH = plotH * 0.08;
+  const ekgH = plotH * 0.12;
+
+  const pressureTop = pad.top;
+  const volumeTop = pressureTop + pressureH + 10 * dpr;
+  const soundsTop = volumeTop + volumeH + 8 * dpr;
+  const ekgTop = soundsTop + soundsH + 8 * dpr;
+
+  drawPressureYAxis(ctx, pad.left, pressureTop, pressureH, maxP);
+  drawVolumeYAxis(ctx, pad.left, volumeTop, volumeH, maxVol);
+
+  const numCycles = 2;
+
+  if (TRACES[0].visible) {
+    drawTrace(ctx, getLVPressure(w), pad.left, pressureTop, plotW, pressureH, maxP, TRACES[0].color, numCycles);
+  }
+  if (TRACES[1].visible) {
+    drawTrace(ctx, getAoPressure(w), pad.left, pressureTop, plotW, pressureH, maxP, TRACES[1].color, numCycles);
+  }
+  if (TRACES[2].visible) {
+    drawTrace(ctx, getLAPressure(w), pad.left, pressureTop, plotW, pressureH, maxP, TRACES[2].color, numCycles);
+  }
+  if (TRACES[3].visible) {
+    drawTrace(ctx, getVolume(w), pad.left, volumeTop, plotW, volumeH, maxVol, TRACES[3].color, numCycles, true);
+  }
+
+  if (TRACES[4].visible) {
+    drawHeartSounds(ctx, w, pad.left, soundsTop, plotW, soundsH, numCycles);
+  }
+
+  drawWiggersEKG(ctx, cond.ekg, pad.left, ekgTop, plotW, ekgH, numCycles);
+
+  drawValveMarkers(ctx, w, pad.left, pressureTop, plotW, pressureH, numCycles);
+
+  drawPhaseRegions(ctx, pad.left, pad.top, plotW, plotH, numCycles);
+
+  drawInlineTraceLabels(ctx, w, pad.left, pressureTop, plotW, pressureH, maxP, volumeTop, volumeH, maxVol);
+
+  drawPlayheadLine(ctx, pad, plotW, plotH, playheadT, numCycles);
+}
+
+function drawTrace(ctx, keypoints, x, y, w, h, maxVal, color, numCycles, inverted) {
+  ctx.beginPath();
+  ctx.strokeStyle = color;
+  ctx.lineWidth = 2 * dpr;
+  ctx.lineJoin = 'round';
+
+  const steps = Math.floor(w / dpr);
+  for (let i = 0; i <= steps; i++) {
+    const t = (i / steps) * numCycles;
+    const cycleT = t % 1;
+    const val = interpKeypoints(keypoints, cycleT);
+    const normVal = val / maxVal;
+    const py = inverted ? y + h - normVal * h : y + h - normVal * h;
+    const px = x + (i / steps) * w;
+    if (i === 0) ctx.moveTo(px, py);
+    else ctx.lineTo(px, py);
+  }
+  ctx.stroke();
+
+  ctx.strokeStyle = color;
+  ctx.lineWidth = 5 * dpr;
+  ctx.globalAlpha = 0.1;
+  ctx.beginPath();
+  for (let i = 0; i <= steps; i++) {
+    const t = (i / steps) * numCycles;
+    const cycleT = t % 1;
+    const val = interpKeypoints(keypoints, cycleT);
+    const normVal = val / maxVal;
+    const py = y + h - normVal * h;
+    const px = x + (i / steps) * w;
+    if (i === 0) ctx.moveTo(px, py);
+    else ctx.lineTo(px, py);
+  }
+  ctx.stroke();
+  ctx.globalAlpha = 1;
+}
+
+function drawHeartSounds(ctx, w, x, y, width, h, numCycles) {
+  const color = '#ff8c42';
+  ctx.fillStyle = '#5a6a80';
+  ctx.font = `${9 * dpr}px 'Space Mono', monospace`;
+  ctx.textAlign = 'center';
+
+  for (let c = 0; c < numCycles; c++) {
+    const offset = (c / numCycles) * width;
+    const cycleW = width / numCycles;
+
+    const s1x = x + offset + w.mvCloseT * cycleW;
+    drawSoundMark(ctx, s1x, y, h, color, 'S1');
+
+    const s2x = x + offset + w.avCloseT * cycleW;
+    drawSoundMark(ctx, s2x, y, h, color, 'S2');
+
+    if (w.s3) {
+      const s3x = x + offset + (w.mvOpenT + 0.06) * cycleW;
+      drawSoundMark(ctx, s3x, y, h, '#ff6b6b', 'S3');
+    }
+    if (w.s4) {
+      const s4x = x + offset + 0.04 * cycleW;
+      drawSoundMark(ctx, s4x, y, h, '#a78bfa', 'S4');
+    }
+  }
+}
+
+function drawSoundMark(ctx, x, y, h, color, label) {
+  ctx.strokeStyle = color;
+  ctx.lineWidth = 2 * dpr;
+  ctx.beginPath();
+  ctx.moveTo(x, y + h);
+  ctx.lineTo(x, y + h * 0.2);
+  ctx.stroke();
+
+  ctx.fillStyle = color;
+  ctx.font = `bold ${9 * dpr}px 'Space Mono', monospace`;
+  ctx.textAlign = 'center';
+  ctx.fillText(label, x, y + h * 0.1);
+}
+
+function drawWiggersEKG(ctx, params, x, y, w, h, numCycles) {
+  ctx.beginPath();
+  ctx.strokeStyle = '#00e59b';
+  ctx.lineWidth = 1.5 * dpr;
+  ctx.lineJoin = 'round';
+  const midY = y + h / 2;
+  const steps = Math.floor(w / dpr);
+  for (let i = 0; i <= steps; i++) {
+    const t = (i / steps) * numCycles;
+    const cycleT = t % 1;
+    const v = ekgValue(cycleT, params);
+    const py = midY - v * h * 0.4;
+    const px = x + (i / steps) * w;
+    if (i === 0) ctx.moveTo(px, py);
+    else ctx.lineTo(px, py);
+  }
+  ctx.stroke();
+}
+
+function drawValveMarkers(ctx, w, x, y, plotW, plotH, numCycles) {
+  ctx.setLineDash([4 * dpr, 4 * dpr]);
+  ctx.lineWidth = 1 * dpr;
+
+  for (let c = 0; c < numCycles; c++) {
+    const offset = (c / numCycles) * plotW;
+    const cycleW = plotW / numCycles;
+    const markers = [
+      { t: w.mvCloseT, label: 'MC', color: '#ff5c5c50', textColor: '#ff5c5c80' },
+      { t: w.avOpenT, label: 'AO', color: '#ffc83250', textColor: '#ffc83280' },
+      { t: w.avCloseT, label: 'AC', color: '#ffc83250', textColor: '#ffc83280' },
+      { t: w.mvOpenT, label: 'MO', color: '#ff5c5c50', textColor: '#ff5c5c80' },
+    ];
+    markers.forEach(m => {
+      const px = x + offset + m.t * cycleW;
+      ctx.strokeStyle = m.color;
+      ctx.beginPath();
+      ctx.moveTo(px, y);
+      ctx.lineTo(px, y + plotH);
+      ctx.stroke();
+
+      if (c === 0) {
+        ctx.fillStyle = m.textColor;
+        ctx.font = `bold ${8 * dpr}px 'Space Mono', monospace`;
+        ctx.textAlign = 'center';
+        ctx.fillText(m.label, px, y - 4 * dpr);
+      }
+    });
+  }
+  ctx.setLineDash([]);
+}
+
+function drawInlineTraceLabels(ctx, w, x, pressTop, plotW, pressH, maxP, volTop, volH, maxVol) {
+  ctx.font = `bold ${9 * dpr}px 'IBM Plex Sans', sans-serif`;
+  ctx.textAlign = 'left';
+  const labelX = x + plotW + 6 * dpr;
+  const minGap = 14 * dpr;
+
+  const pressLabels = [];
+  if (TRACES[0].visible) {
+    const yLV = pressTop + pressH - (w.lvSys / maxP) * pressH;
+    pressLabels.push({ label: 'LV', y: yLV, color: TRACES[0].color });
+  }
+  if (TRACES[1].visible) {
+    const yAo = pressTop + pressH - (w.aoSys / maxP) * pressH;
+    pressLabels.push({ label: 'Ao', y: yAo, color: TRACES[1].color });
+  }
+  if (TRACES[2].visible) {
+    const laPeak = Math.max(w.laA, w.laV);
+    const yLA = pressTop + pressH - (laPeak / maxP) * pressH;
+    pressLabels.push({ label: 'LA', y: yLA, color: TRACES[2].color });
+  }
+
+  pressLabels.sort((a, b) => a.y - b.y);
+  for (let i = 1; i < pressLabels.length; i++) {
+    if (pressLabels[i].y - pressLabels[i - 1].y < minGap) {
+      pressLabels[i].y = pressLabels[i - 1].y + minGap;
+    }
+  }
+
+  pressLabels.forEach(l => {
+    ctx.fillStyle = l.color;
+    ctx.fillText(l.label, labelX, l.y + 3 * dpr);
+  });
+
+  if (TRACES[3].visible) {
+    const volMid = (w.edv + w.esv) / 2;
+    const yVol = volTop + volH - (volMid / maxVol) * volH;
+    ctx.fillStyle = TRACES[3].color;
+    ctx.fillText('Vol', labelX, yVol + 3 * dpr);
+  }
+}
+
+function drawPhaseRegions(ctx, x, y, w, h, numCycles) {
+  const phaseT = (playheadT * numCycles) % 1;
+  const phase = PHASES.find(p => phaseT >= p.start && phaseT < p.end);
+  if (phase) {
+    for (let c = 0; c < numCycles; c++) {
+      const offset = (c / numCycles) * w;
+      const cycleW = w / numCycles;
+      const px1 = x + offset + phase.start * cycleW;
+      const px2 = x + offset + phase.end * cycleW;
+      ctx.fillStyle = 'rgba(59,130,246,0.04)';
+      ctx.fillRect(px1, y, px2 - px1, h);
+    }
+  }
+}
+
+/* ---- Shared Drawing Helpers ---- */
+function drawGrid(ctx, x, y, w, h, spacing) {
+  ctx.strokeStyle = 'rgba(255,255,255,0.04)';
+  ctx.lineWidth = 1;
+  for (let gx = x; gx <= x + w; gx += spacing) {
+    ctx.beginPath();
+    ctx.moveTo(gx, y);
+    ctx.lineTo(gx, y + h);
+    ctx.stroke();
+  }
+  for (let gy = y; gy <= y + h; gy += spacing) {
+    ctx.beginPath();
+    ctx.moveTo(x, gy);
+    ctx.lineTo(x + w, gy);
+    ctx.stroke();
+  }
+}
+
+function drawPressureYAxis(ctx, x, y, h, maxP) {
+  ctx.fillStyle = '#5a6a80';
+  ctx.font = `${9 * dpr}px 'Space Mono', monospace`;
+  ctx.textAlign = 'right';
+  const ticks = [0, 40, 80, 120, 160, 200];
+  ticks.forEach(p => {
+    if (p > maxP) return;
+    const py = y + h - (p / maxP) * h;
+    ctx.fillText(p + '', x - 6 * dpr, py + 3 * dpr);
+    ctx.strokeStyle = 'rgba(255,255,255,0.03)';
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.moveTo(x, py);
+    ctx.lineTo(x + 4 * dpr, py);
+    ctx.stroke();
+  });
+  ctx.save();
+  ctx.translate(x - 45 * dpr, y + h / 2);
+  ctx.rotate(-Math.PI / 2);
+  ctx.textAlign = 'center';
+  ctx.fillStyle = '#5a6a80';
+  ctx.font = `${9 * dpr}px 'IBM Plex Sans', sans-serif`;
+  ctx.fillText('mmHg', 0, 0);
+  ctx.restore();
+}
+
+function drawVolumeYAxis(ctx, x, y, h, maxVol) {
+  ctx.fillStyle = '#5a6a80';
+  ctx.font = `${9 * dpr}px 'Space Mono', monospace`;
+  ctx.textAlign = 'right';
+  const ticks = [0, 50, 100, 150, 200];
+  ticks.forEach(v => {
+    if (v > maxVol) return;
+    const py = y + h - (v / maxVol) * h;
+    ctx.fillText(v + '', x - 6 * dpr, py + 3 * dpr);
+  });
+  ctx.save();
+  ctx.translate(x - 45 * dpr, y + h / 2);
+  ctx.rotate(-Math.PI / 2);
+  ctx.textAlign = 'center';
+  ctx.fillStyle = '#5a6a80';
+  ctx.font = `${9 * dpr}px 'IBM Plex Sans', sans-serif`;
+  ctx.fillText('mL', 0, 0);
+  ctx.restore();
+}
+
+function drawPlayheadLine(ctx, pad, plotW, plotH, t, numCycles) {
+  const px = pad.left + t * plotW;
+  ctx.strokeStyle = 'rgba(255,255,255,0.5)';
+  ctx.lineWidth = 1.5 * dpr;
+  ctx.setLineDash([]);
+  ctx.beginPath();
+  ctx.moveTo(px, pad.top);
+  ctx.lineTo(px, pad.top + plotH);
+  ctx.stroke();
+
+  ctx.beginPath();
+  ctx.arc(px, pad.top, 4 * dpr, 0, Math.PI * 2);
+  ctx.fillStyle = 'rgba(255,255,255,0.8)';
+  ctx.fill();
+}
+
+/* ---- UI Setup ---- */
+function buildConditionList() {
+  const list = document.getElementById('conditionList');
+  Object.entries(CONDITIONS).forEach(([key, cond]) => {
+    const card = document.createElement('div');
+    card.className = 'condition-card' + (key === currentCondition ? ' active' : '');
+    card.dataset.key = key;
+    card.setAttribute('role', 'button');
+    card.setAttribute('tabindex', '0');
+    card.setAttribute('aria-label', cond.name);
+    card.innerHTML = `<div class="name">${cond.name}</div><div class="tag">${cond.tag}</div>`;
+    card.addEventListener('click', () => selectCondition(key));
+    card.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' || e.key === ' ') {
+        e.preventDefault();
+        selectCondition(key);
+      }
+    });
+    list.appendChild(card);
+  });
+}
+
+function buildLegend() {
+  const legend = document.getElementById('legend');
+  TRACES.forEach((trace, idx) => {
+    const item = document.createElement('div');
+    item.className = 'legend-item';
+    item.innerHTML = `<div class="legend-swatch" style="background:${trace.color};opacity:${trace.visible ? 1 : 0.3}"></div>${trace.label}`;
+    item.addEventListener('click', () => {
+      TRACES[idx].visible = !TRACES[idx].visible;
+      item.querySelector('.legend-swatch').style.opacity = TRACES[idx].visible ? 1 : 0.3;
+      item.style.opacity = TRACES[idx].visible ? 1 : 0.5;
+    });
+    legend.appendChild(item);
+  });
+}
+
+function selectCondition(key) {
+  currentCondition = key;
+  const cond = CONDITIONS[key];
+  heartRate = cond.hr;
+  document.getElementById('hrSlider').value = heartRate;
+  document.getElementById('hrVal').textContent = heartRate + ' bpm';
+  document.getElementById('clinicalText').textContent = cond.clinical;
+
+  document.querySelectorAll('.condition-card').forEach(card => {
+    card.classList.toggle('active', card.dataset.key === key);
+  });
+
+  updateHemodynamics(cond);
+}
+
+function updateHemodynamics(cond) {
+  const w = cond.wiggers;
+  const sv = w.edv - w.esv;
+  const ef = Math.round((sv / w.edv) * 100);
+  const co = ((sv * cond.hr) / 1000).toFixed(1);
+  const map = Math.round(w.aoDia + (w.aoSys - w.aoDia) / 3);
+  const pp = w.aoSys - w.aoDia;
+
+  const panel = document.getElementById('hemoPanel');
+  panel.innerHTML = `
+    <div class="hemo-item"><span class="hemo-label">SV</span><span class="hemo-val">${sv} mL</span></div>
+    <div class="hemo-item"><span class="hemo-label">EF</span><span class="hemo-val">${ef}%</span></div>
+    <div class="hemo-item"><span class="hemo-label">CO</span><span class="hemo-val">${co} L/min</span></div>
+    <div class="hemo-item"><span class="hemo-label">MAP</span><span class="hemo-val">${map} mmHg</span></div>
+    <div class="hemo-item"><span class="hemo-label">EDV</span><span class="hemo-val">${w.edv} mL</span></div>
+    <div class="hemo-item"><span class="hemo-label">ESV</span><span class="hemo-val">${w.esv} mL</span></div>
+    <div class="hemo-item"><span class="hemo-label">LVEDP</span><span class="hemo-val">${w.lvedp} mmHg</span></div>
+    <div class="hemo-item"><span class="hemo-label">PP</span><span class="hemo-val">${pp} mmHg</span></div>
+  `;
+}
+
+function updatePhaseText() {
+  const numCycles = 2;
+  const phaseT = (playheadT * numCycles) % 1;
+  const phase = PHASES.find(p => phaseT >= p.start && phaseT < p.end);
+  const el = document.getElementById('phaseText');
+  if (phase) {
+    el.innerHTML = `<span class="phase-name">${phase.name}</span> &mdash; ${phase.desc}`;
+  }
+}
+
+/* ---- Animation Loop ---- */
+function animate(timestamp) {
+  if (!lastFrame) lastFrame = timestamp;
+  const dt = (timestamp - lastFrame) / 1000;
+  lastFrame = timestamp;
+
+  if (playing) {
+    const cycleDuration = 60 / heartRate;
+    const numCyclesEKG = 3;
+    const numCyclesWiggers = 2;
+    const totalEKGTime = cycleDuration * numCyclesEKG;
+    playheadT += (dt * playbackSpeed) / totalEKGTime;
+    if (playheadT > 1) playheadT -= 1;
+  }
+
+  drawEKG();
+  drawWiggers();
+  updatePhaseText();
+
+  requestAnimationFrame(animate);
+}
+
+/* ---- Canvas Interaction (scrubbing) ---- */
+function setupCanvasInteraction(canvas, numCycles) {
+  let dragging = false;
+
+  function getT(e) {
+    const rect = canvas.getBoundingClientRect();
+    const padLeft = canvas === wiggersCanvas ? 70 : 20;
+    const padRight = 20;
+    const plotW = rect.width - padLeft - padRight;
+    const x = e.clientX - rect.left - padLeft;
+    return Math.max(0, Math.min(1, x / plotW));
+  }
+
+  canvas.addEventListener('mousedown', (e) => {
+    dragging = true;
+    playheadT = getT(e);
+  });
+
+  canvas.addEventListener('mousemove', (e) => {
+    if (dragging) {
+      playheadT = getT(e);
+    }
+    canvas.style.cursor = 'crosshair';
+  });
+
+  window.addEventListener('mouseup', () => { dragging = false; });
+}
+
+/* ---- Init ---- */
+function init() {
+  ekgCanvas = document.getElementById('ekgCanvas');
+  wiggersCanvas = document.getElementById('wiggersCanvas');
+  ekgCtx = ekgCanvas.getContext('2d');
+  wiggersCtx = wiggersCanvas.getContext('2d');
+
+  resizeCanvases();
+  buildConditionList();
+  buildLegend();
+  selectCondition('normal');
+
+  document.getElementById('hrSlider').addEventListener('input', (e) => {
+    heartRate = parseInt(e.target.value);
+    document.getElementById('hrVal').textContent = heartRate + ' bpm';
+    const cond = CONDITIONS[currentCondition];
+    const w = cond.wiggers;
+    const sv = w.edv - w.esv;
+    const co = ((sv * heartRate) / 1000).toFixed(1);
+    const coEl = document.querySelector('#hemoPanel .hemo-item:nth-child(3) .hemo-val');
+    if (coEl) coEl.textContent = co + ' L/min';
+  });
+
+  document.getElementById('speedSlider').addEventListener('input', (e) => {
+    paperSpeed = parseInt(e.target.value);
+    document.getElementById('speedVal').textContent = paperSpeed + ' mm/s';
+  });
+
+  document.getElementById('playBtn').addEventListener('click', () => {
+    playing = !playing;
+    document.getElementById('playBtn').innerHTML = playing ? '&#9646;&#9646;' : '&#9654;';
+  });
+
+  const speeds = [0.25, 0.5, 1, 2, 4];
+  let speedIdx = 2;
+  document.getElementById('speedDisplay').addEventListener('click', () => {
+    speedIdx = (speedIdx + 1) % speeds.length;
+    playbackSpeed = speeds[speedIdx];
+    document.getElementById('speedDisplay').textContent = speeds[speedIdx] + 'x';
+  });
+
+  setupCanvasInteraction(ekgCanvas, 3);
+  setupCanvasInteraction(wiggersCanvas, 2);
+
+  window.addEventListener('resize', resizeCanvases);
+
+  requestAnimationFrame(animate);
+}
+
+document.addEventListener('DOMContentLoaded', init);
+</script>
+</body>
+</html>

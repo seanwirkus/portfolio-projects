@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Notchill | Sean</title>
+    <meta name="description" content="Notchill - a Dynamic Island-style notch utility for macOS with media controls.">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="cursor-dot"></div>
+    <div class="cursor-outline"></div>
+    <div class="bg-gradient bg-gradient-1"></div>
+    <div class="bg-gradient bg-gradient-2"></div>
+    <div class="bg-noise"></div>
+
+    <nav class="navbar">
+        <div class="nav-content">
+            <div class="logo magnetic" onclick="window.location.href='index.html'">S.</div>
+            <ul class="nav-links">
+                <li><a href="index.html#projects" class="magnetic">Back to Portfolio</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <main class="container project-page" style="--project-accent:#8b5cf6;--project-accent-alt:#6d28d9;">
+        <header class="project-page-header section-animate">
+            <a href="index.html#projects" class="back-link magnetic">&larr; Back to projects</a>
+            <div class="project-kicker">macOS / Swift Developer</div>
+            <h1 class="project-page-title">Notchill</h1>
+            <p class="project-summary">
+                A native macOS menu bar utility that transforms the MacBook notch into a Dynamic Island-style interactive surface. Built with Swift and AppKit, Notchill overlays an expanding notch panel with media playback controls, now-playing info, and system notifications.
+            </p>
+        </header>
+
+        <section class="project-stage-card section-animate">
+            <div class="project-stage-bar">
+                <div class="project-stage-label">Live App Demonstration</div>
+            </div>
+            <div class="project-frame-shell" style="height:auto; min-height:0; aspect-ratio:unset; overflow:hidden;">
+                <video 
+                    autoplay loop muted playsinline 
+                    poster="videos/Notchill_poster.0000000.jpg"
+                    style="width:100%; display:block; border-radius: 0 0 11px 11px;"
+                >
+                    <source src="videos/Notchill_webm.webm" type="video/webm">
+                    <source src="videos/Notchill_mp4.mp4" type="video/mp4">
+                    Your browser does not support the video tag.
+                </video>
+            </div>
+            <div class="project-stage-note">
+                Live demonstration of the Notchill app expanding the native macOS notch context.
+            </div>
+        </section>
+
+        <section class="project-meta-grid section-animate">
+            <article class="project-meta-card">
+                <h3>Built With</h3>
+                <div class="project-tag-list">
+                    <span class="tag">Swift</span>
+                    <span class="tag">AppKit</span>
+                    <span class="tag">NSPanel</span>
+                    <span class="tag">MediaRemote</span>
+                    <span class="tag">Observation</span>
+                    <span class="tag">macOS</span>
+                </div>
+            </article>
+            <article class="project-meta-card">
+                <h3>About the Project</h3>
+                <p>
+                    Notchill runs as a lightweight status-bar app that attaches a custom NSPanel to the MacBook notch area. When media plays, the notch expands to reveal track info, playback controls, and album art, bringing the iPhone Dynamic Island experience to the Mac desktop.
+                </p>
+            </article>
+            <article class="project-meta-card">
+                <h3>Key Features</h3>
+                <ul class="project-points">
+                    <li>Dynamic Island-style expanding notch animation</li>
+                    <li>Now-playing media detection and playback controls</li>
+                    <li>Lightweight menu-bar app with minimal resource usage</li>
+                    <li>Custom NSPanel overlay positioned at the MacBook notch</li>
+                    <li>MVVM architecture with Swift Observation framework</li>
+                </ul>
+            </article>
+        </section>
+
+        <section class="project-copy-grid section-animate">
+            <article class="project-copy-card">
+                <h3>Architecture</h3>
+                <p>
+                    The app uses a clean MVVM pattern: NotchViewModel manages state and media session data, NotchPanel handles the custom window overlay positioning, and MediaManager bridges the system media APIs to provide real-time now-playing updates.
+                </p>
+            </article>
+            <article class="project-copy-card">
+                <h3>Native macOS Integration</h3>
+                <p>
+                    Built entirely with AppKit rather than SwiftUI for precise control over window behavior, panel positioning relative to the notch, and smooth expand/collapse animations that match the feel of Apple's Dynamic Island on iOS.
+                </p>
+            </article>
+        </section>
+    </main>
+
+    <script src="script.js"></script>
+</body>
+</html>

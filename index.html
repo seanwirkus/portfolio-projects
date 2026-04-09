@@ -1,0 +1,458 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sean | Software Engineer & Biomedical Developer</title>
+    <meta name="description" content="Portfolio of a UC San Diego student and Full Stack Software Engineer building biomedical software, embedded systems, and tech visualization tools.">
+    <meta property="og:title" content="Sean | Software Engineer & Biomedical Developer">
+    <meta property="og:description" content="UC San Diego &middot; Full Stack &middot; Embedded Systems &middot; Healthcare Software">
+    <meta property="og:image" content="cover.png">
+    <meta property="og:type" content="website">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="Sean | Software Engineer & Biomedical Developer">
+    <meta name="twitter:image" content="cover.png">
+
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+    
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <!-- Custom Cursor -->
+    <div class="cursor-dot"></div>
+    <div class="cursor-outline"></div>
+
+    <!-- Background Elements -->
+    <div class="bg-gradient bg-gradient-1"></div>
+    <div class="bg-gradient bg-gradient-2"></div>
+    <div class="bg-noise"></div>
+
+    <nav class="navbar">
+        <div class="nav-content">
+            <div class="logo magnetic">S.</div>
+            <ul class="nav-links">
+                <li><a href="#about" class="magnetic">About</a></li>
+                <li><a href="#skills" class="magnetic">Skills</a></li>
+                <li><a href="#experience" class="magnetic">Experience</a></li>
+                <li><a href="#projects" class="magnetic">Projects</a></li>
+                <li><a href="#education" class="magnetic">Education</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <main class="container">
+        <!-- Hero Section -->
+        <section id="about" class="hero section-animate">
+            <div class="hero-content">
+                <div class="hero-badge">Available for Full-time roles</div>
+                <h1 class="hero-title">Engineering at the Intersection of <span>Health & Tech</span></h1>
+                <p class="hero-desc">
+                    UC San Diego Human Biology student and Full Stack Software Engineer building biomedical software, embedded systems, PCB-based device projects, and technical visualization tools. Experience in healthcare web apps, clinical data, medical device software, and patient-centered digital products.
+                </p>
+                <div class="hero-actions">
+                    <a href="#projects" class="btn btn-primary magnetic">View My Work</a>
+                    <a href="#experience" class="btn btn-secondary magnetic">My Experience</a>
+                </div>
+            </div>
+            <div class="hero-visual tilt-elem">
+                <div class="hero-image-wrapper">
+                    <img src="seanimage.png" alt="Sean's Portrait" class="hero-img">
+                    <div class="image-glow"></div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Skills Section -->
+        <section id="skills" class="skills-section section-animate">
+            <h2 class="section-title">Technical Expertise</h2>
+            <div class="skills-grid">
+                <div class="skill-category slide-up tilt-elem" style="--delay: 1;">
+                    <h3>Languages</h3>
+                    <div class="skill-tags">
+                        <span class="tag">C/C++</span>
+                        <span class="tag">Swift</span>
+                        <span class="tag">JavaScript / HTML / CSS</span>
+                        <span class="tag">Python</span>
+                        <span class="tag">Lua</span>
+                    </div>
+                </div>
+                <div class="skill-category slide-up tilt-elem" style="--delay: 2;">
+                    <h3>Frameworks & APIs</h3>
+                    <div class="skill-tags">
+                        <span class="tag">React & Vite</span>
+                        <span class="tag">SwiftUI & AppKit</span>
+                        <span class="tag">FreeRTOS</span>
+                        <span class="tag">LVGL</span>
+                        <span class="tag">CloudKit</span>
+                        <span class="tag">Web MIDI</span>
+                    </div>
+                </div>
+                <div class="skill-category slide-up tilt-elem" style="--delay: 3;">
+                    <h3>Hardware & Embedded</h3>
+                    <div class="skill-tags">
+                        <span class="tag">ESP32 / Microcontrollers</span>
+                        <span class="tag">PCB Design</span>
+                        <span class="tag">I2C / Serial</span>
+                        <span class="tag">KiCad</span>
+                        <span class="tag">CAD</span>
+                    </div>
+                </div>
+                <div class="skill-category slide-up tilt-elem" style="--delay: 4;">
+                    <h3>Biomedical & Science</h3>
+                    <div class="skill-tags">
+                        <span class="tag">Scientific Visualization</span>
+                        <span class="tag">Medical Device Software</span>
+                        <span class="tag">Clinical Data Parsing</span>
+                        <span class="tag">HIPAA Compliance</span>
+                        <span class="tag">Physiology Modeling</span>
+                    </div>
+                </div>
+                <div class="skill-category slide-up tilt-elem" style="--delay: 5;">
+                    <h3>Design & UX</h3>
+                    <div class="skill-tags">
+                        <span class="tag">UI/UX Design</span>
+                        <span class="tag">Product Design</span>
+                        <span class="tag">Figma</span>
+                        <span class="tag">Design Systems</span>
+                        <span class="tag">ADA Accessibility</span>
+                        <span class="tag">Webflow</span>
+                    </div>
+                </div>
+                <div class="skill-category slide-up tilt-elem" style="--delay: 6;">
+                    <h3>Tools & Operations</h3>
+                    <div class="skill-tags">
+                        <span class="tag">Git / Version Control</span>
+                        <span class="tag">macOS Virtualization</span>
+                        <span class="tag">Agile Methodology</span>
+                        <span class="tag">System Integrations</span>
+                        <span class="tag">Audio Engineering</span>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Projects Section -->
+        <section id="projects" class="projects-section section-animate">
+            <h2 class="section-title">Featured Projects</h2>
+            <div class="projects-grid">
+                
+                <article class="project-card slide-up tilt-elem" style="--delay: 1; cursor: pointer;" onclick="window.location.href='pianoviz.html'">
+                    <div class="project-image-placeholder pianoviz-bg">
+                        <div class="keys-container">
+                            <div class="k key-w"></div><div class="k key-b kb1"></div>
+                            <div class="k key-w"></div><div class="k key-b kb2"></div>
+                            <div class="k key-w"></div><div class="k key-b kb3"></div>
+                            <div class="k key-w"></div>
+                        </div>
+                    </div>
+                    <div class="project-info">
+                        <span class="project-role">Audio Tooling Developer</span>
+                        <h3 class="project-title">PianoViz</h3>
+                        <p class="project-desc">MIDI Visualizer + Logic Pro Companion</p>
+                        <div class="project-tags"><span class="ptag">React</span><span class="ptag">Web MIDI</span><span class="ptag">Vite</span></div>
+                    </div>
+                </article>
+
+                <article class="project-card slide-up tilt-elem" style="--delay: 2; cursor: pointer;" onclick="window.location.href='carplay-dashboard.html'">
+                    <div class="project-image-placeholder carplay-bg">
+                        <div class="dash-cluster">
+                            <svg class="gauge-svg" viewBox="0 0 140 90">
+                                <path d="M15,80 A55,55 0 0,1 125,80" fill="none" stroke="rgba(255,255,255,0.08)" stroke-width="8" stroke-linecap="round"/>
+                                <path d="M15,80 A55,55 0 0,1 125,80" fill="none" stroke="#3b82f6" stroke-width="8" stroke-linecap="round" stroke-dasharray="172" class="gauge-fill"/>
+                                <line x1="70" y1="78" x2="70" y2="30" stroke="#ef4444" stroke-width="3" stroke-linecap="round" class="gauge-needle"/>
+                                <circle cx="70" cy="78" r="6" fill="#0f172a" stroke="rgba(255,255,255,0.15)" stroke-width="2"/>
+                            </svg>
+                            <div class="dash-readout"><span class="mph-value">0</span><span>MPH</span></div>
+                        </div>
+                    </div>
+                    <div class="project-info">
+                        <span class="project-role">Embedded UI Developer</span>
+                        <h3 class="project-title">CarPlay Dashboard</h3>
+                        <p class="project-desc">Embedded Automotive Display UI</p>
+                        <div class="project-tags"><span class="ptag">C/C++</span><span class="ptag">ESP32</span><span class="ptag">LVGL</span></div>
+                    </div>
+                </article>
+
+                <article class="project-card slide-up tilt-elem" style="--delay: 3; cursor: pointer;" onclick="window.location.href='ekg-wiggers.html'">
+                    <div class="project-image-placeholder ekg-bg">
+                        <svg class="ekg-trace" viewBox="0 0 200 100" preserveAspectRatio="none">
+                            <polyline points="0,50 30,50 40,40 50,50 60,50 70,80 80,10 90,60 100,50 120,50 135,35 150,50 200,50" fill="none" stroke="#10b981" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
+                    </div>
+                    <div class="project-info">
+                        <span class="project-role">Software Engineer</span>
+                        <h3 class="project-title">EKG-Wiggers Diagram</h3>
+                        <p class="project-desc">Interactive Cardiac Cycle Visualizer</p>
+                        <div class="project-tags"><span class="ptag">JavaScript</span><span class="ptag">SVG</span><span class="ptag">Physiology</span></div>
+                    </div>
+                </article>
+
+                <article class="project-card slide-up tilt-elem" style="--delay: 4; cursor: pointer;" onclick="window.location.href='freewayfrenzy.html'">
+                    <div class="project-image-placeholder freeway-bg">
+                        <div class="road">
+                            <div class="road-lines"></div>
+                            <div class="car-block"></div>
+                        </div>
+                    </div>
+                    <div class="project-info">
+                        <span class="project-role">Embedded Systems Developer</span>
+                        <h3 class="project-title">FreewayFrenzy</h3>
+                        <p class="project-desc">Distributed Embedded Driving Game</p>
+                        <div class="project-tags"><span class="ptag">C/C++</span><span class="ptag">ESP32</span><span class="ptag">FreeRTOS</span></div>
+                    </div>
+                </article>
+
+                <article class="project-card slide-up tilt-elem" style="--delay: 5; cursor: pointer;" onclick="window.location.href='orbital.html'">
+                    <div class="project-image-placeholder orbital-bg">
+                        <div class="molecule">
+                            <div class="atom a1"></div><div class="atom a2"></div><div class="atom a3"></div>
+                            <div class="bond b1"></div><div class="bond b2"></div>
+                        </div>
+                    </div>
+                    <div class="project-info">
+                        <span class="project-role">Full Stack Developer</span>
+                        <h3 class="project-title">Orbital</h3>
+                        <p class="project-desc">Chemical Synthesis Pathway Planner</p>
+                        <div class="project-tags"><span class="ptag">React</span><span class="ptag">Python</span><span class="ptag">Chemistry</span></div>
+                    </div>
+                </article>
+
+                <article class="project-card slide-up tilt-elem" style="--delay: 6; cursor: pointer;" onclick="window.location.href='supasesh.html'">
+                    <div class="project-image-placeholder supasesh-bg">
+                        <div class="supa-app-ui">
+                            <div class="supa-header"><div class="supa-dot"></div><div class="supa-dot"></div><div class="supa-dot"></div></div>
+                            <div class="supa-card">
+                                <div class="supa-bar sb1"></div>
+                                <div class="supa-bar sb2"></div>
+                                <div class="supa-bar sb3"></div>
+                            </div>
+                            <div class="supa-stats">
+                                <div class="supa-stat"></div>
+                                <div class="supa-stat"></div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="project-info">
+                        <span class="project-role">iOS / Swift Developer</span>
+                        <h3 class="project-title">SupaSesh</h3>
+                        <p class="project-desc">Multi-Platform Session Tracking App</p>
+                        <div class="project-tags"><span class="ptag">Swift</span><span class="ptag">SwiftUI</span><span class="ptag">CloudKit</span></div>
+                    </div>
+                </article>
+
+                <article class="project-card slide-up tilt-elem" style="--delay: 7; cursor: pointer;" onclick="window.location.href='ucsd-radiology.html'">
+                    <div class="project-image-placeholder radiology-bg">
+                        <div class="rad-ui">
+                            <div class="rad-cross"></div>
+                            <div class="rad-scan-line"></div>
+                        </div>
+                    </div>
+                    <div class="project-info">
+                        <span class="project-role">Web Developer</span>
+                        <h3 class="project-title">UCSD Radiology</h3>
+                        <p class="project-desc">Department Website for UCSD School of Medicine</p>
+                        <div class="project-tags"><span class="ptag">HTML/CSS</span><span class="ptag">Webflow</span><span class="ptag">ADA</span></div>
+                    </div>
+                </article>
+
+                <article class="project-card slide-up tilt-elem" style="--delay: 8; cursor: pointer;" onclick="window.location.href='esp32-car.html'">
+                    <div class="project-image-placeholder esp32car-bg">
+                        <div class="rc-car">
+                            <div class="rc-body"></div>
+                            <div class="rc-wheel rc-wl"></div>
+                            <div class="rc-wheel rc-wr"></div>
+                            <div class="rc-signal"></div>
+                        </div>
+                    </div>
+                    <div class="project-info">
+                        <span class="project-role">Embedded Systems Developer</span>
+                        <h3 class="project-title">ESP32-CAR</h3>
+                        <p class="project-desc">Camera-Equipped RC Car with Sensor Array</p>
+                        <div class="project-tags"><span class="ptag">C/C++</span><span class="ptag">ESP32-CAM</span><span class="ptag">I2C</span></div>
+                    </div>
+                </article>
+
+                <article class="project-card slide-up tilt-elem" style="--delay: 9; cursor: pointer;" onclick="window.location.href='notchill.html'">
+                    <div class="project-image-placeholder notchill-bg">
+                        <div class="notch-shape">
+                            <div class="notch-pill"></div>
+                            <div class="notch-media-bar"></div>
+                        </div>
+                    </div>
+                    <div class="project-info">
+                        <span class="project-role">macOS / Swift Developer</span>
+                        <h3 class="project-title">Notchill</h3>
+                        <p class="project-desc">Dynamic Island-Style Notch Utility for Mac</p>
+                        <div class="project-tags"><span class="ptag">Swift</span><span class="ptag">AppKit</span><span class="ptag">NSPanel</span></div>
+                    </div>
+                </article>
+
+                <article class="project-card slide-up tilt-elem" style="--delay: 10; cursor: pointer;" onclick="window.location.href='dct.html'">
+                    <div class="project-image-placeholder dct-bg">
+                        <div class="dct-warehouse">
+                            <div class="dct-box dct-b1"></div>
+                            <div class="dct-box dct-b2"></div>
+                            <div class="dct-box dct-b3"></div>
+                            <div class="dct-conveyor"></div>
+                        </div>
+                    </div>
+                    <div class="project-info">
+                        <span class="project-role">Game Developer</span>
+                        <h3 class="project-title">Delivery Center Tycoon</h3>
+                        <p class="project-desc">Roblox Logistics & Warehouse Simulator</p>
+                        <div class="project-tags"><span class="ptag">Lua</span><span class="ptag">Rojo</span><span class="ptag">React</span></div>
+                    </div>
+                </article>
+
+                <article class="project-card slide-up tilt-elem" style="--delay: 11; cursor: pointer;" onclick="window.location.href='miso.html'">
+                    <div class="project-image-placeholder miso-bg">
+                        <div class="miso-ui">
+                            <div class="miso-window">
+                                <div class="miso-dots"><span></span><span></span><span></span></div>
+                                <div class="miso-vm-icon">&#9654;</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="project-info">
+                        <span class="project-role">macOS / Swift Developer</span>
+                        <h3 class="project-title">miSO</h3>
+                        <p class="project-desc">macOS Virtual Machine Manager</p>
+                        <div class="project-tags"><span class="ptag">Swift</span><span class="ptag">SwiftUI</span><span class="ptag">Virtualization</span></div>
+                    </div>
+                </article>
+
+            </div>
+        </section>
+
+        <!-- Experience Section -->
+        <section id="experience" class="experience-section section-animate">
+            <h2 class="section-title">Work Experience</h2>
+            <div class="timeline">
+                
+                <div class="timeline-item slide-up" style="--delay: 1;">
+                    <div class="timeline-dot"></div>
+                    <div class="timeline-content">
+                        <div class="timeline-header">
+                            <div>
+                                <h3>Web Developer</h3>
+                                <h4>UC San Diego Health</h4>
+                            </div>
+                            <span class="timeline-date">Feb 2024 - Feb 2026<br><small>San Diego, CA</small></span>
+                        </div>
+                        <p>Developed and maintained accessible, user friendly web content for UC San Diego Health. Supported digital experiences that improved access to healthcare information for patients and care teams. Coordinated website updates, organized content, and helped manage projects to keep online resources clear, functional, and aligned with healthcare communication needs.</p>
+                    </div>
+                </div>
+
+                <div class="timeline-item slide-up" style="--delay: 2;">
+                    <div class="timeline-dot"></div>
+                    <div class="timeline-content">
+                        <div class="timeline-header">
+                            <div>
+                                <h3>Lead Medical Assistant</h3>
+                                <h4>Senta Medical Clinic</h4>
+                            </div>
+                            <span class="timeline-date">Feb 2021 - Jan 2026<br><small>San Diego, CA</small></span>
+                        </div>
+                        <p>Manage and maintain patient medical records ensuring HIPAA compliance. Assist physicians with examinations, vital signs, and routine procedures. Administer medications and injections as directed. Educate patients on medication use, nutrition, and care plans. Train and supervise medical assistants.</p>
+                    </div>
+                </div>
+
+                <div class="timeline-item slide-up" style="--delay: 3;">
+                    <div class="timeline-dot"></div>
+                    <div class="timeline-content">
+                        <div class="timeline-header">
+                            <div>
+                                <h3>Lead UX/UI Designer & Developer</h3>
+                                <h4>DizzyDoctor Systems</h4>
+                            </div>
+                            <span class="timeline-date">Mar 2019 - Feb 2024<br><small>San Diego, CA</small></span>
+                        </div>
+                        <p>Led design and development of healthcare digital solutions for vertigo diagnosis. Built real-time vertigo recording system pairing mobile app with custom goggles for eye movement capture. Implemented HIPAA-compliant security and designed patient/physician interfaces. Collaborated with medical experts to integrate clinical insights into diagnostic tools.</p>
+                    </div>
+                </div>
+
+                <div class="timeline-item slide-up" style="--delay: 4;">
+                    <div class="timeline-dot"></div>
+                    <div class="timeline-content">
+                        <div class="timeline-header">
+                            <div>
+                                <h3>Web Developer / Project Manager</h3>
+                                <h4>Ian Purcell M.D., Ph.D</h4>
+                            </div>
+                            <span class="timeline-date">Feb 2021 - Feb 2022<br><small>San Diego, CA</small></span>
+                        </div>
+                        <p>Developed and managed a patient facing website for a neurologist specializing in dizziness, vertigo, BPPV, and balance disorders. Improved site structure, content presentation, and usability to make clinical information easier for patients to access and understand.</p>
+                    </div>
+                </div>
+
+                <div class="timeline-item slide-up" style="--delay: 5;">
+                    <div class="timeline-dot"></div>
+                    <div class="timeline-content">
+                        <div class="timeline-header">
+                            <div>
+                                <h3>Web Developer</h3>
+                                <h4>Alimination Inc.</h4>
+                            </div>
+                            <span class="timeline-date">Jan 2020 - Jan 2022<br><small>San Diego, CA</small></span>
+                        </div>
+                        <p>Built and maintained web pages and digital content using front end development tools and best practices. Supported responsive design, content updates, and usability improvements across web experiences.</p>
+                    </div>
+                </div>
+
+            </div>
+        </section>
+
+        <!-- Education Section -->
+        <section id="education" class="education-section section-animate">
+            <h2 class="section-title">Education</h2>
+            <div class="education-grid">
+                
+                <div class="education-card slide-up tilt-elem" style="--delay: 1;">
+                    <div class="edu-icon">🎓</div>
+                    <h3>University of California San Diego</h3>
+                    <p class="edu-degree">Bachelor's, Human Biology</p>
+                    <p class="edu-details">John Muir College • Expected June 2026 (Senior)</p>
+                    <div class="edu-courses">
+                        <span class="tag tag-small">Human Physiology</span>
+                        <span class="tag tag-small">General Chemistry</span>
+                        <span class="tag tag-small">Organic Chemistry</span>
+                        <span class="tag tag-small">The Cell</span>
+                    </div>
+                </div>
+
+                <div class="education-card slide-up tilt-elem" style="--delay: 2;">
+                    <div class="edu-icon">💻</div>
+                    <h3>San Diego Mesa College</h3>
+                    <p class="edu-degree">Associate's, Web Development</p>
+                    <p class="edu-details">Cumulative GPA: 3.95</p>
+                    <div class="edu-courses">
+                        <span class="tag tag-small">User-centered design</span>
+                        <span class="tag tag-small">Responsive development</span>
+                        <span class="tag tag-small">ADA accessibility</span>
+                    </div>
+                </div>
+
+            </div>
+        </section>
+
+        <footer>
+            <div class="footer-content">
+                <h2>Ready to collaborate?</h2>
+                <p>Feel free to reach out for software engineering or biomedical systems roles.</p>
+                <div class="footer-links">
+                    <a href="mailto:your.email@example.com" class="btn btn-primary">Contact Me</a>
+                </div>
+                <div class="copyright">
+                    © 2026 Sean. All rights reserved.
+                </div>
+            </div>
+        </footer>
+
+    </main>
+
+    <script src="script.js"></script>
+</body>
+</html>
