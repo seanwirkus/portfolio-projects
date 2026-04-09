@@ -178,16 +178,40 @@
                         function draw() {
                             ctx.clearRect(0, 0, 800, 450);
                             
-                            ctx.fillStyle = 'rgba(255,255,255,0.03)';
-                            for(let i=0; i<800; i+=40) ctx.fillRect(i, 0, 1, 450);
-                            for(let j=0; j<450; j+=40) ctx.fillRect(0, j, 800, 1);
+                            // Gradient background
+                            let bgGrad = ctx.createLinearGradient(0, 0, 0, 450);
+                            bgGrad.addColorStop(0, '#0b1120');
+                            bgGrad.addColorStop(1, '#0f172a');
+                            ctx.fillStyle = bgGrad;
+                            ctx.fillRect(0, 0, 800, 450);
 
-                            ctx.fillStyle = '#334155';
-                            ctx.strokeStyle = '#94a3b8';
-                            ctx.lineWidth = 2;
-                            for (let b of boxes) {
+                            // Dot grid
+                            ctx.fillStyle = 'rgba(148,163,184,0.06)';
+                            for(let i=0; i<800; i+=40) for(let j=0; j<450; j+=40) {
+                                ctx.beginPath(); ctx.arc(i, j, 1, 0, Math.PI*2); ctx.fill();
+                            }
+
+                            // Obstacles with labels
+                            const obstLabels = ['WALL A','CRATE','BARRIER','POST'];
+                            ctx.font = '9px Inter, sans-serif';
+                            ctx.textAlign = 'center';
+                            for (let i = 0; i < boxes.length; i++) {
+                                let b = boxes[i];
+                                let oGrad = ctx.createLinearGradient(b.x, b.y, b.x, b.y + b.h);
+                                oGrad.addColorStop(0, '#1e293b');
+                                oGrad.addColorStop(1, '#334155');
+                                ctx.fillStyle = oGrad;
                                 ctx.fillRect(b.x, b.y, b.w, b.h);
+                                ctx.strokeStyle = 'rgba(148,163,184,0.25)';
+                                ctx.lineWidth = 1;
                                 ctx.strokeRect(b.x, b.y, b.w, b.h);
+                                // Hazard stripes
+                                ctx.fillStyle = 'rgba(245,158,11,0.15)';
+                                for (let s = b.x; s < b.x + b.w; s += 8) {
+                                    ctx.fillRect(s, b.y, 4, 3);
+                                }
+                                ctx.fillStyle = 'rgba(148,163,184,0.4)';
+                                ctx.fillText(obstLabels[i] || '', b.x + b.w/2, b.y + b.h/2 + 3);
                             }
                             
                             let sensorX = car.x + Math.cos(car.angle - Math.PI/2) * 20;
@@ -198,6 +222,7 @@
                             ctx.translate(car.x, car.y);
                             ctx.rotate(car.angle);
                             
+                            // Sensor cone
                             ctx.strokeStyle = rayDist < 100 ? '#ef4444' : '#10b981';
                             ctx.fillStyle = ctx.strokeStyle;
                             
@@ -206,40 +231,71 @@
                             ctx.lineTo(-rayDist*0.35, -20 - rayDist);
                             ctx.lineTo(rayDist*0.35, -20 - rayDist);
                             ctx.closePath();
-                            ctx.globalAlpha = 0.2;
+                            ctx.globalAlpha = 0.12;
                             ctx.fill();
+                            ctx.globalAlpha = 0.5;
+                            ctx.lineWidth = 1;
+                            ctx.stroke();
                             ctx.globalAlpha = 1.0;
                             
+                            // Sensor ray line
                             ctx.beginPath();
                             ctx.moveTo(0, -20);
                             ctx.lineTo(0, -20 - rayDist);
-                            ctx.lineWidth = 2;
+                            ctx.lineWidth = 1.5;
+                            ctx.setLineDash([4, 4]);
                             ctx.stroke();
+                            ctx.setLineDash([]);
                             
                             distEl.textContent = rayDist >= 350 ? '>350' : Math.round(rayDist);
                             distEl.style.color = ctx.strokeStyle;
                             
+                            // Car shadow
+                            ctx.fillStyle = 'rgba(0,0,0,0.3)';
+                            ctx.beginPath();
+                            ctx.ellipse(0, 26, 18, 6, 0, 0, Math.PI*2);
+                            ctx.fill();
+
+                            // Car body
                             ctx.fillStyle = '#f59e0b';
-                            ctx.shadowColor = 'rgba(245, 158, 11, 0.4)';
-                            ctx.shadowBlur = 10;
-                            ctx.fillRect(-16, -24, 32, 48); // Body
+                            ctx.shadowColor = 'rgba(245, 158, 11, 0.35)';
+                            ctx.shadowBlur = 15;
+                            // Rounded body
+                            let bw = 32, bh = 48;
+                            ctx.beginPath();
+                            ctx.roundRect(-bw/2, -bh/2, bw, bh, [8, 8, 4, 4]);
+                            ctx.fill();
                             ctx.shadowBlur = 0;
 
-                            ctx.fillStyle = 'rgba(56, 189, 248, 0.6)';
-                            ctx.fillRect(-12, -12, 24, 16); // Windshield
-                            
-                            ctx.fillStyle = 'rgba(0,0,0,0.4)';
-                            ctx.fillRect(-14, 12, 28, 8); // Rear
+                            // Windshield
+                            ctx.fillStyle = 'rgba(56, 189, 248, 0.5)';
+                            ctx.beginPath();
+                            ctx.roundRect(-10, -14, 20, 14, 3);
+                            ctx.fill();
 
+                            // Camera lens dot
+                            ctx.fillStyle = '#ef4444';
+                            ctx.shadowColor = '#ef4444';
+                            ctx.shadowBlur = 6;
+                            ctx.beginPath(); ctx.arc(0, -22, 3, 0, Math.PI*2); ctx.fill();
+                            ctx.shadowBlur = 0;
+
+                            // Headlights
+                            ctx.fillStyle = '#fef3c7';
+                            ctx.beginPath(); ctx.arc(-8, -22, 2.5, 0, Math.PI*2); ctx.fill();
+                            ctx.beginPath(); ctx.arc(8, -22, 2.5, 0, Math.PI*2); ctx.fill();
+
+                            // Wheels
                             ctx.fillStyle = '#1e293b';
-                            ctx.fillRect(-20, -16, 6, 14); // Wheels
-                            ctx.fillRect(14, -16, 6, 14);
-                            ctx.fillRect(-20, 12, 6, 14);
-                            ctx.fillRect(14, 12, 6, 14);
-                            
-                            ctx.fillStyle = '#cbd5e1';
-                            ctx.beginPath(); ctx.arc(-6, -22, 4, 0, Math.PI*2); ctx.fill(); // Sensors
-                            ctx.beginPath(); ctx.arc(6, -22, 4, 0, Math.PI*2); ctx.fill();
+                            ctx.strokeStyle = 'rgba(148,163,184,0.3)';
+                            ctx.lineWidth = 1;
+                            [-1, 1].forEach(side => {
+                                [-1, 1].forEach(fb => {
+                                    ctx.beginPath();
+                                    ctx.roundRect(side * 14 - 3, fb * 14 - 7, 6, 14, 2);
+                                    ctx.fill(); ctx.stroke();
+                                });
+                            });
                             
                             ctx.restore();
                         }

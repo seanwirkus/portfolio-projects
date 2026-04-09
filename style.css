@@ -846,17 +846,78 @@ h1, h2, h3, h4, .nav-links, .logo {
 @keyframes radScan { 0% { top: 0; opacity: 0; } 10% { opacity: 1; } 90% { opacity: 1; } 100% { top: 100%; opacity: 0; } }
 
 /* ESP32-CAR Styles */
-.esp32car-bg { background: radial-gradient(circle at 50% 80%, #1a1a2e, #0a0a15); }
-.rc-car { position: relative; width: 80px; height: 90px; }
-.rc-body { position: absolute; top: 20px; left: 10px; width: 60px; height: 50px; background: linear-gradient(to bottom, #f59e0b, #d97706); border-radius: 10px 10px 6px 6px; box-shadow: 0 6px 20px rgba(245, 158, 11, 0.3); }
-.rc-body::before { content: ''; position: absolute; top: 6px; left: 8px; right: 8px; height: 16px; background: rgba(56, 189, 248, 0.5); border-radius: 4px; }
-.rc-body::after { content: ''; position: absolute; bottom: -4px; left: 12px; right: 12px; height: 6px; background: rgba(0,0,0,0.3); border-radius: 0 0 4px 4px; }
-.rc-wheel { position: absolute; width: 16px; height: 22px; background: #333; border-radius: 4px; border: 2px solid #555; animation: rcSpin 0.4s linear infinite; }
-.rc-wl { bottom: 8px; left: -2px; }
-.rc-wr { bottom: 8px; right: -2px; }
-.rc-signal { position: absolute; top: 4px; left: 50%; transform: translateX(-50%); width: 4px; height: 14px; background: #ef4444; border-radius: 2px; animation: rcBlink 1s infinite; }
-@keyframes rcSpin { 0% { box-shadow: inset 0 2px 0 rgba(255,255,255,0.1); } 50% { box-shadow: inset 0 -2px 0 rgba(255,255,255,0.1); } }
-@keyframes rcBlink { 0%, 100% { opacity: 1; box-shadow: 0 0 8px #ef4444; } 50% { opacity: 0.3; box-shadow: none; } }
+.esp32car-bg { background: radial-gradient(circle at 50% 60%, #1a1a2e, #0a0a15); overflow: hidden; }
+.esp-pcb { position: relative; width: 110px; height: 100px; }
+.esp-chip {
+    position: absolute;
+    top: 50%; left: 50%;
+    transform: translate(-50%, -50%);
+    width: 48px; height: 48px;
+    background: #1e293b;
+    border: 1.5px solid rgba(245, 158, 11, 0.5);
+    border-radius: 6px;
+    display: flex; align-items: center; justify-content: center;
+    box-shadow: 0 0 15px rgba(245, 158, 11, 0.15), inset 0 0 8px rgba(0,0,0,0.4);
+}
+.esp-chip span {
+    font-family: 'Inter', monospace;
+    font-size: 0.55rem;
+    font-weight: 700;
+    color: #f59e0b;
+    letter-spacing: 0.08em;
+}
+.esp-trace {
+    position: absolute;
+    background: rgba(245, 158, 11, 0.25);
+    border-radius: 1px;
+}
+.esp-trace.t1 { width: 30px; height: 2px; top: 50%; right: 0; transform: translateY(-50%); animation: espPulseTrace 2s ease-in-out infinite; }
+.esp-trace.t2 { height: 30px; width: 2px; left: 50%; top: 0; transform: translateX(-50%); animation: espPulseTrace 2s ease-in-out 0.5s infinite; }
+.esp-trace.t3 { width: 25px; height: 2px; top: 50%; left: 0; transform: translateY(-50%); animation: espPulseTrace 2s ease-in-out 1s infinite; }
+@keyframes espPulseTrace { 0%, 100% { opacity: 0.3; } 50% { opacity: 1; box-shadow: 0 0 6px rgba(245,158,11,0.4); } }
+.esp-pin-row {
+    position: absolute; left: 50%; transform: translateX(-50%);
+    display: flex; gap: 6px;
+}
+.esp-pin-row.top { top: 6px; }
+.esp-pin-row.bottom { bottom: 6px; }
+.esp-pin {
+    width: 4px; height: 8px;
+    background: rgba(148, 163, 184, 0.5);
+    border-radius: 1px;
+}
+.esp-sensor {
+    position: absolute;
+    top: 50%; right: -2px;
+    transform: translateY(-50%);
+    display: flex; flex-direction: column; gap: 6px;
+}
+.esp-sensor-eye {
+    width: 10px; height: 10px;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(16,185,129,0.6), rgba(16,185,129,0.15));
+    border: 1px solid rgba(16,185,129,0.4);
+    animation: espSensorPulse 1.5s ease-in-out infinite;
+}
+.esp-sensor-eye:last-child { animation-delay: 0.3s; }
+@keyframes espSensorPulse { 0%, 100% { box-shadow: 0 0 4px rgba(16,185,129,0.2); } 50% { box-shadow: 0 0 12px rgba(16,185,129,0.6); } }
+.esp-signal-wave {
+    position: absolute;
+    top: 8px; left: 8px;
+    width: 16px; height: 16px;
+    border: 2px solid rgba(239,68,68,0.4);
+    border-radius: 50%;
+    animation: espWave 2s ease-out infinite;
+}
+.esp-signal-wave::after {
+    content: '';
+    position: absolute;
+    inset: 3px;
+    border: 1.5px solid rgba(239,68,68,0.6);
+    border-radius: 50%;
+    animation: espWave 2s ease-out 0.4s infinite;
+}
+@keyframes espWave { 0% { transform: scale(0.5); opacity: 1; } 100% { transform: scale(1.8); opacity: 0; } }
 
 /* Notchill Styles */
 .notchill-bg { background: radial-gradient(ellipse at 50% 30%, #1c1c1e, #0a0a0a); }
@@ -985,10 +1046,12 @@ h1, h2, h3, h4, .nav-links, .logo {
 
 .project-page-title {
     font-size: clamp(3rem, 6vw, 4.9rem);
-    line-height: 1.02;
+    line-height: 1.15;
     letter-spacing: -0.04em;
     text-wrap: balance;
     overflow-wrap: anywhere;
+    padding-top: 0.1em;
+    padding-bottom: 0.05em;
     background: linear-gradient(
         135deg,
         var(--project-accent, var(--accent-1)),
