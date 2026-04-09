@@ -48,21 +48,38 @@
         <!-- Hero Section -->
         <section id="about" class="hero section-animate">
             <div class="hero-content">
-                <div class="hero-badge">Available for Full-time roles</div>
+                <div class="hero-badge">
+                    <span class="badge-dot"></span>
+                    Available for Full-time roles
+                </div>
                 <h1 class="hero-title">Engineering at the Intersection of <span>Health & Tech</span></h1>
+                <div class="hero-roles" aria-label="Rotating roles">
+                    <span class="hero-role-static">I build&nbsp;</span>
+                    <span class="hero-role-typed" id="typed-role"></span><span class="typed-cursor">|</span>
+                </div>
                 <p class="hero-desc">
                     UC San Diego Human Biology student and Full Stack Software Engineer building biomedical software, embedded systems, PCB-based device projects, and technical visualization tools. Experience in healthcare web apps, clinical data, medical device software, and patient-centered digital products.
                 </p>
+                <div class="hero-chips">
+                    <span class="hero-chip"><span class="chip-dot" style="--dot-color: var(--accent-3)"></span>Physiology &amp; Clinical</span>
+                    <span class="hero-chip"><span class="chip-dot" style="--dot-color: var(--accent-1)"></span>Medical Device Software</span>
+                    <span class="hero-chip"><span class="chip-dot" style="--dot-color: var(--accent-2)"></span>Embedded Systems</span>
+                    <span class="hero-chip"><span class="chip-dot" style="--dot-color: #f59e0b"></span>Molecular &amp; Chemical Viz</span>
+                </div>
                 <div class="hero-actions">
                     <a href="#projects" class="btn btn-primary magnetic">View My Work</a>
                     <a href="#experience" class="btn btn-secondary magnetic">My Experience</a>
                 </div>
             </div>
-            <div class="hero-visual tilt-elem">
+            <div class="hero-visual tilt-elem" id="hero-visual">
+                <canvas id="hero-particles" class="hero-particles-canvas"></canvas>
                 <div class="hero-image-wrapper">
                     <img src="seanimage.png" alt="Sean's Portrait" class="hero-img">
                     <div class="image-glow"></div>
                 </div>
+                <div class="hero-orbit-ring ring-1"></div>
+                <div class="hero-orbit-ring ring-2"></div>
+                <div class="hero-orbit-ring ring-3"></div>
             </div>
         </section>
 

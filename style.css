@@ -249,7 +249,9 @@ h1, h2, h3, h4, .nav-links, .logo {
 }
 
 .hero-badge {
-    display: inline-block;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
     padding: 0.4rem 1rem;
     background: rgba(99, 102, 241, 0.1);
     border: 1px solid rgba(99, 102, 241, 0.3);
@@ -259,6 +261,174 @@ h1, h2, h3, h4, .nav-links, .logo {
     font-weight: 600;
     margin-bottom: 1.5rem;
     letter-spacing: 0.5px;
+    animation: badgeFadeIn 0.8s ease both;
+}
+
+.badge-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: #10b981;
+    box-shadow: 0 0 8px #10b981;
+    animation: dotPulse 2s ease-in-out infinite;
+}
+
+@keyframes dotPulse {
+    0%, 100% { opacity: 1; box-shadow: 0 0 8px #10b981; }
+    50% { opacity: 0.4; box-shadow: 0 0 2px #10b981; }
+}
+
+@keyframes badgeFadeIn {
+    from { opacity: 0; transform: translateY(-10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+/* Typed roles subtitle */
+.hero-roles {
+    display: flex;
+    align-items: center;
+    font-size: 1.25rem;
+    color: var(--text-muted);
+    margin-bottom: 1.2rem;
+    font-weight: 400;
+    min-height: 1.8em;
+}
+
+.hero-role-static {
+    color: var(--text-muted);
+}
+
+.hero-role-typed {
+    color: var(--accent-1);
+    font-weight: 600;
+}
+
+.typed-cursor {
+    color: var(--accent-1);
+    font-weight: 200;
+    animation: cursorBlink 0.75s step-end infinite;
+}
+
+@keyframes cursorBlink {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0; }
+}
+
+/* Specialty chips */
+.hero-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.6rem;
+    margin-bottom: 2rem;
+}
+
+.hero-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    padding: 0.4rem 0.85rem;
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 100px;
+    font-size: 0.8rem;
+    color: var(--text-muted);
+    transition: var(--trans-fast);
+    cursor: default;
+}
+
+.hero-chip:hover {
+    background: rgba(59, 130, 246, 0.1);
+    border-color: rgba(59, 130, 246, 0.3);
+    color: #fff;
+    transform: translateY(-2px);
+}
+
+.hero-chip .chip-dot {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: var(--dot-color, var(--accent-1));
+    box-shadow: 0 0 6px var(--dot-color, var(--accent-1));
+    flex-shrink: 0;
+}
+
+/* Orbit rings behind portrait */
+.hero-orbit-ring {
+    position: absolute;
+    border-radius: 50%;
+    border: 1px solid rgba(59, 130, 246, 0.08);
+    pointer-events: none;
+}
+
+.hero-orbit-ring.ring-1 {
+    width: 360px;
+    height: 360px;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    animation: orbitSpin 30s linear infinite;
+}
+
+.hero-orbit-ring.ring-2 {
+    width: 440px;
+    height: 440px;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    border-color: rgba(139, 92, 246, 0.06);
+    animation: orbitSpin 45s linear infinite reverse;
+}
+
+.hero-orbit-ring.ring-3 {
+    width: 520px;
+    height: 520px;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    border-color: rgba(16, 185, 129, 0.05);
+    animation: orbitSpin 60s linear infinite;
+}
+
+/* Ring orbital dots */
+.hero-orbit-ring::after {
+    content: '';
+    position: absolute;
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    top: -3px;
+    left: 50%;
+    transform: translateX(-50%);
+}
+
+.hero-orbit-ring.ring-1::after {
+    background: rgba(59, 130, 246, 0.4);
+    box-shadow: 0 0 10px rgba(59, 130, 246, 0.3);
+}
+
+.hero-orbit-ring.ring-2::after {
+    background: rgba(139, 92, 246, 0.4);
+    box-shadow: 0 0 10px rgba(139, 92, 246, 0.3);
+}
+
+.hero-orbit-ring.ring-3::after {
+    background: rgba(16, 185, 129, 0.35);
+    box-shadow: 0 0 10px rgba(16, 185, 129, 0.3);
+}
+
+@keyframes orbitSpin {
+    from { transform: translate(-50%, -50%) rotate(0deg); }
+    to { transform: translate(-50%, -50%) rotate(360deg); }
+}
+
+/* Floating particle canvas behind portrait */
+.hero-particles-canvas {
+    position: absolute;
+    inset: -60px;
+    width: calc(100% + 120px);
+    height: calc(100% + 120px);
+    z-index: 0;
+    pointer-events: none;
 }
 
 .hero-title {
@@ -324,7 +494,7 @@ h1, h2, h3, h4, .nav-links, .logo {
 }
 
 .hero-image-wrapper:hover .hero-img {
-    transform: scale(1.03) translateY(-4px);
+    transform: none;
 }
 
 .image-glow {
@@ -1297,6 +1467,18 @@ footer {
         margin-bottom: 3rem;
     }
 
+    .hero-chips {
+        justify-content: center;
+    }
+
+    .hero-roles {
+        justify-content: center;
+    }
+
+    .hero-orbit-ring.ring-3 {
+        display: none;
+    }
+
     .project-meta-grid,
     .project-copy-grid {
         grid-template-columns: 1fr;
@@ -1359,6 +1541,27 @@ footer {
     .hero-title {
         font-size: clamp(2.2rem, 9vw, 2.8rem);
         line-height: 1.15;
+    }
+
+    .hero-roles {
+        font-size: 1.05rem;
+    }
+
+    .hero-orbit-ring {
+        display: none;
+    }
+
+    .hero-particles-canvas {
+        opacity: 0.5;
+    }
+
+    .hero-chips {
+        gap: 0.4rem;
+    }
+
+    .hero-chip {
+        font-size: 0.72rem;
+        padding: 0.35rem 0.7rem;
     }
     
     .timeline::before {

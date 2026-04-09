@@ -208,4 +208,192 @@ document.addEventListener('DOMContentLoaded', () => {
             });
         });
     }
+
+    // ═══════════════════════════════════════
+    // 8. Hero – Typing Role Animation
+    // ═══════════════════════════════════════
+    const typedEl = document.getElementById('typed-role');
+    if (typedEl) {
+        const roles = [
+            'physiological visualization tools.',
+            'embedded medical devices.',
+            'clinical data pipelines.',
+            'molecular structure editors.',
+            'patient-facing health platforms.',
+            'real-time biosignal systems.'
+        ];
+        let roleIndex = 0;
+        let charIndex = 0;
+        let deleting = false;
+        const typeSpeed = 65;
+        const deleteSpeed = 35;
+        const pauseAfterType = 2000;
+        const pauseAfterDelete = 400;
+
+        function typeRole() {
+            const current = roles[roleIndex];
+            if (!deleting) {
+                typedEl.textContent = current.substring(0, charIndex + 1);
+                charIndex++;
+                if (charIndex === current.length) {
+                    setTimeout(() => { deleting = true; typeRole(); }, pauseAfterType);
+                    return;
+                }
+                setTimeout(typeRole, typeSpeed);
+            } else {
+                typedEl.textContent = current.substring(0, charIndex);
+                charIndex--;
+                if (charIndex < 0) {
+                    deleting = false;
+                    charIndex = 0;
+                    roleIndex = (roleIndex + 1) % roles.length;
+                    setTimeout(typeRole, pauseAfterDelete);
+                    return;
+                }
+                setTimeout(typeRole, deleteSpeed);
+            }
+        }
+        setTimeout(typeRole, 800); // Initial delay before typing starts
+    }
+
+    // ═══════════════════════════════════════
+    // 9. Hero – Parallax Mouse Tracking
+    // ═══════════════════════════════════════
+    if (!isTouchDevice) {
+        const heroSection = document.querySelector('.hero');
+        const heroVisual = document.getElementById('hero-visual');
+
+        if (heroSection && heroVisual) {
+            const rings = heroVisual.querySelectorAll('.hero-orbit-ring');
+            const imgWrapper = heroVisual.querySelector('.hero-image-wrapper');
+
+            heroSection.addEventListener('mousemove', (e) => {
+                const rect = heroSection.getBoundingClientRect();
+                const x = (e.clientX - rect.left) / rect.width - 0.5;   // -0.5 to 0.5
+                const y = (e.clientY - rect.top) / rect.height - 0.5;
+
+                // Image wrapper subtle shift
+                if (imgWrapper) {
+                    imgWrapper.style.transform = `translate(${x * 12}px, ${y * 12}px)`;
+                }
+
+                // Orbit rings parallax at different intensities
+                rings.forEach((ring, i) => {
+                    const intensity = (i + 1) * 8;
+                    ring.style.marginLeft = `${x * intensity}px`;
+                    ring.style.marginTop = `${y * intensity}px`;
+                });
+            });
+
+            heroSection.addEventListener('mouseleave', () => {
+                if (imgWrapper) {
+                    imgWrapper.style.transform = '';
+                    imgWrapper.style.transition = 'transform 0.6s ease';
+                    setTimeout(() => { imgWrapper.style.transition = ''; }, 600);
+                }
+                rings.forEach(ring => {
+                    ring.style.marginLeft = '';
+                    ring.style.marginTop = '';
+                    ring.style.transition = 'margin 0.6s ease';
+                    setTimeout(() => { ring.style.transition = ''; }, 600);
+                });
+            });
+        }
+    }
+
+    // ═══════════════════════════════════════
+    // 10. Hero – Floating Particles Canvas
+    // ═══════════════════════════════════════
+    const heroCanvas = document.getElementById('hero-particles');
+    if (heroCanvas) {
+        const ctx = heroCanvas.getContext('2d');
+        let particles = [];
+        const particleCount = 35;
+        const colors = [
+            'rgba(59, 130, 246, 0.35)',
+            'rgba(139, 92, 246, 0.3)',
+            'rgba(16, 185, 129, 0.3)',
+            'rgba(255, 255, 255, 0.15)'
+        ];
+
+        function resizeHeroCanvas() {
+            const parent = heroCanvas.parentElement;
+            heroCanvas.width = parent.offsetWidth + 120;
+            heroCanvas.height = parent.offsetHeight + 120;
+        }
+
+        function initParticles() {
+            particles = [];
+            for (let i = 0; i < particleCount; i++) {
+                particles.push({
+                    x: Math.random() * heroCanvas.width,
+                    y: Math.random() * heroCanvas.height,
+                    r: Math.random() * 2.5 + 0.8,
+                    dx: (Math.random() - 0.5) * 0.4,
+                    dy: (Math.random() - 0.5) * 0.4,
+                    color: colors[Math.floor(Math.random() * colors.length)]
+                });
+            }
+        }
+
+        function drawParticles() {
+            ctx.clearRect(0, 0, heroCanvas.width, heroCanvas.height);
+            particles.forEach(p => {
+                ctx.beginPath();
+                ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+                ctx.fillStyle = p.color;
+                ctx.fill();
+
+                p.x += p.dx;
+                p.y += p.dy;
+
+                if (p.x < 0 || p.x > heroCanvas.width) p.dx *= -1;
+                if (p.y < 0 || p.y > heroCanvas.height) p.dy *= -1;
+            });
+
+            // Draw faint connecting lines
+            for (let i = 0; i < particles.length; i++) {
+                for (let j = i + 1; j < particles.length; j++) {
+                    const dist = Math.hypot(particles[i].x - particles[j].x, particles[i].y - particles[j].y);
+                    if (dist < 120) {
+                        ctx.beginPath();
+                        ctx.moveTo(particles[i].x, particles[i].y);
+                        ctx.lineTo(particles[j].x, particles[j].y);
+                        ctx.strokeStyle = `rgba(59, 130, 246, ${0.06 * (1 - dist / 120)})`;
+                        ctx.lineWidth = 0.5;
+                        ctx.stroke();
+                    }
+                }
+            }
+
+            requestAnimationFrame(drawParticles);
+        }
+
+        resizeHeroCanvas();
+        initParticles();
+        drawParticles();
+
+        window.addEventListener('resize', () => {
+            resizeHeroCanvas();
+            initParticles();
+        });
+    }
+
+    // ═══════════════════════════════════════
+    // 11. Hero – Scroll Parallax (Content fades / shifts as you scroll down)
+    // ═══════════════════════════════════════
+    const heroContent = document.querySelector('.hero-content');
+    const heroVisualEl = document.querySelector('.hero-visual');
+
+    if (heroContent && heroVisualEl) {
+        window.addEventListener('scroll', () => {
+            const scrollY = window.scrollY;
+            const factor = Math.min(scrollY / 600, 1);
+
+            heroContent.style.transform = `translateY(${scrollY * 0.15}px)`;
+            heroContent.style.opacity = 1 - factor * 0.6;
+
+            heroVisualEl.style.transform = `translateY(${scrollY * 0.08}px)`;
+        }, { passive: true });
+    }
 });

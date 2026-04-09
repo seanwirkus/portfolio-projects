@@ -1,0 +1,68 @@
+<style>
+  .search-wrapper {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1rem;
+    align-items: center;
+  }
+
+  .search-input {
+    flex-grow: 1;
+    min-width: 200px;
+    padding: 0.75rem;
+    font-size: 1rem;
+    border: 1px solid #ccc;
+    border-radius: 1rem;
+  }
+
+  .search-select {
+    padding: 0.75rem;
+    font-size: 1rem;
+    border: 1px solid #ccc;
+    border-radius: 1rem;
+    min-width: 180px;
+    background: #fff;
+  }
+
+  .page-button {
+  	background: #fff;
+    font-size: 1rem;
+    border: 1px solid #ccc;
+    border-radius: 1rem;
+    cursor: pointer;
+  }
+
+  .page-button:disabled {
+    background: #eee;
+  }
+</style>
+
+<form class="search-form" onsubmit="return false;">
+  <div class="search-wrapper">
+    <input
+      type="text"
+      id="faculty-search"
+      placeholder="Search by name, focus, or modality..."
+      class="search-input"
+    />
+
+    <select id="filter-primary" class="search-select">
+      <option value="">Focus</option>
+    </select>
+
+    <select id="filter-division" class="search-select">
+      <option value="">Division/Modality</option>
+    </select>
+
+    <div class="default-button reset-button small-ui" id="reset-filters">
+      Reset Filters
+    </div>
+    <div id="results-count" class="results-count">
+      Show 0 of 0 results
+    </div>
+    <div class="pagination-wrapper">
+      <div class="pagination"></div>
+      </div>
+  </div>
+
+</form>
