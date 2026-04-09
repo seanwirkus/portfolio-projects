@@ -1,0 +1,13 @@
+version: 1
+frontend:
+  phases:
+    preBuild:
+      commands:
+        - echo "No install step required for this static site"
+    build:
+      commands:
+        - echo "Deploying repository root as static site output"
+  artifacts:
+    baseDirectory: .
+    files:
+      - '**/*'
