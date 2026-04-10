@@ -86,7 +86,15 @@ document.addEventListener('DOMContentLoaded', () => {
         dock.setAttribute('aria-label', 'Theme controls');
         dock.innerHTML = `
             <button type="button" class="theme-dock__toggle magnetic" aria-expanded="false" aria-controls="theme-panel">
-                Theme
+                <span class="theme-dock__toggle-icon" aria-hidden="true">
+                    <svg viewBox="0 0 24 24">
+                        <path d="M4 7.5h10"></path>
+                        <path d="M4 16.5h16"></path>
+                        <circle cx="16" cy="7.5" r="2.5"></circle>
+                        <circle cx="10" cy="16.5" r="2.5"></circle>
+                    </svg>
+                </span>
+                <span class="theme-dock__toggle-label">Theme</span>
             </button>
             <div class="theme-dock__panel" id="theme-panel" hidden>
                 <header>
@@ -97,14 +105,42 @@ document.addEventListener('DOMContentLoaded', () => {
                 <section class="theme-dock__section">
                     <div class="theme-dock__section-label">Mode</div>
                     <div class="theme-dock__modes" role="group" aria-label="Color mode">
-                        <button type="button" class="theme-dock__mode" data-theme-mode="dark">Dark</button>
-                        <button type="button" class="theme-dock__mode" data-theme-mode="light">Light</button>
+                        <button type="button" class="theme-dock__mode" data-theme-mode="dark">
+                            <span class="theme-dock__mode-icon" aria-hidden="true">
+                                <svg viewBox="0 0 24 24">
+                                    <path d="M20 14.5A8.5 8.5 0 0 1 9.5 4A9 9 0 1 0 20 14.5z"></path>
+                                </svg>
+                            </span>
+                            <span>Dark</span>
+                        </button>
+                        <button type="button" class="theme-dock__mode" data-theme-mode="light">
+                            <span class="theme-dock__mode-icon" aria-hidden="true">
+                                <svg viewBox="0 0 24 24">
+                                    <circle cx="12" cy="12" r="4"></circle>
+                                    <path d="M12 2.5v2.5"></path>
+                                    <path d="M12 19v2.5"></path>
+                                    <path d="M4.93 4.93l1.77 1.77"></path>
+                                    <path d="M17.3 17.3l1.77 1.77"></path>
+                                    <path d="M2.5 12H5"></path>
+                                    <path d="M19 12h2.5"></path>
+                                    <path d="M4.93 19.07l1.77-1.77"></path>
+                                    <path d="M17.3 6.7l1.77-1.77"></path>
+                                </svg>
+                            </span>
+                            <span>Light</span>
+                        </button>
                     </div>
                 </section>
                 <section class="theme-dock__section">
                     <div class="theme-dock__section-label">Palette</div>
                     <div class="theme-dock__palettes" role="group" aria-label="Accent palette">
                         <button type="button" class="theme-dock__palette" data-theme-palette="ocean">
+                            <span class="theme-dock__palette-icon" aria-hidden="true">
+                                <svg viewBox="0 0 24 24">
+                                    <path d="M3 15c2.2 0 2.2-2 4.4-2s2.2 2 4.4 2 2.2-2 4.4-2 2.2 2 4.4 2"></path>
+                                    <path d="M3 10c2.2 0 2.2-2 4.4-2s2.2 2 4.4 2 2.2-2 4.4-2 2.2 2 4.4 2"></path>
+                                </svg>
+                            </span>
                             <span class="theme-dock__swatches" aria-hidden="true">
                                 <span style="background:#2563eb"></span>
                                 <span style="background:#7c3aed"></span>
@@ -116,6 +152,12 @@ document.addEventListener('DOMContentLoaded', () => {
                             </span>
                         </button>
                         <button type="button" class="theme-dock__palette" data-theme-palette="forest">
+                            <span class="theme-dock__palette-icon" aria-hidden="true">
+                                <svg viewBox="0 0 24 24">
+                                    <path d="M12 21c0-4.5 2.7-7.2 6-8.8C16.8 7.5 13 4.5 7 4.5c0 4.6 1.6 8.2 5 10.3"></path>
+                                    <path d="M12 21c0-4.5-2.3-6.9-6-8.8"></path>
+                                </svg>
+                            </span>
                             <span class="theme-dock__swatches" aria-hidden="true">
                                 <span style="background:#0f766e"></span>
                                 <span style="background:#15803d"></span>
@@ -127,6 +169,15 @@ document.addEventListener('DOMContentLoaded', () => {
                             </span>
                         </button>
                         <button type="button" class="theme-dock__palette" data-theme-palette="sunrise">
+                            <span class="theme-dock__palette-icon" aria-hidden="true">
+                                <svg viewBox="0 0 24 24">
+                                    <path d="M4 16h16"></path>
+                                    <path d="M7 16a5 5 0 0 1 10 0"></path>
+                                    <path d="M12 6V3.5"></path>
+                                    <path d="M7.5 8.5L6 7"></path>
+                                    <path d="M16.5 8.5L18 7"></path>
+                                </svg>
+                            </span>
                             <span class="theme-dock__swatches" aria-hidden="true">
                                 <span style="background:#b45309"></span>
                                 <span style="background:#be123c"></span>
@@ -217,8 +268,86 @@ document.addEventListener('DOMContentLoaded', () => {
         syncThemeButtons();
     }
 
+    function enhanceNavbar() {
+        const navbar = document.querySelector('.navbar');
+        const navContent = navbar?.querySelector('.nav-content');
+        const navLinks = navbar?.querySelector('.nav-links');
+        if (!navbar || !navContent || !navLinks) return;
+        if (navLinks.children.length <= 2 || navContent.querySelector('.nav-menu-toggle')) return;
+
+        const navId = navLinks.id || 'site-nav-links';
+        navLinks.id = navId;
+        navbar.classList.add('has-nav-toggle');
+
+        const toggle = document.createElement('button');
+        toggle.type = 'button';
+        toggle.className = 'nav-menu-toggle';
+        toggle.setAttribute('aria-expanded', 'false');
+        toggle.setAttribute('aria-controls', navId);
+        toggle.setAttribute('aria-label', 'Toggle navigation');
+        toggle.innerHTML = `
+            <span class="nav-menu-toggle__icon" aria-hidden="true">
+                <svg viewBox="0 0 24 24">
+                    <path d="M4 7.5h16"></path>
+                    <path d="M4 12h16"></path>
+                    <path d="M4 16.5h16"></path>
+                </svg>
+            </span>
+            <span>Menu</span>
+        `;
+        navContent.appendChild(toggle);
+
+        const mobileQuery = window.matchMedia('(max-width: 768px)');
+
+        const setNavOpen = (open) => {
+            const active = Boolean(open && mobileQuery.matches);
+            navbar.classList.toggle('is-open', active);
+            document.body.classList.toggle('nav-open', active);
+            toggle.setAttribute('aria-expanded', active ? 'true' : 'false');
+        };
+
+        toggle.addEventListener('click', () => {
+            setNavOpen(!navbar.classList.contains('is-open'));
+        });
+
+        navLinks.querySelectorAll('a').forEach((link) => {
+            link.addEventListener('click', () => {
+                setNavOpen(false);
+            });
+        });
+
+        document.addEventListener('click', (event) => {
+            if (!mobileQuery.matches || !navbar.classList.contains('is-open')) return;
+            if (!navbar.contains(event.target)) {
+                setNavOpen(false);
+            }
+        });
+
+        document.addEventListener('keydown', (event) => {
+            if (event.key === 'Escape' && navbar.classList.contains('is-open')) {
+                setNavOpen(false);
+                toggle.focus();
+            }
+        });
+
+        const syncNavForViewport = () => {
+            if (!mobileQuery.matches) {
+                setNavOpen(false);
+            }
+        };
+
+        if (typeof mobileQuery.addEventListener === 'function') {
+            mobileQuery.addEventListener('change', syncNavForViewport);
+        } else if (typeof mobileQuery.addListener === 'function') {
+            mobileQuery.addListener(syncNavForViewport);
+        }
+
+        syncNavForViewport();
+    }
+
     applyThemeState();
     createThemeDock();
+    enhanceNavbar();
 
     // 1. Intersection Observer for Scroll Animations
     const observerOptions = {
