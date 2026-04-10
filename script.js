@@ -266,6 +266,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const typedEl = document.getElementById('typed-role');
     if (typedEl) {
         const roles = [
+            'clinical interfaces.',
             'physiological visualization tools.',
             'embedded medical devices.',
             'clinical data pipelines.',
@@ -274,12 +275,14 @@ document.addEventListener('DOMContentLoaded', () => {
             'real-time biosignal systems.'
         ];
         let roleIndex = 0;
-        let charIndex = 0;
+        let charIndex = roles[0].length;
         let deleting = false;
         const typeSpeed = 65;
         const deleteSpeed = 35;
         const pauseAfterType = 2000;
         const pauseAfterDelete = 400;
+
+        typedEl.textContent = roles[0];
 
         function typeRole() {
             const current = roles[roleIndex];
@@ -304,7 +307,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 setTimeout(typeRole, deleteSpeed);
             }
         }
-        setTimeout(typeRole, 800); // Initial delay before typing starts
+        setTimeout(typeRole, pauseAfterType);
     }
 
     // ═══════════════════════════════════════
@@ -325,12 +328,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
                 // Image wrapper subtle shift
                 if (imgWrapper) {
-                    imgWrapper.style.transform = `translate(${x * 12}px, ${y * 12}px)`;
+                    imgWrapper.style.transform = `translate(${x * 7}px, ${y * 7}px)`;
                 }
 
                 // Orbit rings parallax at different intensities
                 rings.forEach((ring, i) => {
-                    const intensity = (i + 1) * 8;
+                    const intensity = (i + 1) * 5;
                     ring.style.marginLeft = `${x * intensity}px`;
                     ring.style.marginTop = `${y * intensity}px`;
                 });
@@ -359,7 +362,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (heroCanvas) {
         const ctx = heroCanvas.getContext('2d');
         let particles = [];
-        const particleCount = 24;
+        const particleCount = 14;
         let mousePos = { x: -1000, y: -1000 };
         const heroSection = document.querySelector('.hero');
         
@@ -376,10 +379,10 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         const colors = [
-            'rgba(59, 130, 246, 0.24)',
-            'rgba(139, 92, 246, 0.18)',
-            'rgba(16, 185, 129, 0.16)',
-            'rgba(255, 255, 255, 0.08)'
+            'rgba(59, 130, 246, 0.18)',
+            'rgba(139, 92, 246, 0.12)',
+            'rgba(16, 185, 129, 0.12)',
+            'rgba(255, 255, 255, 0.06)'
         ];
 
         function resizeHeroCanvas() {
@@ -421,26 +424,26 @@ document.addEventListener('DOMContentLoaded', () => {
             for (let i = 0; i < particles.length; i++) {
                 // Connect to mouse with interactive glow
                 const mouseDist = Math.hypot(particles[i].x - mousePos.x, particles[i].y - mousePos.y);
-                if (mouseDist < 120) {
+                if (mouseDist < 96) {
                     ctx.beginPath();
                     ctx.moveTo(particles[i].x, particles[i].y);
                     ctx.lineTo(mousePos.x, mousePos.y);
-                    ctx.strokeStyle = `rgba(139, 92, 246, ${0.08 * (1 - mouseDist / 120)})`;
+                    ctx.strokeStyle = `rgba(139, 92, 246, ${0.05 * (1 - mouseDist / 96)})`;
                     ctx.lineWidth = 1;
                     ctx.stroke();
                     
                     // slight attraction to mouse for interactive feel
-                    particles[i].dx += (mousePos.x - particles[i].x) * 0.00005;
-                    particles[i].dy += (mousePos.y - particles[i].y) * 0.00005;
+                    particles[i].dx += (mousePos.x - particles[i].x) * 0.00003;
+                    particles[i].dy += (mousePos.y - particles[i].y) * 0.00003;
                 }
 
                 for (let j = i + 1; j < particles.length; j++) {
                     const dist = Math.hypot(particles[i].x - particles[j].x, particles[i].y - particles[j].y);
-                    if (dist < 84) {
+                    if (dist < 64) {
                         ctx.beginPath();
                         ctx.moveTo(particles[i].x, particles[i].y);
                         ctx.lineTo(particles[j].x, particles[j].y);
-                        ctx.strokeStyle = `rgba(59, 130, 246, ${0.04 * (1 - dist / 84)})`;
+                        ctx.strokeStyle = `rgba(59, 130, 246, ${0.028 * (1 - dist / 64)})`;
                         ctx.lineWidth = 0.7;
                         ctx.stroke();
                     }
@@ -471,10 +474,10 @@ document.addEventListener('DOMContentLoaded', () => {
             const scrollY = window.scrollY;
             const factor = Math.min(scrollY / 600, 1);
 
-            heroContent.style.transform = `translateY(${scrollY * 0.15}px)`;
-            heroContent.style.opacity = 1 - factor * 0.6;
+            heroContent.style.transform = `translateY(${scrollY * 0.08}px)`;
+            heroContent.style.opacity = 1 - factor * 0.32;
 
-            heroVisualEl.style.transform = `translateY(${scrollY * 0.08}px)`;
+            heroVisualEl.style.transform = `translateY(${scrollY * 0.04}px)`;
         }, { passive: true });
     }
 });
