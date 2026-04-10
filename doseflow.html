@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DoseFlow | Sean</title>
+    <meta name="description" content="DoseFlow concept prototype for medication administration and infusion workflow visibility.">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+    <link rel="icon" type="image/svg+xml" href="favicon.svg">
+</head>
+<body>
+    <div class="cursor-dot"></div>
+    <div class="cursor-outline"></div>
+    <div class="bg-gradient bg-gradient-1"></div>
+    <div class="bg-gradient bg-gradient-2"></div>
+    <div class="bg-noise"></div>
+
+    <nav class="navbar">
+        <div class="nav-content">
+            <div class="logo magnetic" onclick="window.location.href='index.html'">S.</div>
+            <ul class="nav-links">
+                <li><a href="index.html#projects" class="magnetic">Back to Portfolio</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <main class="container project-page" style="--project-accent:#f59e0b;--project-accent-alt:#fb7185;">
+        <header class="project-page-header section-animate">
+            <a href="index.html#projects" class="back-link magnetic">&larr; Back to projects</a>
+            <div class="project-kicker">Concept Prototype</div>
+            <h1 class="project-page-title">DoseFlow</h1>
+            <p class="project-summary">
+                A medication and infusion workflow console concept focused on timing, safety checks, and bedside clarity. DoseFlow is intended as a product-direction piece for making infusion states, due medications, and escalation risks easier to read in fast-moving clinical environments.
+            </p>
+            <div class="project-callout"><strong>Concept note:</strong> this is a forward-looking interface study built to represent workflow design thinking, not a deployed hospital product.</div>
+        </header>
+
+        <section class="project-stage-card section-animate">
+            <div class="project-stage-bar">
+                <div class="project-stage-label">Concept System Snapshot</div>
+            </div>
+            <div class="project-stage-insights">
+                <article class="project-stage-insight">
+                    <span>Safety</span>
+                    <strong>Delay + mismatch visibility</strong>
+                    <p>Surfaces late infusions, paused drips, and dose confirmation states without burying them in tabular screens.</p>
+                </article>
+                <article class="project-stage-insight">
+                    <span>Workflow</span>
+                    <strong>Bedside readability</strong>
+                    <p>Built around the kind of glanceable decisions a nurse or charge lead makes while moving between tasks.</p>
+                </article>
+                <article class="project-stage-insight">
+                    <span>System Fit</span>
+                    <strong>EHR-adjacent layer</strong>
+                    <p>Framed as a workflow shell that could sit beside order data, pump telemetry, and medication administration records.</p>
+                </article>
+            </div>
+            <div class="concept-showcase concept-showcase--dose">
+                <div class="concept-showcase-copy">
+                    <div class="concept-overline">Medication visibility</div>
+                    <h2>Make infusion timing and bedside action status readable at a glance.</h2>
+                    <p class="concept-lead">
+                        DoseFlow is centered on the moment where staff need certainty more than raw detail. The screen favors task status, timing windows, and escalation flags so the right next step is obvious even under pressure.
+                    </p>
+                    <ul class="project-points">
+                        <li>Timeline lanes show what is active, queued, and at risk of being delayed</li>
+                        <li>Summary cards separate urgent safety issues from routine completion steps</li>
+                        <li>Visual structure supports the “five rights” mindset without duplicating the full EHR</li>
+                        <li>Could extend naturally into barcode, pump, and audit-log integrations in a real build</li>
+                    </ul>
+                </div>
+                <div class="concept-showcase-visual">
+                    <div class="dose-console" aria-hidden="true">
+                        <div class="dose-console__timeline">
+                            <article class="dose-console__lane">
+                                <div class="dose-console__lane-head">
+                                    <strong>Norepinephrine</strong>
+                                    <span>active now</span>
+                                </div>
+                                <div class="dose-console__track">
+                                    <div class="dose-console__infusion dose-console__infusion--active"></div>
+                                </div>
+                                <small>MAP support infusion running at target rate with one recent titration change.</small>
+                            </article>
+                            <article class="dose-console__lane">
+                                <div class="dose-console__lane-head">
+                                    <strong>Antibiotic Push</strong>
+                                    <span>queued</span>
+                                </div>
+                                <div class="dose-console__track">
+                                    <div class="dose-console__infusion dose-console__infusion--queued"></div>
+                                </div>
+                                <small>Ready at bedside, waiting on line clearance and final verification.</small>
+                            </article>
+                            <article class="dose-console__lane">
+                                <div class="dose-console__lane-head">
+                                    <strong>Maintenance Fluid</strong>
+                                    <span>scheduled</span>
+                                </div>
+                                <div class="dose-console__track">
+                                    <div class="dose-console__infusion dose-console__infusion--scheduled"></div>
+                                </div>
+                                <small>Set to begin after current bolus window closes in 14 minutes.</small>
+                            </article>
+                        </div>
+                        <div class="dose-console__panel">
+                            <article class="dose-console__summary dose-console__summary--critical">
+                                <em>Safety alert</em>
+                                <strong>Line compatibility check pending</strong>
+                                <small>One medication cannot start until the current line is flushed or reassigned.</small>
+                            </article>
+                            <article class="dose-console__summary">
+                                <em>Patient context</em>
+                                <strong>ICU Bed 12 · Sepsis protocol</strong>
+                                <small>Current goals: hemodynamic stability, antibiotic timing, and fluid balance review.</small>
+                            </article>
+                            <div class="dose-console__checklist">
+                                <article class="dose-console__check">
+                                    <em>Verification</em>
+                                    <strong>Identity + dose confirmed</strong>
+                                    <small>Two-person med check logged 3 minutes ago.</small>
+                                </article>
+                                <article class="dose-console__check">
+                                    <em>Handoff</em>
+                                    <strong>Night shift note attached</strong>
+                                    <small>Includes last titration reason and line access constraints.</small>
+                                </article>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="project-stage-note">
+                DoseFlow is positioned as a realistic systems concept focused on bedside clarity, medication timing, and safer task handoff communication.
+            </div>
+        </section>
+
+        <section class="project-meta-grid section-animate">
+            <article class="project-meta-card">
+                <h3>Designed Around</h3>
+                <div class="project-tag-list">
+                    <span class="tag">TypeScript</span>
+                    <span class="tag">FHIR</span>
+                    <span class="tag">Workflow Design</span>
+                    <span class="tag">Clinical UX</span>
+                    <span class="tag">Design Systems</span>
+                </div>
+            </article>
+            <article class="project-meta-card">
+                <h3>What It Solves</h3>
+                <p>
+                    Medication data is often technically available but poorly staged for real-time bedside decisions. This concept rebalances the screen toward action timing, safety exceptions, and completion confidence.
+                </p>
+            </article>
+            <article class="project-meta-card">
+                <h3>Why It Fits Here</h3>
+                <ul class="project-points">
+                    <li>Connects your healthcare background with product-UX execution</li>
+                    <li>Adds a workflow-heavy concept that complements your existing web and interactive work</li>
+                    <li>Feels specific enough to be credible without pretending it is already shipped</li>
+                </ul>
+            </article>
+        </section>
+
+        <section class="project-copy-grid section-animate">
+            <article class="project-copy-card">
+                <h3>Interface Direction</h3>
+                <p>
+                    The layout treats medication administration as a timing and confidence problem. Instead of leading with tables, it leads with status bands, active windows, and explicit blockers so the user sees the decision path immediately.
+                </p>
+            </article>
+            <article class="project-copy-card">
+                <h3>Next Step</h3>
+                <p>
+                    The next meaningful prototype would add scanning states, cross-check overlays, and pump-event playback so the concept can demonstrate how bedside verification would actually work during task execution.
+                </p>
+            </article>
+        </section>
+    </main>
+
+    <script src="script.js"></script>
+</body>
+</html>

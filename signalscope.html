@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SignalScope | Sean</title>
+    <meta name="description" content="SignalScope concept prototype for remote wearable biosignal review, triage, and annotation workflows.">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+    <link rel="icon" type="image/svg+xml" href="favicon.svg">
+</head>
+<body>
+    <div class="cursor-dot"></div>
+    <div class="cursor-outline"></div>
+    <div class="bg-gradient bg-gradient-1"></div>
+    <div class="bg-gradient bg-gradient-2"></div>
+    <div class="bg-noise"></div>
+
+    <nav class="navbar">
+        <div class="nav-content">
+            <div class="logo magnetic" onclick="window.location.href='index.html'">S.</div>
+            <ul class="nav-links">
+                <li><a href="index.html#projects" class="magnetic">Back to Portfolio</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <main class="container project-page" style="--project-accent:#2dd4bf;--project-accent-alt:#38bdf8;">
+        <header class="project-page-header section-animate">
+            <a href="index.html#projects" class="back-link magnetic">&larr; Back to projects</a>
+            <div class="project-kicker">Concept Prototype</div>
+            <h1 class="project-page-title">SignalScope</h1>
+            <p class="project-summary">
+                A remote wearable review console for teams monitoring ECG, respiration, and signal quality at scale. SignalScope is framed as a product concept for turning messy biosignal streams into a readable triage workspace with annotations, confidence cues, and fast escalation paths.
+            </p>
+            <div class="project-callout"><strong>Concept note:</strong> this is a portfolio exploration designed to show product thinking and front-end direction, not a deployed clinical system.</div>
+        </header>
+
+        <section class="project-stage-card section-animate">
+            <div class="project-stage-bar">
+                <div class="project-stage-label">Concept System Snapshot</div>
+            </div>
+            <div class="project-stage-insights">
+                <article class="project-stage-insight">
+                    <span>Inputs</span>
+                    <strong>Multi-channel streams</strong>
+                    <p>Designed around ECG, respiration, and PPG signals arriving from consumer or research wearables.</p>
+                </article>
+                <article class="project-stage-insight">
+                    <span>Workflow</span>
+                    <strong>Triage before escalation</strong>
+                    <p>Highlights degraded signal quality, repeated artifact patterns, and likely review priorities before a clinician opens the full record.</p>
+                </article>
+                <article class="project-stage-insight">
+                    <span>Output</span>
+                    <strong>Readable remote monitoring</strong>
+                    <p>Pairs waveform review with quality markers and short-form notes so teams can move faster without losing context.</p>
+                </article>
+            </div>
+            <div class="concept-showcase concept-showcase--signal">
+                <div class="concept-showcase-copy">
+                    <div class="concept-overline">Review workflow</div>
+                    <h2>From noisy wearable streams to a clean, accountable review surface.</h2>
+                    <p class="concept-lead">
+                        The core idea is a console that helps users decide whether a stream is clinically useful before they spend time interpreting it. Instead of throwing raw charts on a screen, SignalScope groups quality, severity, and context into one place.
+                    </p>
+                    <ul class="project-points">
+                        <li>Patient rail prioritizes unresolved events and poor-signal segments first</li>
+                        <li>Waveform stack makes it easy to compare channels without jumping across views</li>
+                        <li>Inline quality confidence gives quick feedback on whether the segment is interpretable</li>
+                        <li>Annotation-first flow keeps the review loop compact for high-volume monitoring teams</li>
+                    </ul>
+                </div>
+                <div class="concept-showcase-visual">
+                    <div class="signal-console" aria-hidden="true">
+                        <div class="signal-console__rail">
+                            <article class="signal-console__patient signal-console__patient--active">
+                                <span>Queue 01</span>
+                                <strong>Artifact Review</strong>
+                                <small>2 mins ago · motion spike + lead loss</small>
+                            </article>
+                            <article class="signal-console__patient">
+                                <span>Queue 02</span>
+                                <strong>Stable Trend</strong>
+                                <small>Overnight segment · periodic respiration drift</small>
+                            </article>
+                            <article class="signal-console__patient">
+                                <span>Queue 03</span>
+                                <strong>Escalated Event</strong>
+                                <small>Repeated irregular peaks · physician callback flagged</small>
+                            </article>
+                        </div>
+                        <div class="signal-console__main">
+                            <div class="signal-console__banner">
+                                <div>
+                                    <em>Current review</em>
+                                    <strong>Wearable telemetry session 14A</strong>
+                                </div>
+                                <div class="signal-console__status-pill">confidence 92%</div>
+                            </div>
+                            <div class="signal-console__charts">
+                                <article class="signal-console__chart signal-console__chart--ecg">
+                                    <div class="signal-console__chart-label">
+                                        <strong>ECG lead quality</strong>
+                                        <span>72 sec window</span>
+                                    </div>
+                                </article>
+                                <article class="signal-console__chart signal-console__chart--resp">
+                                    <div class="signal-console__chart-label">
+                                        <strong>Respiration trace</strong>
+                                        <span>breath trend</span>
+                                    </div>
+                                </article>
+                                <article class="signal-console__chart signal-console__chart--ppg">
+                                    <div class="signal-console__chart-label">
+                                        <strong>PPG overlay</strong>
+                                        <span>artifact compare</span>
+                                    </div>
+                                </article>
+                            </div>
+                            <div class="signal-console__metrics">
+                                <article class="signal-console__metric">
+                                    <span>HR</span>
+                                    <strong>74 bpm</strong>
+                                    <small>Resting pattern with one motion-corrupted segment.</small>
+                                </article>
+                                <article class="signal-console__metric">
+                                    <span>Signal Quality</span>
+                                    <strong>Good</strong>
+                                    <small>Lead stability recovered after the first 8 seconds.</small>
+                                </article>
+                                <article class="signal-console__metric">
+                                    <span>Action</span>
+                                    <strong>Annotate</strong>
+                                    <small>Mark artifact, keep event in queue, no escalation.</small>
+                                </article>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="project-stage-note">
+                SignalScope is presented as a product-direction concept: a realistic interface study for remote monitoring teams, rather than a shipped healthcare deployment.
+            </div>
+        </section>
+
+        <section class="project-meta-grid section-animate">
+            <article class="project-meta-card">
+                <h3>Designed Around</h3>
+                <div class="project-tag-list">
+                    <span class="tag">React</span>
+                    <span class="tag">D3</span>
+                    <span class="tag">WebRTC</span>
+                    <span class="tag">Design Systems</span>
+                    <span class="tag">Remote Monitoring</span>
+                </div>
+            </article>
+            <article class="project-meta-card">
+                <h3>What It Solves</h3>
+                <p>
+                    Remote monitoring dashboards often force teams to bounce between raw data, alert queues, and patient context. This concept compresses those steps into a single review surface built for signal trust and faster decision-making.
+                </p>
+            </article>
+            <article class="project-meta-card">
+                <h3>Why It Fits Here</h3>
+                <ul class="project-points">
+                    <li>Shows healthcare-adjacent interface thinking without claiming a fake shipped client</li>
+                    <li>Builds on your background in medical workflows and readable front-end systems</li>
+                    <li>Adds a credible product concept that is different from the existing portfolio projects</li>
+                </ul>
+            </article>
+        </section>
+
+        <section class="project-copy-grid section-animate">
+            <article class="project-copy-card">
+                <h3>Interaction Model</h3>
+                <p>
+                    The interface is intentionally biased toward scan-then-act behavior: a reviewer should be able to identify signal quality, compare channels, and record a concise note in seconds. The layout therefore keeps priority states and waveform relationships visible at the same time.
+                </p>
+            </article>
+            <article class="project-copy-card">
+                <h3>Next Step</h3>
+                <p>
+                    A believable next iteration would add clip-level annotations, collaborative review comments, and timeline playback controls so the concept can evolve from static case-study material into a richer interactive prototype.
+                </p>
+            </article>
+        </section>
+    </main>
+
+    <script src="script.js"></script>
+</body>
+</html>

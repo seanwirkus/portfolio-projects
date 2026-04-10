@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AtlasFold | Sean</title>
+    <meta name="description" content="AtlasFold concept prototype for interactive 3D anatomy study and layered learning.">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+    <link rel="icon" type="image/svg+xml" href="favicon.svg">
+</head>
+<body>
+    <div class="cursor-dot"></div>
+    <div class="cursor-outline"></div>
+    <div class="bg-gradient bg-gradient-1"></div>
+    <div class="bg-gradient bg-gradient-2"></div>
+    <div class="bg-noise"></div>
+
+    <nav class="navbar">
+        <div class="nav-content">
+            <div class="logo magnetic" onclick="window.location.href='index.html'">S.</div>
+            <ul class="nav-links">
+                <li><a href="index.html#projects" class="magnetic">Back to Portfolio</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <main class="container project-page" style="--project-accent:#60a5fa;--project-accent-alt:#22d3ee;">
+        <header class="project-page-header section-animate">
+            <a href="index.html#projects" class="back-link magnetic">&larr; Back to projects</a>
+            <div class="project-kicker">Concept Prototype</div>
+            <h1 class="project-page-title">AtlasFold</h1>
+            <p class="project-summary">
+                A 3D anatomy study workspace concept for students moving between spatial models, sectional slices, and active recall. AtlasFold is imagined as a front-end heavy learning environment that makes complex anatomy easier to manipulate, isolate, and revisit.
+            </p>
+            <div class="project-callout"><strong>Concept note:</strong> this project is a speculative learning product concept built for the portfolio as a design-and-interaction study.</div>
+        </header>
+
+        <section class="project-stage-card section-animate">
+            <div class="project-stage-bar">
+                <div class="project-stage-label">Concept System Snapshot</div>
+            </div>
+            <div class="project-stage-insights">
+                <article class="project-stage-insight">
+                    <span>Learning Mode</span>
+                    <strong>Spatial first</strong>
+                    <p>Starts with a manipulable 3D subject instead of a static atlas page so learners can orient before memorizing.</p>
+                </article>
+                <article class="project-stage-insight">
+                    <span>Context</span>
+                    <strong>Layers + slices</strong>
+                    <p>Pairs the 3D model with study chapters, labels, and sectional views to connect memorization with anatomy in space.</p>
+                </article>
+                <article class="project-stage-insight">
+                    <span>Progression</span>
+                    <strong>Explore into recall</strong>
+                    <p>The ideal end state is a tool that lets users move from guided exploration into quiz and retrieval practice.</p>
+                </article>
+            </div>
+            <div class="concept-showcase concept-showcase--atlas">
+                <div class="concept-showcase-copy">
+                    <div class="concept-overline">Study workspace</div>
+                    <h2>A study surface that treats anatomy like something to navigate, not just memorize.</h2>
+                    <p class="concept-lead">
+                        AtlasFold is aimed at the moment where traditional diagrams stop being enough. It imagines a workspace where the learner can pivot between a 3D structure, labeled layers, and quick chapter-based study states without losing orientation.
+                    </p>
+                    <ul class="project-points">
+                        <li>Side rail anchors the learner in chapter context and current layer selection</li>
+                        <li>Main stage keeps the 3D object central while still exposing labels and sectional hints</li>
+                        <li>Floating cards act like study prompts rather than passive decoration</li>
+                        <li>The visual language is designed to support teaching tools, self-study, and future quiz interactions</li>
+                    </ul>
+                </div>
+                <div class="concept-showcase-visual">
+                    <div class="atlas-console" aria-hidden="true">
+                        <div class="atlas-console__sidebar">
+                            <article class="atlas-console__chapter">
+                                <span>Module</span>
+                                <strong>Neurovascular Layers</strong>
+                                <small>Guided lesson sequence with anatomy isolate, slice compare, and recall checkpoints.</small>
+                            </article>
+                            <article class="atlas-console__chipset">
+                                <div class="atlas-console__chip">Bone layer</div>
+                                <div class="atlas-console__chip">Arterial path</div>
+                                <div class="atlas-console__chip">Cross-section</div>
+                            </article>
+                        </div>
+                        <div class="atlas-console__stage">
+                            <div class="atlas-console__stage-head">
+                                <strong>3D study space</strong>
+                                <span>rotate · isolate · label</span>
+                            </div>
+                            <div class="atlas-console__model">
+                                <div class="atlas-console__model-orb">
+                                    <div class="atlas-console__orbit"></div>
+                                </div>
+                            </div>
+                            <article class="atlas-console__floating-card atlas-console__floating-card--top">
+                                <span>Focus label</span>
+                                <strong>Temporal relation</strong>
+                                <small>Compare superficial landmarks against the deeper arterial route.</small>
+                            </article>
+                            <article class="atlas-console__floating-card atlas-console__floating-card--bottom">
+                                <span>Study prompt</span>
+                                <strong>Hide labels, then identify the next plane change from memory.</strong>
+                            </article>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="project-stage-note">
+                AtlasFold is positioned as a concept prototype for interactive learning design: useful as a portfolio case study because it demonstrates spatial UI thinking, motion, and educational framing.
+            </div>
+        </section>
+
+        <section class="project-meta-grid section-animate">
+            <article class="project-meta-card">
+                <h3>Designed Around</h3>
+                <div class="project-tag-list">
+                    <span class="tag">Three.js</span>
+                    <span class="tag">WebGL</span>
+                    <span class="tag">Education</span>
+                    <span class="tag">Interactive UI</span>
+                    <span class="tag">Learning Design</span>
+                </div>
+            </article>
+            <article class="project-meta-card">
+                <h3>What It Solves</h3>
+                <p>
+                    Many study tools separate 3D models, chapter notes, and quiz logic into disconnected steps. AtlasFold brings them together so the learner can explore, orient, and self-test in one continuous environment.
+                </p>
+            </article>
+            <article class="project-meta-card">
+                <h3>Why It Fits Here</h3>
+                <ul class="project-points">
+                    <li>Adds an education-focused concept without overlapping the existing healthcare site work</li>
+                    <li>Shows you can design visually richer interaction systems, not just standard marketing pages</li>
+                    <li>Rounds out the portfolio with a concept that feels exploratory, spatial, and technically ambitious</li>
+                </ul>
+            </article>
+        </section>
+
+        <section class="project-copy-grid section-animate">
+            <article class="project-copy-card">
+                <h3>Visual Direction</h3>
+                <p>
+                    The scene is designed to feel precise and quiet rather than game-like. Depth, orbit lines, and contextual cards help the model feel navigable, while the sidebar keeps the learner grounded in a structured lesson.
+                </p>
+            </article>
+            <article class="project-copy-card">
+                <h3>Next Step</h3>
+                <p>
+                    A stronger prototype would add real rotation controls, label reveal states, and study checkpoints tied to anatomy selection. That would turn the concept from a polished mock interface into a genuinely interactive education demo.
+                </p>
+            </article>
+        </section>
+    </main>
+
+    <script src="script.js"></script>
+</body>
+</html>
