@@ -1260,7 +1260,6 @@
             <ul class="nav-links">
                 <li><a href="index.html#projects" class="magnetic">Back to Portfolio</a></li>
             </ul>
-            <button type="button" class="cell-theme-toggle magnetic" id="cell-theme-toggle" aria-pressed="false">Light mode</button>
         </div>
     </nav>
 
@@ -2255,47 +2254,11 @@
             updateProgress();
         }
 
-        function bindCellThemeToggle() {
-            const toggle = document.getElementById('cell-theme-toggle');
-            const storageKey = 'the-cell-theme';
-            if (!toggle) return;
-
-            function applyTheme(theme) {
-                const isLight = theme === 'light';
-                document.body.classList.toggle('cell-light-mode', isLight);
-                toggle.textContent = isLight ? 'Dark mode' : 'Light mode';
-                toggle.setAttribute('aria-pressed', isLight ? 'true' : 'false');
-            }
-
-            let initialTheme = 'dark';
-            try {
-                const saved = window.localStorage.getItem(storageKey);
-                if (saved === 'light' || saved === 'dark') {
-                    initialTheme = saved;
-                }
-            } catch (error) {
-                initialTheme = 'dark';
-            }
-
-            applyTheme(initialTheme);
-
-            toggle.addEventListener('click', () => {
-                const nextTheme = document.body.classList.contains('cell-light-mode') ? 'dark' : 'light';
-                applyTheme(nextTheme);
-                try {
-                    window.localStorage.setItem(storageKey, nextTheme);
-                } catch (error) {
-                    // Ignore storage failures.
-                }
-            });
-        }
-
         bindTransport();
         bindEnergy();
         bindGene();
         bindDivisionAndGenetics();
         bindCellNavigator();
-        bindCellThemeToggle();
     })();
     </script>
 </body>

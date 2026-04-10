@@ -1,6 +1,196 @@
 /* script.js */
 
 document.addEventListener('DOMContentLoaded', () => {
+    const THEME_STORAGE_MODE = 'portfolio-theme-mode';
+    const THEME_STORAGE_PALETTE = 'portfolio-theme-palette';
+    const VALID_THEME_MODES = new Set(['dark', 'light']);
+    const VALID_THEME_PALETTES = new Set(['ocean', 'forest', 'sunrise']);
+    const themeState = getInitialThemeState();
+
+    function getInitialThemeState() {
+        const params = new URLSearchParams(window.location.search);
+        const queryMode = params.get('mode');
+        const queryPalette = params.get('theme');
+        const prefersLight = window.matchMedia && window.matchMedia('(prefers-color-scheme: light)').matches;
+        let mode = prefersLight ? 'light' : 'dark';
+        let palette = 'ocean';
+
+        try {
+            const savedMode = window.localStorage.getItem(THEME_STORAGE_MODE);
+            const savedPalette = window.localStorage.getItem(THEME_STORAGE_PALETTE);
+            if (VALID_THEME_MODES.has(savedMode)) mode = savedMode;
+            if (VALID_THEME_PALETTES.has(savedPalette)) palette = savedPalette;
+        } catch (error) {
+            // Ignore storage failures and keep defaults.
+        }
+
+        if (VALID_THEME_MODES.has(queryMode)) mode = queryMode;
+        if (VALID_THEME_PALETTES.has(queryPalette)) palette = queryPalette;
+
+        return { mode, palette };
+    }
+
+    function persistThemeState() {
+        try {
+            window.localStorage.setItem(THEME_STORAGE_MODE, themeState.mode);
+            window.localStorage.setItem(THEME_STORAGE_PALETTE, themeState.palette);
+        } catch (error) {
+            // Ignore storage failures.
+        }
+    }
+
+    function applyThemeState() {
+        document.body.dataset.themeMode = themeState.mode;
+        document.body.dataset.themePalette = themeState.palette;
+        document.documentElement.style.colorScheme = themeState.mode;
+        document.body.classList.toggle('cell-light-mode', themeState.mode === 'light');
+        window.dispatchEvent(new CustomEvent('site-theme-change', {
+            detail: { ...themeState }
+        }));
+    }
+
+    function createThemeDock() {
+        if (!document.body || document.querySelector('.theme-dock')) return;
+
+        const dock = document.createElement('aside');
+        dock.className = 'theme-dock';
+        dock.setAttribute('aria-label', 'Theme controls');
+        dock.innerHTML = `
+            <button type="button" class="theme-dock__toggle magnetic" aria-expanded="false" aria-controls="theme-panel">
+                Theme
+            </button>
+            <div class="theme-dock__panel" id="theme-panel" hidden>
+                <header>
+                    <span>Theme controls</span>
+                    <strong>Accessible site-wide appearance</strong>
+                    <p>Switch between light and dark mode, then choose one of three high-contrast accent palettes.</p>
+                </header>
+                <section class="theme-dock__section">
+                    <div class="theme-dock__section-label">Mode</div>
+                    <div class="theme-dock__modes" role="group" aria-label="Color mode">
+                        <button type="button" class="theme-dock__mode" data-theme-mode="dark">Dark</button>
+                        <button type="button" class="theme-dock__mode" data-theme-mode="light">Light</button>
+                    </div>
+                </section>
+                <section class="theme-dock__section">
+                    <div class="theme-dock__section-label">Palette</div>
+                    <div class="theme-dock__palettes" role="group" aria-label="Accent palette">
+                        <button type="button" class="theme-dock__palette" data-theme-palette="ocean">
+                            <span class="theme-dock__swatches" aria-hidden="true">
+                                <span style="background:#2563eb"></span>
+                                <span style="background:#7c3aed"></span>
+                                <span style="background:#059669"></span>
+                            </span>
+                            <span>
+                                <strong>Ocean</strong>
+                                <small>Cool blue, indigo, and teal for the default product look.</small>
+                            </span>
+                        </button>
+                        <button type="button" class="theme-dock__palette" data-theme-palette="forest">
+                            <span class="theme-dock__swatches" aria-hidden="true">
+                                <span style="background:#0f766e"></span>
+                                <span style="background:#15803d"></span>
+                                <span style="background:#ca8a04"></span>
+                            </span>
+                            <span>
+                                <strong>Forest</strong>
+                                <small>Teal and green with a warm yellow accent for stronger wayfinding.</small>
+                            </span>
+                        </button>
+                        <button type="button" class="theme-dock__palette" data-theme-palette="sunrise">
+                            <span class="theme-dock__swatches" aria-hidden="true">
+                                <span style="background:#b45309"></span>
+                                <span style="background:#be123c"></span>
+                                <span style="background:#6d28d9"></span>
+                            </span>
+                            <span>
+                                <strong>Sunrise</strong>
+                                <small>Amber, rose, and violet for warmer contrast without lowering readability.</small>
+                            </span>
+                        </button>
+                    </div>
+                </section>
+                <p class="theme-dock__hint">Selections stay saved on this browser and apply across the portfolio pages.</p>
+            </div>
+        `;
+
+        document.body.appendChild(dock);
+
+        const toggle = dock.querySelector('.theme-dock__toggle');
+        const panel = dock.querySelector('.theme-dock__panel');
+        const modeButtons = Array.from(dock.querySelectorAll('[data-theme-mode]'));
+        const paletteButtons = Array.from(dock.querySelectorAll('[data-theme-palette]'));
+
+        function syncThemeButtons() {
+            modeButtons.forEach((button) => {
+                const active = button.dataset.themeMode === themeState.mode;
+                button.classList.toggle('is-active', active);
+                button.setAttribute('aria-pressed', active ? 'true' : 'false');
+            });
+            paletteButtons.forEach((button) => {
+                const active = button.dataset.themePalette === themeState.palette;
+                button.classList.toggle('is-active', active);
+                button.setAttribute('aria-pressed', active ? 'true' : 'false');
+            });
+        }
+
+        function openPanel() {
+            dock.classList.add('is-open');
+            panel.hidden = false;
+            toggle.setAttribute('aria-expanded', 'true');
+        }
+
+        function closePanel() {
+            dock.classList.remove('is-open');
+            panel.hidden = true;
+            toggle.setAttribute('aria-expanded', 'false');
+        }
+
+        toggle.addEventListener('click', () => {
+            if (dock.classList.contains('is-open')) {
+                closePanel();
+            } else {
+                openPanel();
+            }
+        });
+
+        modeButtons.forEach((button) => {
+            button.addEventListener('click', () => {
+                themeState.mode = button.dataset.themeMode;
+                persistThemeState();
+                applyThemeState();
+                syncThemeButtons();
+            });
+        });
+
+        paletteButtons.forEach((button) => {
+            button.addEventListener('click', () => {
+                themeState.palette = button.dataset.themePalette;
+                persistThemeState();
+                applyThemeState();
+                syncThemeButtons();
+            });
+        });
+
+        document.addEventListener('click', (event) => {
+            if (!dock.classList.contains('is-open')) return;
+            if (!dock.contains(event.target)) closePanel();
+        });
+
+        document.addEventListener('keydown', (event) => {
+            if (event.key === 'Escape' && dock.classList.contains('is-open')) {
+                closePanel();
+                toggle.focus();
+            }
+        });
+
+        window.addEventListener('site-theme-change', syncThemeButtons);
+        syncThemeButtons();
+    }
+
+    applyThemeState();
+    createThemeDock();
+
     // 1. Intersection Observer for Scroll Animations
     const observerOptions = {
         root: null,
@@ -39,15 +229,20 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // 2. Navbar Background Blur on Scroll
     const navbar = document.querySelector('.navbar');
-    window.addEventListener('scroll', () => {
+    const updateNavbarChrome = () => {
+        if (!navbar) return;
+        const styles = getComputedStyle(document.body);
         if (window.scrollY > 50) {
-            navbar.style.background = 'rgba(10, 10, 10, 0.85)';
-            navbar.style.boxShadow = '0 4px 20px rgba(0,0,0,0.4)';
+            navbar.style.background = styles.getPropertyValue('--nav-bg-scrolled').trim() || '';
+            navbar.style.boxShadow = styles.getPropertyValue('--nav-shadow-scrolled').trim() || 'none';
         } else {
-            navbar.style.background = 'rgba(10, 10, 10, 0.7)';
+            navbar.style.background = styles.getPropertyValue('--nav-bg-rest').trim() || '';
             navbar.style.boxShadow = 'none';
         }
-    });
+    };
+    window.addEventListener('scroll', updateNavbarChrome, { passive: true });
+    window.addEventListener('site-theme-change', updateNavbarChrome);
+    updateNavbarChrome();
 
     // 3. Smooth Scrolling
     document.querySelectorAll('a[href^="#"]').forEach(anchor => {
