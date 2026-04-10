@@ -317,6 +317,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (heroSection && heroVisual) {
             const rings = heroVisual.querySelectorAll('.hero-orbit-ring');
             const imgWrapper = heroVisual.querySelector('.hero-image-wrapper');
+            const floatingCards = heroVisual.querySelectorAll('.hero-floating-card');
 
             heroSection.addEventListener('mousemove', (e) => {
                 const rect = heroSection.getBoundingClientRect();
@@ -334,6 +335,11 @@ document.addEventListener('DOMContentLoaded', () => {
                     ring.style.marginLeft = `${x * intensity}px`;
                     ring.style.marginTop = `${y * intensity}px`;
                 });
+
+                floatingCards.forEach((card, i) => {
+                    const intensity = (i + 1) * 5;
+                    card.style.transform = `translate(${x * intensity}px, ${y * intensity}px)`;
+                });
             });
 
             heroSection.addEventListener('mouseleave', () => {
@@ -347,6 +353,11 @@ document.addEventListener('DOMContentLoaded', () => {
                     ring.style.marginTop = '';
                     ring.style.transition = 'margin 0.6s ease';
                     setTimeout(() => { ring.style.transition = ''; }, 600);
+                });
+                floatingCards.forEach((card) => {
+                    card.style.transform = '';
+                    card.style.transition = 'transform 0.6s ease';
+                    setTimeout(() => { card.style.transition = ''; }, 600);
                 });
             });
         }
