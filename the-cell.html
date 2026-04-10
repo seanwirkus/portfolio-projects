@@ -1,0 +1,1498 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>The Cell | Sean</title>
+    <meta name="description" content="Interactive BILD 1 study hub with syllabus-aligned cell biology simulators for membranes, energy, gene expression, and division.">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+    <link rel="icon" type="image/svg+xml" href="favicon.svg">
+    <style>
+        .cell-page-nav {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.7rem;
+            justify-content: center;
+            padding: 0 1.25rem 1.25rem;
+        }
+
+        .cell-page-nav a {
+            display: inline-flex;
+            align-items: center;
+            min-height: 2.4rem;
+            padding: 0.55rem 0.95rem;
+            border-radius: 999px;
+            text-decoration: none;
+            font-size: 0.82rem;
+            font-weight: 700;
+            letter-spacing: 0.12em;
+            text-transform: uppercase;
+            color: #d6f6ee;
+            background: rgba(16, 185, 129, 0.08);
+            border: 1px solid rgba(52, 211, 153, 0.16);
+            transition: transform 0.2s ease, border-color 0.2s ease, background 0.2s ease;
+        }
+
+        .cell-page-nav a:hover {
+            transform: translateY(-1px);
+            background: rgba(16, 185, 129, 0.14);
+            border-color: rgba(52, 211, 153, 0.3);
+        }
+
+        .cell-roadmap {
+            display: grid;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            gap: 1rem;
+            padding: 1.15rem 1.25rem 1.3rem;
+        }
+
+        .cell-roadmap-card {
+            min-width: 0;
+            padding: 1.15rem;
+            border-radius: 18px;
+            border: 1px solid rgba(148, 163, 184, 0.18);
+            background:
+                linear-gradient(180deg, rgba(255, 255, 255, 0.06), rgba(255, 255, 255, 0.015)),
+                rgba(8, 13, 23, 0.6);
+            display: grid;
+            gap: 0.75rem;
+        }
+
+        .cell-roadmap-card span {
+            font-size: 0.74rem;
+            font-weight: 700;
+            letter-spacing: 0.14em;
+            text-transform: uppercase;
+            color: #a7f3d0;
+        }
+
+        .cell-roadmap-card strong {
+            font-size: 1.18rem;
+            color: #f8fafc;
+        }
+
+        .cell-roadmap-card p {
+            color: #a8b3c7;
+            font-size: 0.92rem;
+            line-height: 1.65;
+        }
+
+        .cell-topic-list {
+            list-style: none;
+            display: grid;
+            gap: 0.45rem;
+        }
+
+        .cell-topic-list li {
+            color: #dbe7f5;
+            font-size: 0.88rem;
+            line-height: 1.5;
+            padding-left: 1rem;
+            position: relative;
+        }
+
+        .cell-topic-list li::before {
+            content: '';
+            width: 0.42rem;
+            height: 0.42rem;
+            border-radius: 50%;
+            background: var(--project-accent, #34d399);
+            position: absolute;
+            left: 0;
+            top: 0.5rem;
+            box-shadow: 0 0 10px rgba(52, 211, 153, 0.32);
+        }
+
+        .cell-sim-grid {
+            display: grid;
+            grid-template-columns: 320px minmax(0, 1fr);
+            gap: 1rem;
+            padding: 1.2rem 1.25rem 1.3rem;
+        }
+
+        .cell-panel {
+            min-width: 0;
+            border-radius: 20px;
+            border: 1px solid rgba(148, 163, 184, 0.16);
+            background:
+                linear-gradient(180deg, rgba(255, 255, 255, 0.05), rgba(255, 255, 255, 0)),
+                rgba(6, 12, 22, 0.68);
+            padding: 1rem;
+            box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04);
+        }
+
+        .cell-panel h3,
+        .cell-panel h4 {
+            font-size: 1rem;
+            color: #f8fafc;
+            margin-bottom: 0.35rem;
+        }
+
+        .cell-panel p {
+            color: #9fb0c8;
+            font-size: 0.88rem;
+            line-height: 1.6;
+        }
+
+        .cell-control-stack {
+            display: grid;
+            gap: 0.85rem;
+            margin-top: 1rem;
+        }
+
+        .cell-control {
+            display: grid;
+            gap: 0.35rem;
+        }
+
+        .cell-control label,
+        .cell-control .cell-control-label {
+            font-size: 0.72rem;
+            font-weight: 700;
+            letter-spacing: 0.12em;
+            text-transform: uppercase;
+            color: #9fb0c8;
+        }
+
+        .cell-select,
+        .cell-input,
+        .cell-textarea {
+            width: 100%;
+            border-radius: 14px;
+            border: 1px solid rgba(148, 163, 184, 0.18);
+            background: rgba(15, 23, 42, 0.55);
+            color: #f8fafc;
+            font: inherit;
+            padding: 0.78rem 0.9rem;
+        }
+
+        .cell-textarea {
+            min-height: 88px;
+            resize: vertical;
+            line-height: 1.55;
+            font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+            letter-spacing: 0.04em;
+        }
+
+        .cell-range-row {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .cell-range-row input[type="range"] {
+            flex: 1;
+            accent-color: var(--project-accent, #34d399);
+        }
+
+        .cell-range-value {
+            min-width: 3rem;
+            text-align: right;
+            font-size: 0.88rem;
+            color: #e2e8f0;
+        }
+
+        .sim-stat-grid {
+            display: grid;
+            grid-template-columns: repeat(4, minmax(0, 1fr));
+            gap: 0.7rem;
+            margin-top: 0.95rem;
+        }
+
+        .sim-stat {
+            min-width: 0;
+            padding: 0.8rem 0.85rem;
+            border-radius: 16px;
+            border: 1px solid rgba(148, 163, 184, 0.14);
+            background: rgba(15, 23, 42, 0.5);
+            display: grid;
+            gap: 0.22rem;
+        }
+
+        .sim-stat span {
+            font-size: 0.68rem;
+            color: #9fb0c8;
+            letter-spacing: 0.12em;
+            text-transform: uppercase;
+            font-weight: 700;
+        }
+
+        .sim-stat strong {
+            font-size: 1rem;
+            color: #f8fafc;
+            line-height: 1.35;
+        }
+
+        .sim-explainer {
+            margin-top: 0.85rem;
+            padding: 0.95rem 1rem;
+            border-radius: 16px;
+            border: 1px solid rgba(52, 211, 153, 0.18);
+            background: rgba(16, 185, 129, 0.06);
+            color: #d7f9ef;
+            line-height: 1.65;
+            font-size: 0.92rem;
+        }
+
+        .transport-stage {
+            display: grid;
+            grid-template-columns: minmax(0, 1fr) 88px minmax(0, 1fr);
+            gap: 0.9rem;
+            align-items: stretch;
+            min-height: 240px;
+        }
+
+        .transport-side {
+            border-radius: 18px;
+            border: 1px solid rgba(148, 163, 184, 0.15);
+            background: rgba(3, 7, 18, 0.55);
+            padding: 0.9rem;
+            display: grid;
+            grid-template-rows: auto 1fr auto;
+            gap: 0.75rem;
+        }
+
+        .transport-side h4 {
+            margin: 0;
+            font-size: 0.9rem;
+            letter-spacing: 0.12em;
+            text-transform: uppercase;
+            color: #e2e8f0;
+        }
+
+        .transport-particles {
+            display: grid;
+            grid-template-columns: repeat(4, minmax(0, 1fr));
+            gap: 0.45rem;
+            align-content: start;
+        }
+
+        .transport-particle {
+            width: 100%;
+            aspect-ratio: 1;
+            border-radius: 50%;
+            background: radial-gradient(circle at 35% 30%, rgba(255, 255, 255, 0.92), var(--particle-color, #34d399) 55%, rgba(6, 12, 22, 0.92) 100%);
+            box-shadow: 0 8px 18px rgba(0, 0, 0, 0.28);
+            opacity: 0.95;
+        }
+
+        .transport-caption {
+            font-size: 0.82rem;
+            color: #9fb0c8;
+        }
+
+        .transport-membrane {
+            position: relative;
+            border-radius: 999px;
+            border: 1px solid rgba(110, 231, 183, 0.18);
+            background:
+                linear-gradient(180deg, rgba(110, 231, 183, 0.18), rgba(110, 231, 183, 0.08)),
+                rgba(7, 18, 22, 0.92);
+            overflow: hidden;
+        }
+
+        .transport-membrane::before,
+        .transport-membrane::after {
+            content: '';
+            position: absolute;
+            inset: 12px;
+            border-radius: 999px;
+            border: 1px dashed rgba(167, 243, 208, 0.2);
+        }
+
+        .transport-membrane[data-protein="channel"] .transport-protein,
+        .transport-membrane[data-protein="aquaporin"] .transport-protein,
+        .transport-membrane[data-protein="carrier"] .transport-protein,
+        .transport-membrane[data-protein="pump"] .transport-protein {
+            position: absolute;
+            top: 18px;
+            bottom: 18px;
+            left: 50%;
+            width: 26px;
+            transform: translateX(-50%);
+            border-radius: 999px;
+            background: linear-gradient(180deg, rgba(255, 255, 255, 0.78), rgba(125, 211, 252, 0.45));
+            box-shadow: 0 0 20px rgba(96, 165, 250, 0.18);
+        }
+
+        .transport-membrane[data-protein="carrier"] .transport-protein {
+            width: 34px;
+            border-radius: 18px;
+        }
+
+        .transport-membrane[data-protein="pump"] .transport-protein {
+            background: linear-gradient(180deg, rgba(253, 186, 116, 0.92), rgba(248, 113, 113, 0.55));
+        }
+
+        .transport-arrow-wrap {
+            display: grid;
+            place-items: center;
+            padding: 0.5rem 0;
+        }
+
+        .transport-arrow {
+            width: 74px;
+            height: 10px;
+            border-radius: 999px;
+            background: linear-gradient(90deg, rgba(52, 211, 153, 0.18), rgba(96, 165, 250, 0.88));
+            position: relative;
+            transition: transform 0.25s ease, opacity 0.25s ease;
+        }
+
+        .transport-arrow::after {
+            content: '';
+            position: absolute;
+            right: -1px;
+            top: 50%;
+            width: 16px;
+            height: 16px;
+            border-right: 3px solid rgba(191, 219, 254, 0.95);
+            border-bottom: 3px solid rgba(191, 219, 254, 0.95);
+            transform: translateY(-50%) rotate(-45deg);
+        }
+
+        .transport-arrow.reverse {
+            transform: scaleX(-1);
+        }
+
+        .transport-arrow.still {
+            opacity: 0.3;
+        }
+
+        .energy-mode-switch {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.65rem;
+            margin-bottom: 0.9rem;
+        }
+
+        .energy-mode-btn {
+            border: 1px solid rgba(148, 163, 184, 0.18);
+            background: rgba(15, 23, 42, 0.5);
+            color: #dbe7f5;
+            border-radius: 999px;
+            min-height: 2.4rem;
+            padding: 0.55rem 0.95rem;
+            font: inherit;
+            font-size: 0.82rem;
+            font-weight: 700;
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+            cursor: pointer;
+        }
+
+        .energy-mode-btn.is-active {
+            background: rgba(16, 185, 129, 0.12);
+            border-color: rgba(52, 211, 153, 0.32);
+            color: #d1fae5;
+        }
+
+        .energy-diagram {
+            display: grid;
+            gap: 0.8rem;
+        }
+
+        .energy-stage-row {
+            display: grid;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            gap: 0.75rem;
+        }
+
+        .energy-stage {
+            padding: 0.95rem;
+            border-radius: 16px;
+            border: 1px solid rgba(148, 163, 184, 0.14);
+            background: rgba(15, 23, 42, 0.46);
+            display: grid;
+            gap: 0.35rem;
+            transition: transform 0.2s ease, border-color 0.2s ease, background 0.2s ease;
+        }
+
+        .energy-stage.is-active {
+            transform: translateY(-2px);
+            border-color: rgba(52, 211, 153, 0.3);
+            background: rgba(16, 185, 129, 0.08);
+        }
+
+        .energy-stage span {
+            font-size: 0.72rem;
+            text-transform: uppercase;
+            letter-spacing: 0.12em;
+            color: #9fb0c8;
+            font-weight: 700;
+        }
+
+        .energy-stage strong {
+            font-size: 0.95rem;
+            color: #f8fafc;
+        }
+
+        .energy-stage small {
+            color: #9fb0c8;
+            line-height: 1.5;
+        }
+
+        .energy-meter {
+            height: 16px;
+            border-radius: 999px;
+            overflow: hidden;
+            background: rgba(15, 23, 42, 0.8);
+            border: 1px solid rgba(148, 163, 184, 0.14);
+        }
+
+        .energy-meter-fill {
+            height: 100%;
+            width: 0%;
+            background: linear-gradient(90deg, #34d399, #60a5fa);
+            border-radius: inherit;
+            transition: width 0.25s ease;
+        }
+
+        .energy-note {
+            margin-top: 0.95rem;
+            color: #dbe7f5;
+            font-size: 0.92rem;
+            line-height: 1.7;
+        }
+
+        .sequence-grid {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 0.8rem;
+            margin-top: 0.95rem;
+        }
+
+        .sequence-card {
+            padding: 0.95rem;
+            border-radius: 16px;
+            border: 1px solid rgba(148, 163, 184, 0.16);
+            background: rgba(15, 23, 42, 0.46);
+            display: grid;
+            gap: 0.4rem;
+        }
+
+        .sequence-card span {
+            font-size: 0.72rem;
+            font-weight: 700;
+            letter-spacing: 0.12em;
+            text-transform: uppercase;
+            color: #9fb0c8;
+        }
+
+        .sequence-block {
+            font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+            font-size: 0.88rem;
+            line-height: 1.75;
+            color: #f8fafc;
+            word-break: break-word;
+        }
+
+        .sequence-outcome {
+            margin-top: 0.9rem;
+            padding: 0.95rem 1rem;
+            border-radius: 16px;
+            border: 1px solid rgba(96, 165, 250, 0.2);
+            background: rgba(59, 130, 246, 0.08);
+            color: #e0f2fe;
+            line-height: 1.65;
+        }
+
+        .division-grid {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 1rem;
+            padding: 1.2rem 1.25rem 1.3rem;
+        }
+
+        .division-card {
+            padding: 1rem;
+            border-radius: 18px;
+            border: 1px solid rgba(148, 163, 184, 0.16);
+            background:
+                linear-gradient(180deg, rgba(255, 255, 255, 0.05), rgba(255, 255, 255, 0)),
+                rgba(6, 12, 22, 0.68);
+            display: grid;
+            gap: 0.95rem;
+        }
+
+        .punnett-grid {
+            display: grid;
+            grid-template-columns: 48px repeat(2, minmax(0, 1fr));
+            gap: 0.45rem;
+        }
+
+        .punnett-cell {
+            min-height: 58px;
+            border-radius: 14px;
+            border: 1px solid rgba(148, 163, 184, 0.14);
+            background: rgba(15, 23, 42, 0.48);
+            display: grid;
+            place-items: center;
+            color: #f8fafc;
+            font-weight: 700;
+            font-size: 0.92rem;
+        }
+
+        .punnett-cell.header {
+            color: #9fb0c8;
+            font-size: 0.78rem;
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+        }
+
+        .ratio-list {
+            display: grid;
+            gap: 0.45rem;
+            color: #dbe7f5;
+            font-size: 0.92rem;
+        }
+
+        .study-strategy-grid {
+            display: grid;
+            grid-template-columns: repeat(4, minmax(0, 1fr));
+            gap: 1rem;
+            padding: 1.2rem 1.25rem 1.3rem;
+        }
+
+        .study-tip {
+            padding: 1rem;
+            border-radius: 18px;
+            border: 1px solid rgba(148, 163, 184, 0.16);
+            background: rgba(7, 18, 22, 0.55);
+            display: grid;
+            gap: 0.45rem;
+        }
+
+        .study-tip span {
+            color: #a7f3d0;
+            font-size: 0.72rem;
+            font-weight: 700;
+            letter-spacing: 0.12em;
+            text-transform: uppercase;
+        }
+
+        .study-tip strong {
+            color: #f8fafc;
+            font-size: 1rem;
+        }
+
+        .study-tip p {
+            color: #a8b3c7;
+            font-size: 0.9rem;
+            line-height: 1.62;
+        }
+
+        @media (max-width: 1100px) {
+            .cell-sim-grid,
+            .division-grid,
+            .study-strategy-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .cell-roadmap {
+                grid-template-columns: 1fr;
+            }
+
+            .sim-stat-grid,
+            .energy-stage-row,
+            .sequence-grid {
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+            }
+        }
+
+        @media (max-width: 768px) {
+            .cell-page-nav {
+                justify-content: flex-start;
+            }
+
+            .cell-sim-grid,
+            .division-grid,
+            .study-strategy-grid,
+            .sequence-grid,
+            .sim-stat-grid,
+            .energy-stage-row {
+                grid-template-columns: 1fr;
+            }
+
+            .transport-stage {
+                grid-template-columns: 1fr;
+                min-height: auto;
+            }
+
+            .transport-arrow-wrap {
+                min-height: 60px;
+            }
+
+            .transport-arrow {
+                transform: rotate(90deg);
+            }
+
+            .transport-arrow.reverse {
+                transform: rotate(90deg) scaleX(-1);
+            }
+
+            .punnett-grid {
+                grid-template-columns: 42px repeat(2, minmax(0, 1fr));
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="cursor-dot"></div>
+    <div class="cursor-outline"></div>
+    <div class="bg-gradient bg-gradient-1"></div>
+    <div class="bg-gradient bg-gradient-2"></div>
+    <div class="bg-noise"></div>
+
+    <nav class="navbar">
+        <div class="nav-content">
+            <div class="logo magnetic" onclick="window.location.href='index.html'">S.</div>
+            <ul class="nav-links">
+                <li><a href="index.html#projects" class="magnetic">Back to Portfolio</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <main class="container project-page" style="--project-accent:#34d399;--project-accent-alt:#60a5fa;">
+        <header class="project-page-header section-animate">
+            <a href="index.html#projects" class="back-link magnetic">&larr; Back to projects</a>
+            <div class="project-kicker">Course Build · BILD 1</div>
+            <h1 class="project-page-title">The Cell</h1>
+            <p class="project-summary">
+                A syllabus-aligned study hub for BILD 1 built from your course materials. The tools below are organized around the actual topic sequence and exam groupings: membranes and transport, bioenergetics, gene expression, and division plus inheritance.
+            </p>
+            <div class="project-callout">
+                <strong>Syllabus-aligned:</strong> structured from the BILD 1 Winter 2025 syllabus and schedule in your course folders, with BILD 1R-style weekly reinforcement in mind.
+            </div>
+        </header>
+
+        <section class="project-stage-card section-animate">
+            <div class="project-stage-bar">
+                <div class="project-stage-label">Course Roadmap</div>
+                <div class="project-stage-actions">
+                    <a href="#transport-lab" class="project-inline-link">Exam 1</a>
+                    <a href="#energy-lab" class="project-inline-link">Exam 2</a>
+                    <a href="#division-lab" class="project-inline-link">Final</a>
+                </div>
+            </div>
+            <div class="cell-page-nav">
+                <a href="#transport-lab">Membranes</a>
+                <a href="#energy-lab">Energy</a>
+                <a href="#gene-lab">Genes</a>
+                <a href="#division-lab">Division + Inheritance</a>
+            </div>
+            <div class="cell-roadmap">
+                <article class="cell-roadmap-card">
+                    <span>Exam 1 · Topics 1-5</span>
+                    <strong>Foundations of the cell</strong>
+                    <p>Start with chemistry, macromolecules, cell structure, and how molecules move across membranes.</p>
+                    <ul class="cell-topic-list">
+                        <li>Introduction to biology and core chemistry</li>
+                        <li>Macromolecules and structure-function logic</li>
+                        <li>Prokaryotes, eukaryotes, organelles, viruses</li>
+                        <li>Membranes, diffusion, osmosis, channels, pumps</li>
+                    </ul>
+                </article>
+                <article class="cell-roadmap-card">
+                    <span>Exam 2 · Topics 6-10</span>
+                    <strong>Energy and information flow</strong>
+                    <p>Trace how cells harvest energy and how genetic information becomes proteins, then gets regulated.</p>
+                    <ul class="cell-topic-list">
+                        <li>Metabolism and enzyme-controlled reactions</li>
+                        <li>Cellular respiration and oxygen dependence</li>
+                        <li>Photosynthesis and light-driven sugar building</li>
+                        <li>Gene expression and regulation of expression</li>
+                    </ul>
+                </article>
+                <article class="cell-roadmap-card">
+                    <span>Final emphasis · Topics 11-14</span>
+                    <strong>Signals, replication, and inheritance</strong>
+                    <p>Move into communication, DNA replication, cell division, and the logic behind genotype to phenotype.</p>
+                    <ul class="cell-topic-list">
+                        <li>Cell signaling and amplification</li>
+                        <li>DNA replication and information fidelity</li>
+                        <li>Cell cycle, mitosis, meiosis, checkpoints</li>
+                        <li>Genetics, inheritance, phenotype prediction</li>
+                    </ul>
+                </article>
+            </div>
+            <div class="project-stage-note">
+                The best way to use this page is to pair each simulator with your lecture notes, discussion worksheets, and assignment prompts. These tools are built to test reasoning, not replace the course material.
+            </div>
+        </section>
+
+        <section id="transport-lab" class="project-stage-card section-animate">
+            <div class="project-stage-bar">
+                <div class="project-stage-label">Membrane Transport Lab</div>
+            </div>
+            <div class="cell-sim-grid">
+                <div class="cell-panel">
+                    <h3>Topic 5 practice</h3>
+                    <p>Change the molecule, transporter, and concentration gradient, then predict whether movement is passive, active, or blocked.</p>
+                    <div class="cell-control-stack">
+                        <div class="cell-control">
+                            <label for="transport-molecule">Molecule</label>
+                            <select id="transport-molecule" class="cell-select">
+                                <option value="oxygen">Oxygen (O2)</option>
+                                <option value="water">Water (H2O)</option>
+                                <option value="glucose">Glucose</option>
+                                <option value="sodium">Sodium ion (Na+)</option>
+                            </select>
+                        </div>
+                        <div class="cell-control">
+                            <label for="transport-protein">Membrane path</label>
+                            <select id="transport-protein" class="cell-select">
+                                <option value="bilayer">Lipid bilayer only</option>
+                                <option value="aquaporin">Aquaporin</option>
+                                <option value="channel">Channel protein</option>
+                                <option value="carrier">Carrier protein</option>
+                                <option value="pump">ATP pump</option>
+                            </select>
+                        </div>
+                        <div class="cell-control">
+                            <div class="cell-control-label">Outside concentration</div>
+                            <div class="cell-range-row">
+                                <input type="range" id="transport-outside" min="0" max="12" value="9">
+                                <span id="transport-outside-value" class="cell-range-value">9</span>
+                            </div>
+                        </div>
+                        <div class="cell-control">
+                            <div class="cell-control-label">Inside concentration</div>
+                            <div class="cell-range-row">
+                                <input type="range" id="transport-inside" min="0" max="12" value="3">
+                                <span id="transport-inside-value" class="cell-range-value">3</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="cell-panel">
+                    <div class="transport-stage">
+                        <div class="transport-side">
+                            <h4>Outside</h4>
+                            <div id="transport-outside-particles" class="transport-particles"></div>
+                            <div class="transport-caption" id="transport-outside-caption"></div>
+                        </div>
+                        <div class="transport-arrow-wrap">
+                            <div id="transport-arrow" class="transport-arrow"></div>
+                        </div>
+                        <div class="transport-side">
+                            <h4>Inside</h4>
+                            <div id="transport-inside-particles" class="transport-particles"></div>
+                            <div class="transport-caption" id="transport-inside-caption"></div>
+                        </div>
+                    </div>
+                    <div class="transport-membrane" id="transport-membrane" data-protein="bilayer" aria-hidden="true">
+                        <div class="transport-protein"></div>
+                    </div>
+                    <div id="transport-stats" class="sim-stat-grid"></div>
+                    <div id="transport-explainer" class="sim-explainer"></div>
+                </div>
+            </div>
+        </section>
+
+        <section id="energy-lab" class="project-stage-card section-animate">
+            <div class="project-stage-bar">
+                <div class="project-stage-label">Bioenergetics Simulator</div>
+            </div>
+            <div class="cell-sim-grid">
+                <div class="cell-panel">
+                    <h3>Topics 6-8 practice</h3>
+                    <p>Switch between respiration and photosynthesis, then test how limiting inputs change pathway output and bottlenecks.</p>
+                    <div class="energy-mode-switch">
+                        <button class="energy-mode-btn is-active" data-energy-mode="respiration" type="button">Respiration</button>
+                        <button class="energy-mode-btn" data-energy-mode="photosynthesis" type="button">Photosynthesis</button>
+                    </div>
+                    <div class="cell-control-stack">
+                        <div class="cell-control">
+                            <div class="cell-control-label">Glucose / stored fuel</div>
+                            <div class="cell-range-row">
+                                <input type="range" id="energy-fuel" min="0" max="10" value="8">
+                                <span id="energy-fuel-value" class="cell-range-value">8</span>
+                            </div>
+                        </div>
+                        <div class="cell-control">
+                            <div class="cell-control-label">Oxygen</div>
+                            <div class="cell-range-row">
+                                <input type="range" id="energy-oxygen" min="0" max="10" value="8">
+                                <span id="energy-oxygen-value" class="cell-range-value">8</span>
+                            </div>
+                        </div>
+                        <div class="cell-control">
+                            <div class="cell-control-label">Light</div>
+                            <div class="cell-range-row">
+                                <input type="range" id="energy-light" min="0" max="10" value="7">
+                                <span id="energy-light-value" class="cell-range-value">7</span>
+                            </div>
+                        </div>
+                        <div class="cell-control">
+                            <div class="cell-control-label">Carbon dioxide</div>
+                            <div class="cell-range-row">
+                                <input type="range" id="energy-co2" min="0" max="10" value="6">
+                                <span id="energy-co2-value" class="cell-range-value">6</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="cell-panel">
+                    <div id="energy-stats" class="sim-stat-grid"></div>
+                    <div class="energy-diagram">
+                        <div class="energy-meter">
+                            <div id="energy-meter-fill" class="energy-meter-fill"></div>
+                        </div>
+                        <div class="energy-stage-row">
+                            <article id="energy-stage-1" class="energy-stage">
+                                <span>Stage 1</span>
+                                <strong id="energy-stage-1-title">Glycolysis</strong>
+                                <small id="energy-stage-1-copy">Fuel splitting begins in the cytosol.</small>
+                            </article>
+                            <article id="energy-stage-2" class="energy-stage">
+                                <span>Stage 2</span>
+                                <strong id="energy-stage-2-title">Citric acid cycle</strong>
+                                <small id="energy-stage-2-copy">Carbon is oxidized and carriers are loaded.</small>
+                            </article>
+                            <article id="energy-stage-3" class="energy-stage">
+                                <span>Stage 3</span>
+                                <strong id="energy-stage-3-title">ETC / ATP synthase</strong>
+                                <small id="energy-stage-3-copy">Oxygen allows a high ATP payoff.</small>
+                            </article>
+                        </div>
+                        <div id="energy-note" class="energy-note"></div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="gene-lab" class="project-stage-card section-animate">
+            <div class="project-stage-bar">
+                <div class="project-stage-label">Gene Expression Studio</div>
+            </div>
+            <div class="cell-sim-grid">
+                <div class="cell-panel">
+                    <h3>Topics 9-12 practice</h3>
+                    <p>Apply a mutation to a coding sequence, then compare DNA, mRNA, and protein outcomes while changing expression level.</p>
+                    <div class="cell-control-stack">
+                        <div class="cell-control">
+                            <label for="gene-sequence">Coding DNA sequence</label>
+                            <textarea id="gene-sequence" class="cell-textarea">ATGGAATTTCCGGCTTAA</textarea>
+                        </div>
+                        <div class="cell-control">
+                            <label for="gene-mutation-type">Mutation type</label>
+                            <select id="gene-mutation-type" class="cell-select">
+                                <option value="none">None</option>
+                                <option value="substitution">Substitution</option>
+                                <option value="insertion">Insertion</option>
+                                <option value="deletion">Deletion</option>
+                            </select>
+                        </div>
+                        <div class="cell-control">
+                            <div class="cell-control-label">Mutation position</div>
+                            <div class="cell-range-row">
+                                <input type="range" id="gene-mutation-position" min="1" max="18" value="4">
+                                <span id="gene-mutation-position-value" class="cell-range-value">4</span>
+                            </div>
+                        </div>
+                        <div class="cell-control">
+                            <label for="gene-regulation">Expression state</label>
+                            <select id="gene-regulation" class="cell-select">
+                                <option value="baseline">Baseline transcription</option>
+                                <option value="repressed">Repressed / low expression</option>
+                                <option value="enhanced">Activated / high expression</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+                <div class="cell-panel">
+                    <div id="gene-stats" class="sim-stat-grid"></div>
+                    <div class="sequence-grid">
+                        <article class="sequence-card">
+                            <span>Original DNA</span>
+                            <div id="gene-original-dna" class="sequence-block"></div>
+                        </article>
+                        <article class="sequence-card">
+                            <span>Mutated DNA</span>
+                            <div id="gene-mutated-dna" class="sequence-block"></div>
+                        </article>
+                        <article class="sequence-card">
+                            <span>mRNA transcript</span>
+                            <div id="gene-mrna" class="sequence-block"></div>
+                        </article>
+                        <article class="sequence-card">
+                            <span>Protein output</span>
+                            <div id="gene-protein" class="sequence-block"></div>
+                        </article>
+                    </div>
+                    <div id="gene-outcome" class="sequence-outcome"></div>
+                </div>
+            </div>
+        </section>
+
+        <section id="division-lab" class="project-stage-card section-animate">
+            <div class="project-stage-bar">
+                <div class="project-stage-label">Division + Inheritance Lab</div>
+            </div>
+            <div class="division-grid">
+                <article class="division-card">
+                    <h3>Topic 13 practice</h3>
+                    <p>Compare mitosis and meiosis, then see how crossing over and nondisjunction change cell outcomes.</p>
+                    <div class="cell-control-stack">
+                        <div class="cell-control">
+                            <label for="division-type">Division type</label>
+                            <select id="division-type" class="cell-select">
+                                <option value="mitosis">Mitosis</option>
+                                <option value="meiosis">Meiosis</option>
+                            </select>
+                        </div>
+                        <div class="cell-control">
+                            <div class="cell-control-label">Homologous chromosome pairs</div>
+                            <div class="cell-range-row">
+                                <input type="range" id="division-pairs" min="1" max="6" value="3">
+                                <span id="division-pairs-value" class="cell-range-value">3</span>
+                            </div>
+                        </div>
+                        <div class="cell-control">
+                            <div class="cell-control-label">Crossing-over events</div>
+                            <div class="cell-range-row">
+                                <input type="range" id="division-crossovers" min="0" max="4" value="1">
+                                <span id="division-crossovers-value" class="cell-range-value">1</span>
+                            </div>
+                        </div>
+                        <div class="cell-control">
+                            <label for="division-nondisjunction">Nondisjunction</label>
+                            <select id="division-nondisjunction" class="cell-select">
+                                <option value="none">None</option>
+                                <option value="meiosisI">During meiosis I</option>
+                                <option value="meiosisII">During meiosis II</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div id="division-stats" class="sim-stat-grid"></div>
+                    <div id="division-outcome" class="sim-explainer"></div>
+                </article>
+                <article class="division-card">
+                    <h3>Topic 14 practice</h3>
+                    <p>Use a simple Punnett square to connect gametes, genotype ratios, and phenotype prediction.</p>
+                    <div class="cell-control-stack">
+                        <div class="cell-control">
+                            <label for="genetics-parent-a">Parent A genotype</label>
+                            <select id="genetics-parent-a" class="cell-select">
+                                <option value="AA">AA</option>
+                                <option value="Aa" selected>Aa</option>
+                                <option value="aa">aa</option>
+                            </select>
+                        </div>
+                        <div class="cell-control">
+                            <label for="genetics-parent-b">Parent B genotype</label>
+                            <select id="genetics-parent-b" class="cell-select">
+                                <option value="AA">AA</option>
+                                <option value="Aa" selected>Aa</option>
+                                <option value="aa">aa</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="punnett-grid" id="punnett-grid"></div>
+                    <div id="genetics-ratios" class="ratio-list"></div>
+                    <div class="sim-explainer">
+                        This assumes one gene with complete dominance: <strong>A</strong> is dominant and <strong>a</strong> is recessive. The main BILD 1 skill is reading how meiosis creates gametes, then tracing how those gametes combine.
+                    </div>
+                </article>
+            </div>
+        </section>
+
+        <section class="project-stage-card section-animate">
+            <div class="project-stage-bar">
+                <div class="project-stage-label">How To Use This For BILD 1</div>
+            </div>
+            <div class="study-strategy-grid">
+                <article class="study-tip">
+                    <span>Before lecture</span>
+                    <strong>Preview the mechanism</strong>
+                    <p>Run the simulator for the next topic first so the lecture vocabulary has a visual system to attach to.</p>
+                </article>
+                <article class="study-tip">
+                    <span>After lecture</span>
+                    <strong>Force yourself to predict</strong>
+                    <p>Change one input at a time and say the outcome out loud before the app updates. That is how you train free-response reasoning.</p>
+                </article>
+                <article class="study-tip">
+                    <span>For BILD 1R</span>
+                    <strong>Pair it with worksheets</strong>
+                    <p>Use each lab right after a discussion worksheet or quiz correction so you convert wrong answers into mechanism-level understanding.</p>
+                </article>
+                <article class="study-tip">
+                    <span>For exams</span>
+                    <strong>Study by topic clusters</strong>
+                    <p>Exam 1: transport. Exam 2: energy and expression. Final: signaling, replication, division, and inheritance.</p>
+                </article>
+            </div>
+        </section>
+    </main>
+
+    <script src="script.js"></script>
+    <script>
+    (function() {
+        const transportState = {
+            molecule: 'oxygen',
+            protein: 'bilayer',
+            outside: 9,
+            inside: 3
+        };
+
+        const transportMolecules = {
+            oxygen: { label: 'O2', color: '#60a5fa' },
+            water: { label: 'H2O', color: '#34d399' },
+            glucose: { label: 'Glucose', color: '#f59e0b' },
+            sodium: { label: 'Na+', color: '#f472b6' }
+        };
+
+        const nextBase = { A: 'G', G: 'C', C: 'T', T: 'A' };
+        const codonTable = {
+            UUU: 'Phe', UUC: 'Phe', UUA: 'Leu', UUG: 'Leu',
+            UCU: 'Ser', UCC: 'Ser', UCA: 'Ser', UCG: 'Ser',
+            UAU: 'Tyr', UAC: 'Tyr', UAA: 'Stop', UAG: 'Stop',
+            UGU: 'Cys', UGC: 'Cys', UGA: 'Stop', UGG: 'Trp',
+            CUU: 'Leu', CUC: 'Leu', CUA: 'Leu', CUG: 'Leu',
+            CCU: 'Pro', CCC: 'Pro', CCA: 'Pro', CCG: 'Pro',
+            CAU: 'His', CAC: 'His', CAA: 'Gln', CAG: 'Gln',
+            CGU: 'Arg', CGC: 'Arg', CGA: 'Arg', CGG: 'Arg',
+            AUU: 'Ile', AUC: 'Ile', AUA: 'Ile', AUG: 'Met',
+            ACU: 'Thr', ACC: 'Thr', ACA: 'Thr', ACG: 'Thr',
+            AAU: 'Asn', AAC: 'Asn', AAA: 'Lys', AAG: 'Lys',
+            AGU: 'Ser', AGC: 'Ser', AGA: 'Arg', AGG: 'Arg',
+            GUU: 'Val', GUC: 'Val', GUA: 'Val', GUG: 'Val',
+            GCU: 'Ala', GCC: 'Ala', GCA: 'Ala', GCG: 'Ala',
+            GAU: 'Asp', GAC: 'Asp', GAA: 'Glu', GAG: 'Glu',
+            GGU: 'Gly', GGC: 'Gly', GGA: 'Gly', GGG: 'Gly'
+        };
+
+        function makeParticles(count, color) {
+            return Array.from({ length: Math.max(1, Math.min(12, count)) }, () =>
+                '<span class="transport-particle" style="--particle-color:' + color + ';"></span>'
+            ).join('');
+        }
+
+        function setRangeValue(id, value) {
+            const el = document.getElementById(id);
+            if (el) el.textContent = String(value);
+        }
+
+        function updateTransport() {
+            const molecule = transportMolecules[transportState.molecule];
+            const gradient = transportState.outside - transportState.inside;
+            const arrow = document.getElementById('transport-arrow');
+            const membrane = document.getElementById('transport-membrane');
+            const outsideCaption = document.getElementById('transport-outside-caption');
+            const insideCaption = document.getElementById('transport-inside-caption');
+
+            let pathway = 'Blocked';
+            let direction = 'No net movement';
+            let atp = 'No';
+            let result = 'Blocked';
+            let explanation = '';
+
+            if (gradient > 0) direction = 'Outside to inside';
+            if (gradient < 0) direction = 'Inside to outside';
+
+            if (transportState.molecule === 'oxygen') {
+                pathway = 'Simple diffusion';
+                result = gradient === 0 ? 'Equilibrium' : 'Passive';
+                explanation = 'Oxygen is small and nonpolar, so it can slip through the phospholipid bilayer without a membrane protein.';
+            } else if (transportState.molecule === 'water') {
+                pathway = transportState.protein === 'aquaporin' ? 'Osmosis through aquaporin' : 'Slow osmosis';
+                result = gradient === 0 ? 'Equilibrium' : 'Passive';
+                explanation = transportState.protein === 'aquaporin'
+                    ? 'Water moves down its concentration gradient and aquaporins make that movement much faster.'
+                    : 'Water can cross slowly on its own, but aquaporins are the cleaner model to remember for fast transport.';
+            } else if (transportState.molecule === 'glucose') {
+                if (transportState.protein === 'carrier' && gradient !== 0) {
+                    pathway = 'Facilitated diffusion';
+                    result = 'Passive';
+                    explanation = 'Glucose is too large and polar for the membrane core, so it needs a carrier when it moves down its gradient.';
+                } else {
+                    direction = 'No net movement';
+                    explanation = 'Glucose is blocked here because it needs a transporter and this setup does not provide the right path.';
+                }
+            } else if (transportState.molecule === 'sodium') {
+                if (transportState.protein === 'channel' && gradient !== 0) {
+                    pathway = 'Channel-mediated diffusion';
+                    result = 'Passive';
+                    explanation = 'Sodium is charged, so it needs a channel to move down its electrochemical gradient.';
+                } else if (transportState.protein === 'pump') {
+                    pathway = 'Active transport';
+                    result = 'Active';
+                    atp = 'Yes';
+                    direction = gradient >= 0 ? 'Inside to outside' : 'Outside to inside';
+                    explanation = 'Pumps use ATP to move ions against their gradient. For Na+, the key idea is protein plus ATP plus movement against the gradient.';
+                } else {
+                    direction = 'No net movement';
+                    explanation = 'Charged ions cannot cross the hydrophobic membrane core without a channel or pump.';
+                }
+            }
+
+            if (gradient === 0 && result !== 'Blocked') {
+                explanation = 'The concentrations match on both sides, so molecules may still move, but there is no net movement.';
+            }
+
+            document.getElementById('transport-outside-particles').innerHTML = makeParticles(transportState.outside, molecule.color);
+            document.getElementById('transport-inside-particles').innerHTML = makeParticles(transportState.inside, molecule.color);
+            outsideCaption.textContent = molecule.label + ' concentration: ' + transportState.outside;
+            insideCaption.textContent = molecule.label + ' concentration: ' + transportState.inside;
+            membrane.dataset.protein = transportState.protein;
+
+            arrow.classList.remove('reverse', 'still');
+            if (direction === 'Inside to outside') arrow.classList.add('reverse');
+            if (direction === 'No net movement') arrow.classList.add('still');
+
+            document.getElementById('transport-stats').innerHTML =
+                '<article class="sim-stat"><span>Pathway</span><strong>' + pathway + '</strong></article>' +
+                '<article class="sim-stat"><span>Net direction</span><strong>' + direction + '</strong></article>' +
+                '<article class="sim-stat"><span>ATP needed</span><strong>' + atp + '</strong></article>' +
+                '<article class="sim-stat"><span>Outcome</span><strong>' + result + '</strong></article>';
+            document.getElementById('transport-explainer').textContent = explanation;
+        }
+
+        function bindTransport() {
+            [['transport-molecule', 'molecule'], ['transport-protein', 'protein']].forEach(([id, key]) => {
+                document.getElementById(id).addEventListener('change', (event) => {
+                    transportState[key] = event.target.value;
+                    updateTransport();
+                });
+            });
+
+            [['transport-outside', 'outside'], ['transport-inside', 'inside']].forEach(([id, key]) => {
+                document.getElementById(id).addEventListener('input', (event) => {
+                    transportState[key] = Number(event.target.value);
+                    setRangeValue(id + '-value', transportState[key]);
+                    updateTransport();
+                });
+            });
+
+            setRangeValue('transport-outside-value', transportState.outside);
+            setRangeValue('transport-inside-value', transportState.inside);
+            updateTransport();
+        }
+
+        const energyState = {
+            mode: 'respiration',
+            fuel: 8,
+            oxygen: 8,
+            light: 7,
+            co2: 6
+        };
+
+        function updateEnergy() {
+            const stats = document.getElementById('energy-stats');
+            const meter = document.getElementById('energy-meter-fill');
+            const stage1 = document.getElementById('energy-stage-1');
+            const stage2 = document.getElementById('energy-stage-2');
+            const stage3 = document.getElementById('energy-stage-3');
+            const note = document.getElementById('energy-note');
+
+            let pathway;
+            let yieldScore = 0;
+            let limiter;
+            let outputs;
+            let stageTitles;
+            let stageCopies;
+
+            [stage1, stage2, stage3].forEach((stage) => stage.classList.remove('is-active'));
+
+            if (energyState.mode === 'respiration') {
+                pathway = energyState.oxygen === 0 ? 'Fermentation fallback' : 'Aerobic respiration';
+                if (energyState.fuel === 0) {
+                    yieldScore = 0;
+                    limiter = 'No glucose available';
+                    outputs = 'Minimal ATP';
+                } else if (energyState.oxygen === 0) {
+                    yieldScore = Math.min(18, energyState.fuel * 3);
+                    limiter = 'Oxygen absent';
+                    outputs = 'Low ATP + reduced end products';
+                } else {
+                    yieldScore = Math.min(100, Math.min(energyState.fuel, energyState.oxygen) * 10 + energyState.fuel * 2);
+                    limiter = energyState.fuel < energyState.oxygen ? 'Fuel limited' : (energyState.oxygen < energyState.fuel ? 'Oxygen limited' : 'Inputs balanced');
+                    outputs = 'ATP + CO2 + H2O';
+                }
+                stageTitles = ['Glycolysis', 'Citric acid cycle', 'ETC / ATP synthase'];
+                stageCopies = [
+                    'Fuel is split in the cytosol.',
+                    'Carbon is oxidized and carriers load up.',
+                    'Oxygen allows the biggest ATP payoff.'
+                ];
+                stage1.classList.add('is-active');
+                if (energyState.fuel > 0 && energyState.oxygen > 0) stage2.classList.add('is-active');
+                if (energyState.oxygen > 0) stage3.classList.add('is-active');
+                note.textContent = 'Use this the way your exam questions work: identify the limiting input first, then decide whether the cell can run high-yield respiration or is forced into a low-yield backup pathway.';
+            } else {
+                pathway = 'Photosynthesis';
+                if (energyState.light === 0 || energyState.co2 === 0) {
+                    yieldScore = 0;
+                    limiter = energyState.light === 0 ? 'Light absent' : 'Carbon dioxide absent';
+                    outputs = 'No sugar production';
+                } else {
+                    yieldScore = Math.min(100, Math.min(energyState.light, energyState.co2) * 10);
+                    limiter = energyState.light < energyState.co2 ? 'Light limited' : (energyState.co2 < energyState.light ? 'CO2 limited' : 'Inputs balanced');
+                    outputs = 'Glucose + O2';
+                }
+                stageTitles = ['Light reactions', 'Calvin cycle', 'Sugar export'];
+                stageCopies = [
+                    'Light energy powers electron flow.',
+                    'Carbon fixation builds sugar precursors.',
+                    'Carbohydrate output can support the cell.'
+                ];
+                if (energyState.light > 0) stage1.classList.add('is-active');
+                if (energyState.light > 0 && energyState.co2 > 0) stage2.classList.add('is-active');
+                if (yieldScore > 0) stage3.classList.add('is-active');
+                note.textContent = 'For photosynthesis questions, check whether light reactions can run, then ask whether carbon fixation has enough CO2 to build sugar.';
+            }
+
+            document.getElementById('energy-stage-1-title').textContent = stageTitles[0];
+            document.getElementById('energy-stage-2-title').textContent = stageTitles[1];
+            document.getElementById('energy-stage-3-title').textContent = stageTitles[2];
+            document.getElementById('energy-stage-1-copy').textContent = stageCopies[0];
+            document.getElementById('energy-stage-2-copy').textContent = stageCopies[1];
+            document.getElementById('energy-stage-3-copy').textContent = stageCopies[2];
+
+            meter.style.width = yieldScore + '%';
+            stats.innerHTML =
+                '<article class="sim-stat"><span>Pathway</span><strong>' + pathway + '</strong></article>' +
+                '<article class="sim-stat"><span>Yield index</span><strong>' + yieldScore + '/100</strong></article>' +
+                '<article class="sim-stat"><span>Limiter</span><strong>' + limiter + '</strong></article>' +
+                '<article class="sim-stat"><span>Main outputs</span><strong>' + outputs + '</strong></article>';
+        }
+
+        function bindEnergy() {
+            document.querySelectorAll('[data-energy-mode]').forEach((button) => {
+                button.addEventListener('click', () => {
+                    energyState.mode = button.dataset.energyMode;
+                    document.querySelectorAll('[data-energy-mode]').forEach((el) => el.classList.toggle('is-active', el === button));
+                    updateEnergy();
+                });
+            });
+
+            [['energy-fuel', 'fuel'], ['energy-oxygen', 'oxygen'], ['energy-light', 'light'], ['energy-co2', 'co2']].forEach(([id, key]) => {
+                const input = document.getElementById(id);
+                input.addEventListener('input', (event) => {
+                    energyState[key] = Number(event.target.value);
+                    setRangeValue(id + '-value', energyState[key]);
+                    updateEnergy();
+                });
+                setRangeValue(id + '-value', energyState[key]);
+            });
+
+            updateEnergy();
+        }
+
+        function sanitizeDNA(text) {
+            return (text || '').toUpperCase().replace(/[^ATCG]/g, '');
+        }
+
+        function groupTriplets(seq) {
+            return seq.match(/.{1,3}/g)?.join(' ') || '';
+        }
+
+        function transcribe(dna) {
+            return dna.replace(/T/g, 'U');
+        }
+
+        function translate(rna) {
+            const codons = rna.match(/.{1,3}/g) || [];
+            const amino = [];
+            let stopEarly = false;
+            codons.forEach((codon) => {
+                if (codon.length < 3 || stopEarly) return;
+                const aa = codonTable[codon] || '???';
+                if (aa === 'Stop') {
+                    stopEarly = true;
+                    return;
+                }
+                amino.push(aa);
+            });
+            return amino.join(' - ') || 'No translated protein';
+        }
+
+        function applyMutation(sequence, type, position) {
+            const index = Math.max(0, Math.min(sequence.length - 1, position - 1));
+            if (!sequence) return sequence;
+            if (type === 'substitution') {
+                return sequence.slice(0, index) + nextBase[sequence[index]] + sequence.slice(index + 1);
+            }
+            if (type === 'insertion') {
+                return sequence.slice(0, index) + 'A' + sequence.slice(index);
+            }
+            if (type === 'deletion') {
+                return sequence.length > 1 ? sequence.slice(0, index) + sequence.slice(index + 1) : sequence;
+            }
+            return sequence;
+        }
+
+        function classifyMutation(originalProtein, mutatedProtein, type, originalDNA, mutatedDNA) {
+            if (type === 'none') return 'No mutation applied.';
+            if ((type === 'insertion' || type === 'deletion') && Math.abs(originalDNA.length - mutatedDNA.length) % 3 !== 0) {
+                return 'Frameshift: the reading frame changes downstream of the mutation.';
+            }
+            if (originalProtein === mutatedProtein) return 'Silent or conservative change: the protein output is effectively unchanged in this model.';
+            if (mutatedProtein.split(' - ').length < originalProtein.split(' - ').length) return 'Nonsense or early-stop effect: the translated protein truncates earlier than normal.';
+            return 'Missense-like effect: the amino-acid sequence changes, so structure and function may change too.';
+        }
+
+        function updateGene() {
+            const originalDNA = sanitizeDNA(document.getElementById('gene-sequence').value) || 'ATGGAATTTCCGGCTTAA';
+            const mutationType = document.getElementById('gene-mutation-type').value;
+            const position = Number(document.getElementById('gene-mutation-position').value);
+            const regulation = document.getElementById('gene-regulation').value;
+
+            const mutatedDNA = applyMutation(originalDNA, mutationType, position);
+            const originalMRNA = transcribe(originalDNA);
+            const mutatedMRNA = transcribe(mutatedDNA);
+            const originalProtein = translate(originalMRNA);
+            const mutatedProtein = translate(mutatedMRNA);
+            const effect = classifyMutation(originalProtein, mutatedProtein, mutationType, originalDNA, mutatedDNA);
+
+            let expressionLevel = 'Baseline';
+            let expressionNote = 'RNA polymerase has ordinary access to the gene.';
+            if (regulation === 'repressed') {
+                expressionLevel = 'Low';
+                expressionNote = 'The gene is repressed, so transcription would be reduced even if the coding sequence is intact.';
+            } else if (regulation === 'enhanced') {
+                expressionLevel = 'High';
+                expressionNote = 'Activators or open chromatin make transcription easier, so more transcript is produced.';
+            }
+
+            const maxPosition = Math.max(1, originalDNA.length);
+            const positionSlider = document.getElementById('gene-mutation-position');
+            positionSlider.max = String(maxPosition);
+            if (position > maxPosition) positionSlider.value = String(maxPosition);
+            setRangeValue('gene-mutation-position-value', positionSlider.value);
+
+            document.getElementById('gene-original-dna').textContent = groupTriplets(originalDNA);
+            document.getElementById('gene-mutated-dna').textContent = groupTriplets(mutatedDNA);
+            document.getElementById('gene-mrna').textContent = groupTriplets(mutatedMRNA);
+            document.getElementById('gene-protein').textContent = mutatedProtein;
+            document.getElementById('gene-stats').innerHTML =
+                '<article class="sim-stat"><span>Expression</span><strong>' + expressionLevel + '</strong></article>' +
+                '<article class="sim-stat"><span>Mutation</span><strong>' + mutationType + '</strong></article>' +
+                '<article class="sim-stat"><span>Codon count</span><strong>' + Math.floor(mutatedMRNA.length / 3) + '</strong></article>' +
+                '<article class="sim-stat"><span>Protein effect</span><strong>' + effect.split(':')[0] + '</strong></article>';
+            document.getElementById('gene-outcome').innerHTML =
+                '<strong>Protein prediction:</strong> ' + effect + '<br><br><strong>Expression note:</strong> ' + expressionNote +
+                '<br><br><strong>Original protein:</strong> ' + originalProtein;
+        }
+
+        function bindGene() {
+            ['gene-sequence', 'gene-mutation-type', 'gene-mutation-position', 'gene-regulation'].forEach((id) => {
+                document.getElementById(id).addEventListener('input', updateGene);
+                document.getElementById(id).addEventListener('change', updateGene);
+            });
+            updateGene();
+        }
+
+        function updateDivision() {
+            const type = document.getElementById('division-type').value;
+            const pairs = Number(document.getElementById('division-pairs').value);
+            const crossovers = Number(document.getElementById('division-crossovers').value);
+            const nondisjunction = document.getElementById('division-nondisjunction').value;
+            let daughters;
+            let ploidy;
+            let diversity;
+            let note;
+
+            if (type === 'mitosis') {
+                daughters = '2 daughter cells';
+                ploidy = '2n to 2n';
+                diversity = 'Low diversity';
+                note = 'Mitosis preserves chromosome number and is mainly for growth, repair, and replacement. Crossing over is not a normal mitotic feature.';
+                if (nondisjunction !== 'none') {
+                    note += ' If nondisjunction happens here, daughter cells can become aneuploid.';
+                }
+            } else {
+                daughters = '4 gametes';
+                ploidy = '2n to n';
+                diversity = crossovers === 0 ? 'Independent assortment only' : 'Crossing over + assortment';
+                if (nondisjunction === 'meiosisI') {
+                    note = 'Meiosis I nondisjunction means homologs fail to separate. In the classic case, all four gametes are abnormal.';
+                } else if (nondisjunction === 'meiosisII') {
+                    note = 'Meiosis II nondisjunction means sister chromatids fail to separate. Two gametes stay normal and two become abnormal.';
+                } else {
+                    note = 'Meiosis reduces ploidy and increases variation through independent assortment plus crossing over.';
+                }
+            }
+
+            document.getElementById('division-stats').innerHTML =
+                '<article class="sim-stat"><span>Process</span><strong>' + type + '</strong></article>' +
+                '<article class="sim-stat"><span>Chromosome pairs</span><strong>' + pairs + '</strong></article>' +
+                '<article class="sim-stat"><span>Products</span><strong>' + daughters + '</strong></article>' +
+                '<article class="sim-stat"><span>Ploidy</span><strong>' + ploidy + '</strong></article>';
+            document.getElementById('division-outcome').innerHTML =
+                '<strong>Diversity source:</strong> ' + diversity + '<br><br><strong>Reasoning:</strong> ' + note;
+        }
+
+        function gametesFromGenotype(genotype) {
+            if (genotype === 'AA') return ['A', 'A'];
+            if (genotype === 'aa') return ['a', 'a'];
+            return ['A', 'a'];
+        }
+
+        function normalizeGenotype(a, b) {
+            return [a, b].sort((left, right) => left === right ? 0 : left === 'A' ? -1 : 1).join('');
+        }
+
+        function updateGenetics() {
+            const parentA = document.getElementById('genetics-parent-a').value;
+            const parentB = document.getElementById('genetics-parent-b').value;
+            const gametesA = gametesFromGenotype(parentA);
+            const gametesB = gametesFromGenotype(parentB);
+            const grid = document.getElementById('punnett-grid');
+            const counts = { AA: 0, Aa: 0, aa: 0 };
+
+            const cells = [
+                '<div class="punnett-cell header"></div>',
+                '<div class="punnett-cell header">' + gametesB[0] + '</div>',
+                '<div class="punnett-cell header">' + gametesB[1] + '</div>'
+            ];
+
+            gametesA.forEach((ga, rowIndex) => {
+                cells.push('<div class="punnett-cell header">' + ga + '</div>');
+                gametesB.forEach((gb) => {
+                    const genotype = normalizeGenotype(ga, gb);
+                    counts[genotype] += 1;
+                    cells.push('<div class="punnett-cell">' + genotype + '</div>');
+                });
+            });
+
+            const dominant = counts.AA + counts.Aa;
+            const recessive = counts.aa;
+
+            grid.innerHTML = cells.join('');
+            document.getElementById('genetics-ratios').innerHTML =
+                '<div><strong>Genotype ratio:</strong> AA ' + counts.AA + ' · Aa ' + counts.Aa + ' · aa ' + counts.aa + '</div>' +
+                '<div><strong>Phenotype ratio:</strong> dominant trait ' + dominant + ' · recessive trait ' + recessive + '</div>' +
+                '<div><strong>Exam move:</strong> first determine gametes from meiosis, then combine them to fill the square.</div>';
+        }
+
+        function bindDivisionAndGenetics() {
+            ['division-type', 'division-pairs', 'division-crossovers', 'division-nondisjunction'].forEach((id) => {
+                const el = document.getElementById(id);
+                el.addEventListener('input', updateDivision);
+                el.addEventListener('change', updateDivision);
+            });
+            ['genetics-parent-a', 'genetics-parent-b'].forEach((id) => {
+                document.getElementById(id).addEventListener('change', updateGenetics);
+            });
+            setRangeValue('division-pairs-value', document.getElementById('division-pairs').value);
+            setRangeValue('division-crossovers-value', document.getElementById('division-crossovers').value);
+            document.getElementById('division-pairs').addEventListener('input', (event) => setRangeValue('division-pairs-value', event.target.value));
+            document.getElementById('division-crossovers').addEventListener('input', (event) => setRangeValue('division-crossovers-value', event.target.value));
+            updateDivision();
+            updateGenetics();
+        }
+
+        bindTransport();
+        bindEnergy();
+        bindGene();
+        bindDivisionAndGenetics();
+    })();
+    </script>
+</body>
+</html>
