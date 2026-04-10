@@ -177,6 +177,10 @@
             border-radius: 14px;
             display: grid; place-items: center;
             font-size: 1.2rem;
+            border: 0;
+            padding: 0;
+            background: transparent;
+            font: inherit;
             color: var(--muted);
             cursor: pointer;
             transition: all 0.2s ease;
@@ -373,6 +377,136 @@
             color: var(--muted);
         }
 
+        .status-banner {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            padding: 10px 14px;
+            background: rgba(7, 16, 29, 0.78);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 18px;
+            backdrop-filter: blur(18px);
+        }
+
+        .status-banner-copy {
+            min-width: 0;
+        }
+
+        .status-banner-label {
+            display: block;
+            font-size: 0.62rem;
+            letter-spacing: 0.12em;
+            text-transform: uppercase;
+            color: var(--muted);
+        }
+
+        .status-banner-copy strong {
+            display: block;
+            margin-top: 2px;
+            font-size: 0.86rem;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .status-chip {
+            flex-shrink: 0;
+            min-height: 32px;
+            padding: 0 12px;
+            border-radius: 999px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            border: 1px solid rgba(100, 210, 255, 0.16);
+            background: rgba(0, 122, 255, 0.12);
+            color: #d9ecff;
+            font-size: 0.72rem;
+            font-weight: 600;
+        }
+
+        .trip-strip {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px 14px;
+            background: rgba(7, 16, 29, 0.72);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 18px;
+            backdrop-filter: blur(18px);
+        }
+
+        .trip-progress-meta {
+            min-width: 128px;
+        }
+
+        .trip-progress-meta span {
+            display: block;
+            font-size: 0.62rem;
+            letter-spacing: 0.12em;
+            text-transform: uppercase;
+            color: var(--muted);
+        }
+
+        .trip-progress-meta strong {
+            display: block;
+            margin-top: 2px;
+            font-size: 0.82rem;
+        }
+
+        .trip-progress-bar {
+            position: relative;
+            flex: 1;
+            height: 8px;
+            border-radius: 999px;
+            overflow: hidden;
+            background: rgba(255, 255, 255, 0.08);
+        }
+
+        .trip-progress-fill {
+            position: absolute;
+            inset: 0 auto 0 0;
+            width: 34%;
+            border-radius: inherit;
+            background: linear-gradient(90deg, var(--blue), var(--teal));
+            box-shadow: 0 0 16px rgba(0, 122, 255, 0.42);
+        }
+
+        .trip-progress-fill::after {
+            content: "";
+            position: absolute;
+            right: -5px;
+            top: 50%;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: #fff;
+            transform: translateY(-50%);
+            box-shadow: 0 0 0 4px rgba(0, 122, 255, 0.18);
+        }
+
+        .route-chip {
+            flex-shrink: 0;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 0.55rem 0.8rem;
+            border-radius: 999px;
+            background: rgba(255, 255, 255, 0.06);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            font-size: 0.74rem;
+            color: #e1eeff;
+        }
+
+        .route-chip::before {
+            content: "";
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: var(--green);
+            box-shadow: 0 0 10px rgba(48, 209, 88, 0.48);
+        }
+
         /* Middle section - drive stats bar */
         .drive-stats {
             display: flex;
@@ -405,7 +539,8 @@
 
         /* Bottom section */
         .bottom-row {
-            display: flex;
+            display: grid;
+            grid-template-columns: minmax(220px, 1fr) minmax(320px, 1.15fr) auto;
             gap: 10px;
             align-items: flex-end;
         }
@@ -422,6 +557,7 @@
             gap: 12px;
             flex: 1;
             min-width: 0;
+            min-height: 64px;
         }
 
         .next-step-icon {
@@ -440,6 +576,8 @@
         .controls-row {
             display: flex;
             gap: 6px;
+            flex-wrap: wrap;
+            justify-content: flex-end;
         }
 
         .ctrl-btn {
@@ -461,6 +599,91 @@
             transform: translateY(-1px);
         }
 
+        .ctrl-btn.active {
+            background: rgba(0, 122, 255, 0.22);
+            border-color: rgba(100, 210, 255, 0.28);
+            color: #fff;
+            box-shadow: inset 0 0 0 1px rgba(100, 210, 255, 0.15);
+        }
+
+        .ctrl-btn.ghost {
+            background: rgba(255, 255, 255, 0.04);
+            color: var(--muted);
+        }
+
+        .context-panel {
+            background: var(--card);
+            backdrop-filter: blur(16px);
+            border: 1px solid var(--card-border);
+            border-radius: 18px;
+            padding: 12px 14px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            min-width: 280px;
+        }
+
+        .context-icon {
+            width: 40px;
+            height: 40px;
+            flex-shrink: 0;
+            border-radius: 12px;
+            display: grid;
+            place-items: center;
+            background: rgba(100, 210, 255, 0.12);
+            color: #ccecff;
+            font-size: 1.1rem;
+        }
+
+        .context-copy {
+            min-width: 0;
+            flex: 1;
+        }
+
+        .context-copy span {
+            display: block;
+            font-size: 0.62rem;
+            letter-spacing: 0.12em;
+            text-transform: uppercase;
+            color: var(--muted);
+        }
+
+        .context-copy strong {
+            display: block;
+            margin-top: 2px;
+            font-size: 0.84rem;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .context-copy p {
+            margin-top: 3px;
+            font-size: 0.72rem;
+            color: var(--muted);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .context-actions {
+            display: flex;
+            gap: 6px;
+            flex-shrink: 0;
+        }
+
+        .context-action {
+            min-height: 34px;
+            padding: 0 10px;
+            border-radius: 10px;
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            background: rgba(255, 255, 255, 0.05);
+            color: #fff;
+            font: inherit;
+            font-size: 0.72rem;
+            cursor: pointer;
+        }
+
         /* ── Right sidebar: widget stack ── */
         .widget-stack {
             display: flex;
@@ -477,6 +700,13 @@
             border-radius: var(--card-radius);
             padding: 14px;
             flex-shrink: 0;
+            transition: border-color 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease;
+        }
+
+        .widget.is-focused {
+            border-color: rgba(100, 210, 255, 0.28);
+            box-shadow: inset 0 0 0 1px rgba(100, 210, 255, 0.08), 0 10px 24px rgba(0, 0, 0, 0.18);
+            transform: translateY(-1px);
         }
 
         .widget-label {
@@ -492,6 +722,28 @@
 
         .widget-icon {
             font-size: 0.85rem;
+        }
+
+        .widget-head {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 8px;
+            margin-bottom: 8px;
+        }
+
+        .widget-badge {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            min-width: 22px;
+            height: 22px;
+            border-radius: 999px;
+            padding: 0 8px;
+            background: rgba(255, 255, 255, 0.08);
+            color: #fff;
+            font-size: 0.68rem;
+            font-weight: 700;
         }
 
         /* Media widget */
@@ -559,6 +811,30 @@
         .phone-info { font-size: 0.82rem; }
         .phone-info span { display: block; color: var(--muted); font-size: 0.72rem; margin-top: 1px; }
 
+        .phone-actions {
+            display: flex;
+            gap: 6px;
+            margin-top: 10px;
+        }
+
+        .phone-btn {
+            border: 0;
+            cursor: pointer;
+            min-height: 34px;
+            padding: 0 10px;
+            border-radius: 10px;
+            font: inherit;
+            font-size: 0.72rem;
+            font-weight: 600;
+            color: #fff;
+            background: rgba(255, 255, 255, 0.06);
+        }
+
+        .phone-btn.primary {
+            background: rgba(48, 209, 88, 0.16);
+            border: 1px solid rgba(48, 209, 88, 0.18);
+        }
+
         /* Messages widget */
         .msg-item {
             display: flex;
@@ -583,6 +859,24 @@
         .msg-text { font-size: 0.78rem; min-width: 0; }
         .msg-text strong { display: block; font-size: 0.75rem; }
         .msg-text span { display: block; color: var(--muted); font-size: 0.68rem; margin-top: 1px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+        .msg-toolbar {
+            display: flex;
+            gap: 6px;
+            margin-top: 10px;
+        }
+
+        .msg-toolbar-btn {
+            min-height: 32px;
+            padding: 0 10px;
+            border-radius: 10px;
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            background: rgba(255, 255, 255, 0.05);
+            color: #fff;
+            font: inherit;
+            font-size: 0.7rem;
+            cursor: pointer;
+        }
 
         /* Climate widget */
         .climate-row {
@@ -611,6 +905,24 @@
             margin-top: 2px;
         }
 
+        .climate-toolbar {
+            display: flex;
+            gap: 6px;
+            margin-top: 10px;
+        }
+
+        .climate-btn {
+            flex: 1;
+            min-height: 34px;
+            border-radius: 10px;
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            background: rgba(255, 255, 255, 0.05);
+            color: #fff;
+            font: inherit;
+            font-size: 0.72rem;
+            cursor: pointer;
+        }
+
         /* Calendar widget */
         .cal-event {
             display: flex;
@@ -628,6 +940,11 @@
 
         .cal-info { font-size: 0.82rem; }
         .cal-info span { display: block; color: var(--muted); font-size: 0.7rem; margin-top: 1px; }
+
+        .cal-list {
+            display: grid;
+            gap: 8px;
+        }
 
         /* Siri suggestion */
         .siri-bar {
@@ -647,6 +964,35 @@
         @keyframes siri-glow {
             0% { box-shadow: 0 0 8px rgba(191, 90, 242, 0.3); }
             100% { box-shadow: 0 0 18px rgba(191, 90, 242, 0.5); }
+        }
+
+        .map-beacon {
+            position: absolute;
+            width: 14px;
+            height: 14px;
+            border-radius: 50%;
+            background: #ffffff;
+            border: 3px solid var(--blue);
+            box-shadow: 0 0 18px rgba(0, 122, 255, 0.48);
+            z-index: 3;
+            transform: translate(-50%, -50%);
+        }
+
+        body[data-view="maps"] .map-route-line,
+        body[data-view="dashboard"] .map-route-line {
+            background: linear-gradient(180deg, #1da1ff, #64d2ff);
+            box-shadow: 0 0 18px rgba(0, 122, 255, 0.56), 0 0 34px rgba(0, 122, 255, 0.26);
+        }
+
+        body[data-view="music"] .media-widget,
+        body[data-view="music"] .media-controls {
+            transform: translateY(-1px);
+        }
+
+        body[data-view="phone"] .phone-widget,
+        body[data-view="messages"] .msg-item:first-child,
+        body[data-view="settings"] .climate-row {
+            filter: saturate(1.08);
         }
 
         /* ── Preview mode ── */
@@ -670,9 +1016,23 @@
         body.preview-mode .widget { padding: 10px 12px; }
         body.preview-mode .media-art { width: 44px; height: 44px; }
         body.preview-mode .drive-stat { padding: 8px 10px; }
-        body.preview-mode .controls-row { display: none; }
         body.preview-mode .widget-label { margin-bottom: 6px; }
         body.preview-mode .limit-badge { width: 24px; height: 24px; font-size: 0.6rem; }
+        body.preview-mode .status-banner,
+        body.preview-mode .trip-strip {
+            padding: 8px 12px;
+        }
+        body.preview-mode .context-panel {
+            min-width: 0;
+            flex: 1;
+        }
+        body.preview-mode .controls-row {
+            gap: 4px;
+        }
+        body.preview-mode .ctrl-btn.ghost,
+        body.preview-mode #action-secondary {
+            display: none;
+        }
 
         /* ── Responsive ── */
         @media (max-width: 900px) {
@@ -688,6 +1048,13 @@
             .content {
                 grid-template-columns: 1fr;
                 grid-template-rows: 1fr auto;
+            }
+            .bottom-row {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            .context-panel {
+                min-width: 0;
             }
             .widget-stack {
                 flex-direction: row;
@@ -732,30 +1099,31 @@
             <div class="map-route-line route-seg-3"></div>
         </div>
         <div class="map-location"></div>
+        <div class="map-beacon" id="map-beacon"></div>
     </div>
 
     <div class="app-shell">
         <!-- Dock -->
         <aside class="dock">
-            <div class="dock-item active" title="Dashboard">
+            <button class="dock-item active" type="button" data-view="dashboard" title="Dashboard" aria-label="Dashboard">
                 <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
-            </div>
-            <div class="dock-item" title="Maps">
+            </button>
+            <button class="dock-item" type="button" data-view="maps" title="Maps" aria-label="Maps">
                 <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polygon points="1 6 1 22 8 18 16 22 23 18 23 2 16 6 8 2 1 6"/></svg>
-            </div>
-            <div class="dock-item" title="Music">
+            </button>
+            <button class="dock-item" type="button" data-view="music" title="Music" aria-label="Music">
                 <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>
-            </div>
-            <div class="dock-item" title="Phone">
+            </button>
+            <button class="dock-item" type="button" data-view="phone" title="Phone" aria-label="Phone">
                 <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07 19.5 19.5 0 01-6-6A19.79 19.79 0 012.12 4.18 2 2 0 014.11 2h3a2 2 0 012 1.72c.127.96.361 1.903.7 2.81a2 2 0 01-.45 2.11L8.09 9.91a16 16 0 006 6l1.27-1.27a2 2 0 012.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0122 16.92z"/></svg>
-            </div>
-            <div class="dock-item" title="Messages">
+            </button>
+            <button class="dock-item" type="button" data-view="messages" title="Messages" aria-label="Messages">
                 <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>
-            </div>
+            </button>
             <div class="dock-spacer"></div>
-            <div class="dock-item" title="Settings">
+            <button class="dock-item" type="button" data-view="settings" title="Settings" aria-label="Settings">
                 <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg>
-            </div>
+            </button>
         </aside>
 
         <!-- Main content -->
@@ -764,6 +1132,13 @@
             <div class="drive-area">
                 <!-- Top row: speed + nav turn -->
                 <div style="display:flex; flex-direction:column; gap:12px;">
+                    <div class="status-banner">
+                        <div class="status-banner-copy">
+                            <span class="status-banner-label" id="status-banner-label">Drive focus</span>
+                            <strong id="status-banner-title">Glance view active across navigation, media, and vehicle state.</strong>
+                        </div>
+                        <div class="status-chip" id="status-chip">All systems nominal</div>
+                    </div>
                     <div class="speed-cluster">
                         <div class="speed-main">
                             <div class="speed-num" id="speed">42</div>
@@ -783,15 +1158,26 @@
                     </div>
 
                     <div class="nav-card">
-                        <div class="nav-turn-icon">↰</div>
+                        <div class="nav-turn-icon" id="nav-turn-icon">↰</div>
                         <div class="nav-info">
                             <div class="nav-distance" id="nav-distance">0.8 mi</div>
-                            <div class="nav-street">La Jolla Village Dr</div>
+                            <div class="nav-street" id="nav-street">La Jolla Village Dr</div>
                         </div>
                         <div class="nav-eta">
                             <div class="nav-eta-time" id="eta">4:28 PM</div>
                             <div class="nav-eta-label" id="eta-detail">18 min · 12.4 mi</div>
                         </div>
+                    </div>
+
+                    <div class="trip-strip">
+                        <div class="trip-progress-meta">
+                            <span>Trip progress</span>
+                            <strong id="trip-progress-label">34% to Jacobs Medical Center</strong>
+                        </div>
+                        <div class="trip-progress-bar">
+                            <div class="trip-progress-fill" id="trip-progress-fill"></div>
+                        </div>
+                        <div class="route-chip" id="route-chip">Preferred route</div>
                     </div>
                 </div>
 
@@ -813,21 +1199,39 @@
                         <div class="drive-stat-label">Traffic</div>
                         <div class="drive-stat-value" id="traffic">Dense</div>
                     </div>
+                    <div class="drive-stat">
+                        <div class="drive-stat-label">Lane assist</div>
+                        <div class="drive-stat-value" id="lane-status">Ready</div>
+                    </div>
                 </div>
 
                 <!-- Bottom: next step + controls -->
                 <div class="bottom-row">
                     <div class="next-step">
-                        <div class="next-step-icon">⇢</div>
+                        <div class="next-step-icon" id="next-step-icon">⇢</div>
                         <div>
-                            <strong>Then merge onto I-5 South</strong>
-                            <span>Keep right for express lanes</span>
+                            <strong id="next-step-title">Then merge onto I-5 South</strong>
+                            <span id="next-step-copy">Keep right for express lanes</span>
+                        </div>
+                    </div>
+                    <div class="context-panel">
+                        <div class="context-icon" id="context-icon">⌘</div>
+                        <div class="context-copy">
+                            <span id="context-label">Dashboard mode</span>
+                            <strong id="context-title">Balanced glance layout</strong>
+                            <p id="context-copy">Tap an app on the dock to shift the surface focus and quick actions.</p>
+                        </div>
+                        <div class="context-actions">
+                            <button class="context-action" id="action-primary" type="button">Reroute</button>
+                            <button class="context-action" id="action-secondary" type="button">Details</button>
                         </div>
                     </div>
                     <div class="controls-row">
                         <button class="ctrl-btn" id="accelerate">▲ Accel</button>
                         <button class="ctrl-btn" id="brake">▼ Brake</button>
                         <button class="ctrl-btn" id="coast">◼ Coast</button>
+                        <button class="ctrl-btn ghost" id="toggle-cruise">Cruise</button>
+                        <button class="ctrl-btn ghost" id="toggle-lane">Lane Keep</button>
                     </div>
                 </div>
             </div>
@@ -835,8 +1239,11 @@
             <!-- Right: widget stack -->
             <div class="widget-stack">
                 <!-- Now Playing -->
-                <div class="widget">
-                    <div class="widget-label"><span class="widget-icon">♫</span> Now Playing</div>
+                <div class="widget" id="music-widget" data-widget="music">
+                    <div class="widget-head">
+                        <div class="widget-label"><span class="widget-icon">♫</span> Now Playing</div>
+                        <div class="widget-badge" id="music-badge">Live</div>
+                    </div>
                     <div class="media-widget">
                         <div class="media-art" id="album" style="background: linear-gradient(135deg, #ec4899, #8b5cf6);">♪</div>
                         <div class="media-info">
@@ -848,45 +1255,50 @@
                         </div>
                     </div>
                     <div class="media-controls">
+                        <button class="media-btn" id="prev-track">◀◀</button>
                         <button class="media-btn" id="toggle-play">❚❚</button>
                         <button class="media-btn" id="next-track">▶▶</button>
                     </div>
                 </div>
 
                 <!-- Phone -->
-                <div class="widget">
-                    <div class="widget-label"><span class="widget-icon">📞</span> Phone</div>
+                <div class="widget" id="phone-widget" data-widget="phone">
+                    <div class="widget-head">
+                        <div class="widget-label"><span class="widget-icon">📞</span> Phone</div>
+                        <div class="widget-badge" id="phone-badge">Recent</div>
+                    </div>
                     <div class="phone-widget">
-                        <div class="phone-avatar">JD</div>
+                        <div class="phone-avatar" id="phone-avatar">JD</div>
                         <div class="phone-info">
-                            <strong>Jordan Davis</strong>
-                            <span>Last call · 12 min ago</span>
+                            <strong id="phone-name">Jordan Davis</strong>
+                            <span id="phone-status">Last call · 12 min ago</span>
                         </div>
+                    </div>
+                    <div class="phone-actions">
+                        <button class="phone-btn primary" id="call-toggle">Call back</button>
+                        <button class="phone-btn" id="phone-cycle">Next contact</button>
                     </div>
                 </div>
 
                 <!-- Messages -->
-                <div class="widget">
-                    <div class="widget-label"><span class="widget-icon">💬</span> Messages</div>
-                    <div class="msg-item">
-                        <div class="msg-avatar" style="background: linear-gradient(135deg, var(--green), var(--teal));">A</div>
-                        <div class="msg-text">
-                            <strong>Alex</strong>
-                            <span>On my way, be there in 15</span>
-                        </div>
+                <div class="widget" id="messages-widget" data-widget="messages">
+                    <div class="widget-head">
+                        <div class="widget-label"><span class="widget-icon">💬</span> Messages</div>
+                        <div class="widget-badge" id="messages-badge">2</div>
                     </div>
-                    <div class="msg-item">
-                        <div class="msg-avatar" style="background: linear-gradient(135deg, var(--orange), var(--red));">M</div>
-                        <div class="msg-text">
-                            <strong>Mom</strong>
-                            <span>Don't forget to pick up groceries</span>
-                        </div>
+                    <div id="messages-list"></div>
+                    <div class="msg-toolbar">
+                        <button class="msg-toolbar-btn" id="reply-message">Quick reply</button>
+                        <button class="msg-toolbar-btn" id="clear-message">Mark read</button>
                     </div>
                 </div>
 
                 <!-- Climate -->
-                <div class="widget">
-                    <div class="widget-label"><span class="widget-icon">❄️</span> Climate</div>
+                <div class="widget" id="climate-widget" data-widget="settings">
+                    <div class="widget-head">
+                        <div class="widget-label"><span class="widget-icon">❄️</span> Climate</div>
+                        <div class="widget-badge" id="climate-badge">Auto</div>
+                    </div>
                     <div class="climate-row">
                         <div class="climate-item">
                             <span>Cabin</span>
@@ -894,36 +1306,38 @@
                         </div>
                         <div class="climate-item">
                             <span>Fan</span>
-                            <strong>Level 4</strong>
+                            <strong id="fan-level">Level 4</strong>
                         </div>
                         <div class="climate-item">
                             <span>Seat</span>
-                            <strong>On</strong>
+                            <strong id="seat-status">On</strong>
                         </div>
                         <div class="climate-item">
                             <span>Defrost</span>
-                            <strong>Off</strong>
+                            <strong id="defrost-status">Off</strong>
                         </div>
+                    </div>
+                    <div class="climate-toolbar">
+                        <button class="climate-btn" id="temp-down">Temp -</button>
+                        <button class="climate-btn" id="temp-up">Temp +</button>
+                        <button class="climate-btn" id="toggle-seat">Seat</button>
                     </div>
                 </div>
 
                 <!-- Calendar -->
-                <div class="widget">
-                    <div class="widget-label"><span class="widget-icon">📅</span> Calendar</div>
-                    <div class="cal-event">
-                        <div class="cal-dot"></div>
-                        <div class="cal-info">
-                            <strong>Team standup</strong>
-                            <span>4:45 PM · Google Meet</span>
-                        </div>
+                <div class="widget" id="calendar-widget" data-widget="dashboard">
+                    <div class="widget-head">
+                        <div class="widget-label"><span class="widget-icon">📅</span> Calendar</div>
+                        <div class="widget-badge" id="calendar-badge">2 soon</div>
                     </div>
+                    <div class="cal-list" id="calendar-list"></div>
                 </div>
 
                 <!-- Siri -->
-                <div class="widget" style="padding: 10px 14px;">
+                <div class="widget" id="siri-widget" data-widget="dashboard" style="padding: 10px 14px;">
                     <div class="siri-bar">
                         <div class="siri-orb"></div>
-                        <span>Traffic clearing ahead on I-5</span>
+                        <span id="siri-text">Traffic clearing ahead on I-5</span>
                     </div>
                 </div>
             </div>
@@ -931,79 +1345,480 @@
     </div>
 
     <script>
-        const tracks = [
-            { title: "Night Drive Signals", artist: "Sea Glass Circuit", color: "linear-gradient(135deg, #ec4899, #8b5cf6)" },
-            { title: "Pacific Overpass", artist: "Vector Bloom", color: "linear-gradient(135deg, #3b82f6, #06b6d4)" },
-            { title: "Afterglow Merge", artist: "Static Motel", color: "linear-gradient(135deg, #f59e0b, #ef4444)" }
-        ];
-
         const previewMode = new URLSearchParams(window.location.search).get("mode") === "preview";
         if (previewMode) document.body.classList.add("preview-mode");
 
-        let speed = 42, targetSpeed = 42, playing = true, trackIndex = 0;
-        let throttle = 34, regen = 8, progress = 38;
+        const $ = (id) => document.getElementById(id);
+        const dockButtons = [...document.querySelectorAll(".dock-item[data-view]")];
+        const widgets = [...document.querySelectorAll(".widget[data-widget]")];
 
-        const $ = id => document.getElementById(id);
+        const tracks = [
+            { title: "Night Drive Signals", artist: "Sea Glass Circuit", color: "linear-gradient(135deg, #ec4899, #8b5cf6)", tempo: "92 BPM", badge: "Live", progressStep: 0.14 },
+            { title: "Pacific Overpass", artist: "Vector Bloom", color: "linear-gradient(135deg, #3b82f6, #06b6d4)", tempo: "105 BPM", badge: "Queue", progressStep: 0.18 },
+            { title: "Afterglow Merge", artist: "Static Motel", color: "linear-gradient(135deg, #f59e0b, #ef4444)", tempo: "124 BPM", badge: "Mix", progressStep: 0.2 },
+            { title: "Glass Lane", artist: "Signal Harbour", color: "linear-gradient(135deg, #10b981, #64d2ff)", tempo: "98 BPM", badge: "Focus", progressStep: 0.16 }
+        ];
 
-        function setTrack(i) {
-            const t = tracks[i];
-            $("track").textContent = t.title;
-            $("artist").textContent = t.artist;
-            $("album").style.background = t.color;
+        const routes = [
+            {
+                destination: "Jacobs Medical Center",
+                street: "La Jolla Village Dr",
+                turnIcon: "↰",
+                currentCueBase: 0.82,
+                totalMiles: 12.4,
+                etaMinutes: 18,
+                cruiseSpeed: 47,
+                nextTitle: "Then merge onto I-5 South",
+                nextCopy: "Keep right for express lanes",
+                chip: "Preferred route",
+                siri: "Traffic clearing ahead on I-5.",
+                banner: "Navigation is leading through La Jolla Village with a clear merge window.",
+                points: [{ x: 48, y: 52 }, { x: 48, y: 37 }, { x: 38, y: 31 }, { x: 22, y: 28 }, { x: 22, y: 18 }]
+            },
+            {
+                destination: "Sorrento Valley Lab",
+                street: "Nobel Dr",
+                turnIcon: "↱",
+                currentCueBase: 0.54,
+                totalMiles: 8.6,
+                etaMinutes: 13,
+                cruiseSpeed: 39,
+                nextTitle: "Take the Nobel Dr exit",
+                nextCopy: "Prepare for surface street traffic",
+                chip: "Traffic aware",
+                siri: "Surface street traffic is moderate near Sorrento Valley.",
+                banner: "A shorter surface route is active with more frequent intersections.",
+                points: [{ x: 48, y: 52 }, { x: 48, y: 65 }, { x: 35, y: 72 }, { x: 23, y: 74 }]
+            },
+            {
+                destination: "Downtown San Diego",
+                street: "Genesee Ave",
+                turnIcon: "⇢",
+                currentCueBase: 1.24,
+                totalMiles: 17.9,
+                etaMinutes: 24,
+                cruiseSpeed: 56,
+                nextTitle: "Stay on Genesee Ave for 2 miles",
+                nextCopy: "Fastest route with fewer lane changes",
+                chip: "Express lanes open",
+                siri: "Express lanes stay open for another eleven miles.",
+                banner: "Long-route mode emphasizes ETA, energy, and lane stability.",
+                points: [{ x: 48, y: 52 }, { x: 60, y: 52 }, { x: 72, y: 52 }, { x: 72, y: 30 }, { x: 78, y: 18 }]
+            }
+        ];
+
+        const callContacts = [
+            { initials: "JD", name: "Jordan Davis", detail: "Last call · 12 min ago" },
+            { initials: "SK", name: "Sophia Kim", detail: "Recent call · 1 hr ago" },
+            { initials: "RD", name: "Riley Diaz", detail: "Missed call · Yesterday" }
+        ];
+
+        const messages = [
+            { avatar: "A", color: "linear-gradient(135deg, var(--green), var(--teal))", name: "Alex", text: "On my way, be there in 15", unread: true, reply: "Perfect, see you there." },
+            { avatar: "M", color: "linear-gradient(135deg, var(--orange), var(--red))", name: "Mom", text: "Don't forget to pick up groceries", unread: true, reply: "Got it. I’ll stop after the drive." },
+            { avatar: "K", color: "linear-gradient(135deg, var(--violet), var(--pink))", name: "Kai", text: "Lab moved to room 312", unread: false, reply: "Thanks for the heads up." }
+        ];
+
+        const calendarEvents = [
+            { title: "Team standup", detail: "4:45 PM · Google Meet", accent: "var(--orange)" },
+            { title: "Prototype review", detail: "5:30 PM · Design lab", accent: "var(--blue)" },
+            { title: "Dinner pickup", detail: "6:10 PM · Grove Market", accent: "var(--green)" }
+        ];
+
+        const viewConfigs = {
+            dashboard: {
+                label: "Dashboard mode",
+                title: "Balanced glance layout",
+                icon: "⌘",
+                copy: "Navigation, media, and vehicle state stay equally weighted for quick scans.",
+                primary: "Reroute",
+                secondary: "Details"
+            },
+            maps: {
+                label: "Maps focus",
+                title: "Route-first guidance",
+                icon: "↗",
+                copy: "Prioritize turn timing, trip progress, and traffic adjustments.",
+                primary: "Next route",
+                secondary: "Overview"
+            },
+            music: {
+                label: "Music focus",
+                title: "Playback front and center",
+                icon: "♪",
+                copy: "Promote playback state and quick transport controls without losing the drive surface.",
+                primary: "Next track",
+                secondary: "Pause"
+            },
+            phone: {
+                label: "Phone focus",
+                title: "Calls with low distraction",
+                icon: "✆",
+                copy: "Recent contacts and live call actions stay reachable with minimal visual noise.",
+                primary: "Call",
+                secondary: "Next"
+            },
+            messages: {
+                label: "Messages focus",
+                title: "Quick-reply surface",
+                icon: "✉",
+                copy: "Unread threads surface first, with one-tap actions for acknowledgment.",
+                primary: "Reply",
+                secondary: "Read"
+            },
+            settings: {
+                label: "Cabin settings",
+                title: "Climate + comfort controls",
+                icon: "⚙",
+                copy: "Adjust temperature, seat heat, and assist systems without leaving the dashboard.",
+                primary: "Temp +",
+                secondary: "Defrost"
+            }
+        };
+
+        const state = {
+            activeView: "dashboard",
+            speed: 42,
+            targetSpeed: 42,
+            throttle: 34,
+            regen: 8,
+            trackIndex: 0,
+            trackProgress: 0.38,
+            playing: true,
+            routeIndex: 0,
+            routeProgress: 0.34,
+            cruise: false,
+            laneKeep: true,
+            climateTemp: 68,
+            fanLevel: 4,
+            seatHeat: true,
+            defrost: false,
+            phoneIndex: 0,
+            callActive: false,
+            activeMessageIndex: 0,
+            messagePulseAt: performance.now()
+        };
+
+        function lerp(a, b, t) {
+            return a + (b - a) * t;
+        }
+
+        function clamp(value, min, max) {
+            return Math.min(Math.max(value, min), max);
+        }
+
+        function getCurrentRoute() {
+            return routes[state.routeIndex];
+        }
+
+        function getCurrentTrack() {
+            return tracks[state.trackIndex];
+        }
+
+        function getCurrentContact() {
+            return callContacts[state.phoneIndex];
+        }
+
+        function unreadCount() {
+            return messages.filter((item) => item.unread).length;
+        }
+
+        function currentMessage() {
+            return messages[state.activeMessageIndex % messages.length];
+        }
+
+        function setTrack(index) {
+            state.trackIndex = (index + tracks.length) % tracks.length;
+            state.trackProgress = 0.08;
+            const track = getCurrentTrack();
+            $("track").textContent = track.title;
+            $("artist").textContent = `${track.artist} · ${track.tempo}`;
+            $("album").style.background = track.color;
+            $("music-badge").textContent = track.badge;
+        }
+
+        function renderMessages() {
+            const list = $("messages-list");
+            list.innerHTML = messages.slice(0, 3).map((message) => `
+                <div class="msg-item">
+                    <div class="msg-avatar" style="background:${message.color};">${message.avatar}</div>
+                    <div class="msg-text">
+                        <strong>${message.name}${message.unread ? " •" : ""}</strong>
+                        <span>${message.text}</span>
+                    </div>
+                </div>
+            `).join("");
+            $("messages-badge").textContent = unreadCount() || "0";
+        }
+
+        function renderCalendar() {
+            const list = $("calendar-list");
+            list.innerHTML = calendarEvents.slice(0, 2).map((event) => `
+                <div class="cal-event">
+                    <div class="cal-dot" style="background:${event.accent};"></div>
+                    <div class="cal-info">
+                        <strong>${event.title}</strong>
+                        <span>${event.detail}</span>
+                    </div>
+                </div>
+            `).join("");
+            $("calendar-badge").textContent = `${calendarEvents.length} soon`;
+        }
+
+        function renderPhone() {
+            const contact = getCurrentContact();
+            $("phone-avatar").textContent = contact.initials;
+            $("phone-name").textContent = contact.name;
+            $("phone-status").textContent = state.callActive ? "Connected now · Hands-free audio" : contact.detail;
+            $("phone-badge").textContent = state.callActive ? "Live" : "Recent";
+            $("call-toggle").textContent = state.callActive ? "End call" : "Call back";
+        }
+
+        function updateFocus() {
+            dockButtons.forEach((button) => {
+                button.classList.toggle("active", button.dataset.view === state.activeView);
+            });
+            widgets.forEach((widget) => {
+                widget.classList.toggle("is-focused", widget.dataset.widget === state.activeView || (state.activeView === "dashboard" && widget.dataset.widget === "dashboard"));
+            });
+            document.body.dataset.view = state.activeView;
+
+            const route = getCurrentRoute();
+            const view = viewConfigs[state.activeView];
+            const message = currentMessage();
+            const track = getCurrentTrack();
+            const contact = getCurrentContact();
+
+            $("context-label").textContent = view.label;
+            $("context-icon").textContent = view.icon;
+
+            if (state.activeView === "maps") {
+                $("context-title").textContent = route.destination;
+                $("context-copy").textContent = route.banner;
+            } else if (state.activeView === "music") {
+                $("context-title").textContent = track.title;
+                $("context-copy").textContent = `${track.artist} · ${track.tempo}`;
+            } else if (state.activeView === "phone") {
+                $("context-title").textContent = contact.name;
+                $("context-copy").textContent = state.callActive ? "Call connected over the vehicle audio route." : "Tap once to resume the last conversation.";
+            } else if (state.activeView === "messages") {
+                $("context-title").textContent = `${message.name} · ${message.unread ? "Unread" : "Recent"}`;
+                $("context-copy").textContent = message.text;
+            } else if (state.activeView === "settings") {
+                $("context-title").textContent = `Cabin ${state.climateTemp}°F · Fan ${state.fanLevel}`;
+                $("context-copy").textContent = `Seat heat ${state.seatHeat ? "on" : "off"} · Defrost ${state.defrost ? "on" : "off"}`;
+            } else {
+                $("context-title").textContent = view.title;
+                $("context-copy").textContent = view.copy;
+            }
+
+            $("action-primary").textContent = view.primary;
+            $("action-secondary").textContent = view.secondary;
+        }
+
+        function updateMapBeacon() {
+            const route = getCurrentRoute();
+            const points = route.points;
+            const segmentCount = points.length - 1;
+            const scaled = clamp(state.routeProgress, 0, 0.999) * segmentCount;
+            const segmentIndex = Math.floor(scaled);
+            const localT = scaled - segmentIndex;
+            const start = points[segmentIndex];
+            const end = points[Math.min(segmentIndex + 1, points.length - 1)];
+            const x = lerp(start.x, end.x, localT);
+            const y = lerp(start.y, end.y, localT);
+            $("map-beacon").style.left = `${x}%`;
+            $("map-beacon").style.top = `${y}%`;
         }
 
         function updateUI() {
-            const s = Math.round(speed);
+            const route = getCurrentRoute();
+            const s = Math.round(state.speed);
+            const mode = state.targetSpeed > 76 ? "Sport" : state.cruise ? "Cruise" : state.targetSpeed < 18 ? "Hold" : "Eco";
+            const battery = clamp(Math.round(84 - state.routeProgress * 6 - state.speed / 20 - (state.climateTemp < 67 ? 2 : 0)), 51, 92);
+            const range = clamp(Math.round(226 - state.routeProgress * 46 - state.speed * 0.65), 118, 236);
+            const efficiency = state.speed < 28 ? 4.4 : state.speed < 48 ? 3.9 : state.speed < 65 ? 3.4 : 3.0;
+            const trafficLabel = state.speed < 25 ? "Heavy" : state.speed < 46 ? "Dense" : state.speed < 62 ? "Moving" : "Flowing";
+            const currentCue = Math.max(0.1, route.currentCueBase * (1 - state.routeProgress * 0.75));
+            const remainingMiles = Math.max(0.4, route.totalMiles * (1 - state.routeProgress));
+            const etaMinutes = Math.max(6, Math.round(route.etaMinutes - state.routeProgress * 7 - state.speed / 30));
+            const etaDate = new Date(Date.now() + etaMinutes * 60 * 1000);
+
             $("speed").textContent = s;
-
-            const battery = Math.max(54, 81 - Math.round(speed / 18));
-            const range = Math.max(126, 214 - Math.round(speed * 0.9));
-            const cabin = 69 - Math.min(2, Math.round(speed / 60));
-
+            $("gear").textContent = state.speed < 4 ? "P" : state.speed < 16 ? "D1" : state.speed < 36 ? "D2" : "D";
             $("battery").textContent = `${battery}%`;
             $("range").textContent = `${range} mi`;
-            $("cabin").textContent = `${cabin}°F`;
-            $("gear").textContent = speed < 4 ? "P" : speed < 12 ? "D1" : speed < 40 ? "D2" : "D";
+            $("cabin").textContent = `${state.climateTemp}°F`;
+            $("fan-level").textContent = `Level ${state.fanLevel}`;
+            $("seat-status").textContent = state.seatHeat ? "On" : "Off";
+            $("defrost-status").textContent = state.defrost ? "On" : "Off";
 
-            const mode = targetSpeed > 82 ? "Sport" : targetSpeed < 20 ? "Hold" : "Eco";
             $("mode").textContent = mode;
-            const dot = $("mode-dot");
-            dot.className = "pill-dot" + (mode === "Sport" ? " amber" : mode === "Hold" ? " red" : "");
+            const modeDot = $("mode-dot");
+            modeDot.className = "pill-dot" + (mode === "Sport" ? " amber" : mode === "Hold" ? " red" : "");
+            $("mode-pill").classList.toggle("is-active", state.cruise);
 
-            $("throttle-val").textContent = `${Math.round(throttle)}%`;
-            $("regen-val").textContent = `${Math.round(regen)}%`;
+            $("throttle-val").textContent = `${Math.round(state.throttle)}%`;
+            $("regen-val").textContent = `${Math.round(state.regen)}%`;
+            $("efficiency").textContent = `${efficiency.toFixed(1)} mi/kWh`;
+            $("traffic").textContent = trafficLabel;
+            $("lane-status").textContent = state.laneKeep ? (state.cruise ? "Centered" : "Ready") : "Manual";
 
-            const eta = Math.max(12, 22 - Math.round(speed / 12));
-            $("eta").textContent = speed < 38 ? "4:31 PM" : speed < 58 ? "4:28 PM" : "4:24 PM";
-            $("eta-detail").textContent = `${eta} min · 12.4 mi`;
-            $("traffic").textContent = speed < 28 ? "Heavy" : speed < 55 ? "Dense" : "Flowing";
-            $("nav-distance").textContent = speed < 38 ? "0.8 mi" : "0.5 mi";
-            $("efficiency").textContent = speed < 34 ? "4.1 mi/kWh" : speed < 58 ? "3.7 mi/kWh" : "3.2 mi/kWh";
-            $("progress").style.width = `${progress}%`;
+            $("nav-turn-icon").textContent = route.turnIcon;
+            $("nav-distance").textContent = `${currentCue.toFixed(1)} mi`;
+            $("nav-street").textContent = route.street;
+            $("eta").textContent = etaDate.toLocaleTimeString([], { hour: "numeric", minute: "2-digit" });
+            $("eta-detail").textContent = `${etaMinutes} min · ${remainingMiles.toFixed(1)} mi`;
+            $("trip-progress-label").textContent = `${Math.round(state.routeProgress * 100)}% to ${route.destination}`;
+            $("trip-progress-fill").style.width = `${Math.round(state.routeProgress * 100)}%`;
+            $("route-chip").textContent = route.chip;
+            $("next-step-title").textContent = route.nextTitle;
+            $("next-step-copy").textContent = route.nextCopy;
+
+            $("status-banner-label").textContent = state.activeView === "dashboard" ? "Drive focus" : `${state.activeView} focus`;
+            $("status-banner-title").textContent = state.activeView === "dashboard" ? route.banner : viewConfigs[state.activeView].copy;
+            $("status-chip").textContent = state.callActive ? "Call live" : state.cruise ? "Cruise engaged" : `${trafficLabel} traffic`;
+
+            $("siri-text").textContent = state.activeView === "music"
+                ? `Playing ${getCurrentTrack().title} with low-distraction controls.`
+                : state.activeView === "messages"
+                    ? `${unreadCount() || "No"} unread threads. ${currentMessage().name}: ${currentMessage().text}`
+                    : state.activeView === "settings"
+                        ? `Cabin set to ${state.climateTemp}°F with fan level ${state.fanLevel}.`
+                        : route.siri;
+
+            $("progress").style.width = `${Math.round(state.trackProgress)}%`;
+            $("toggle-play").textContent = state.playing ? "❚❚" : "▶";
+            $("toggle-cruise").classList.toggle("active", state.cruise);
+            $("toggle-lane").classList.toggle("active", state.laneKeep);
+            $("climate-badge").textContent = state.defrost ? "Defrost" : "Auto";
+            updateMapBeacon();
+            updateFocus();
         }
 
         function accelerate() {
-            targetSpeed = Math.min(135, targetSpeed + 22);
-            throttle = Math.min(100, throttle + 28);
-            regen = Math.max(0, regen - 6);
+            state.targetSpeed = clamp(state.targetSpeed + 18, 0, 96);
+            state.throttle = clamp(state.throttle + 24, 0, 100);
+            state.regen = clamp(state.regen - 8, 0, 70);
+            state.cruise = false;
         }
 
         function brake() {
-            targetSpeed = Math.max(0, targetSpeed - 26);
-            throttle = Math.max(0, throttle - 30);
-            regen = Math.min(64, regen + 24);
+            state.targetSpeed = clamp(state.targetSpeed - 22, 0, 96);
+            state.throttle = clamp(state.throttle - 30, 0, 100);
+            state.regen = clamp(state.regen + 24, 0, 80);
         }
 
         function coast() {
-            throttle = Math.max(8, throttle * 0.72);
-            regen = Math.max(4, regen * 0.82);
+            state.targetSpeed = clamp(state.targetSpeed - 4, 0, 96);
+            state.throttle = clamp(state.throttle * 0.7, 4, 100);
+            state.regen = clamp(state.regen * 0.84 + 3, 4, 80);
+        }
+
+        function cycleRoute() {
+            state.routeIndex = (state.routeIndex + 1) % routes.length;
+            state.routeProgress = 0.18;
+            state.targetSpeed = routes[state.routeIndex].cruiseSpeed;
+        }
+
+        function toggleCruise() {
+            state.cruise = !state.cruise;
+            if (state.cruise) state.targetSpeed = routes[state.routeIndex].cruiseSpeed;
+        }
+
+        function toggleLaneKeep() {
+            state.laneKeep = !state.laneKeep;
+        }
+
+        function handlePrimaryAction() {
+            if (state.activeView === "maps" || state.activeView === "dashboard") cycleRoute();
+            else if (state.activeView === "music") setTrack(state.trackIndex + 1);
+            else if (state.activeView === "phone") toggleCall();
+            else if (state.activeView === "messages") replyToMessage();
+            else if (state.activeView === "settings") adjustTemperature(1);
+        }
+
+        function handleSecondaryAction() {
+            if (state.activeView === "maps") state.routeProgress = Math.max(0.08, state.routeProgress - 0.12);
+            else if (state.activeView === "music") state.playing = !state.playing;
+            else if (state.activeView === "phone") cycleContact();
+            else if (state.activeView === "messages") markMessageRead();
+            else if (state.activeView === "settings") state.defrost = !state.defrost;
+        }
+
+        function cycleContact() {
+            state.phoneIndex = (state.phoneIndex + 1) % callContacts.length;
+            state.callActive = false;
+            renderPhone();
+        }
+
+        function toggleCall() {
+            state.callActive = !state.callActive;
+             renderPhone();
+            if (state.callActive) setActiveView("phone");
+        }
+
+        function replyToMessage() {
+            const message = currentMessage();
+            message.unread = false;
+            message.text = message.reply;
+            renderMessages();
+            setActiveView("messages");
+        }
+
+        function markMessageRead() {
+            currentMessage().unread = false;
+            state.activeMessageIndex = (state.activeMessageIndex + 1) % messages.length;
+            renderMessages();
+        }
+
+        function adjustTemperature(delta) {
+            state.climateTemp = clamp(state.climateTemp + delta, 64, 76);
+        }
+
+        function toggleSeat() {
+            state.seatHeat = !state.seatHeat;
+        }
+
+        function setActiveView(view) {
+            state.activeView = view;
+            updateUI();
         }
 
         function tick() {
-            speed += (targetSpeed - speed) * 0.06;
-            progress = (progress + (playing ? 0.12 : 0)) % 100;
-            throttle += (Math.max(6, targetSpeed - speed) - throttle) * 0.08;
-            regen += ((targetSpeed < speed ? 18 : 6) - regen) * 0.06;
+            const route = getCurrentRoute();
+            const track = getCurrentTrack();
+
+            if (state.cruise) {
+                state.targetSpeed += (route.cruiseSpeed - state.targetSpeed) * 0.03;
+            }
+
+            state.speed += (state.targetSpeed - state.speed) * 0.05;
+            state.throttle += ((state.targetSpeed > state.speed ? clamp(state.targetSpeed - state.speed + 10, 10, 72) : 8) - state.throttle) * 0.07;
+            state.regen += ((state.targetSpeed < state.speed ? 18 : 6) - state.regen) * 0.06;
+
+            const speedFactor = clamp(state.speed / 80, 0.08, 1);
+            state.routeProgress += 0.00018 * speedFactor;
+            if (state.routeProgress >= 0.98) {
+                state.routeProgress = 0.14;
+                state.routeIndex = (state.routeIndex + 1) % routes.length;
+            }
+
+            if (state.playing) {
+                state.trackProgress += track.progressStep * 0.03;
+                if (state.trackProgress >= 100) {
+                    setTrack(state.trackIndex + 1);
+                }
+            }
+
+            if (performance.now() - state.messagePulseAt > 14000) {
+                const nextIndex = (state.activeMessageIndex + 1) % messages.length;
+                messages[nextIndex].unread = true;
+                state.activeMessageIndex = nextIndex;
+                state.messagePulseAt = performance.now();
+                renderMessages();
+            }
+
             updateUI();
             requestAnimationFrame(tick);
         }
@@ -1011,24 +1826,84 @@
         $("accelerate").addEventListener("click", accelerate);
         $("brake").addEventListener("click", brake);
         $("coast").addEventListener("click", coast);
-
+        $("toggle-cruise").addEventListener("click", toggleCruise);
+        $("toggle-lane").addEventListener("click", toggleLaneKeep);
         $("toggle-play").addEventListener("click", () => {
-            playing = !playing;
-            $("toggle-play").textContent = playing ? "❚❚" : "▶";
+            state.playing = !state.playing;
+            updateUI();
         });
-
         $("next-track").addEventListener("click", () => {
-            trackIndex = (trackIndex + 1) % tracks.length;
-            setTrack(trackIndex);
+            setTrack(state.trackIndex + 1);
+            updateUI();
+        });
+        $("prev-track").addEventListener("click", () => {
+            setTrack(state.trackIndex - 1);
+            updateUI();
+        });
+        $("call-toggle").addEventListener("click", () => {
+            toggleCall();
+            updateUI();
+        });
+        $("phone-cycle").addEventListener("click", () => {
+            cycleContact();
+            updateUI();
+        });
+        $("reply-message").addEventListener("click", () => {
+            replyToMessage();
+            updateUI();
+        });
+        $("clear-message").addEventListener("click", () => {
+            markMessageRead();
+            updateUI();
+        });
+        $("temp-up").addEventListener("click", () => {
+            adjustTemperature(1);
+            updateUI();
+        });
+        $("temp-down").addEventListener("click", () => {
+            adjustTemperature(-1);
+            updateUI();
+        });
+        $("toggle-seat").addEventListener("click", () => {
+            toggleSeat();
+            updateUI();
+        });
+        $("action-primary").addEventListener("click", () => {
+            handlePrimaryAction();
+            updateUI();
+        });
+        $("action-secondary").addEventListener("click", () => {
+            handleSecondaryAction();
+            updateUI();
         });
 
-        window.addEventListener("keydown", e => {
-            if (e.key === "ArrowUp") accelerate();
-            if (e.key === "ArrowDown") brake();
-            if (e.key.toLowerCase() === "m") $("toggle-play").click();
+        dockButtons.forEach((button) => {
+            button.addEventListener("click", () => {
+                setActiveView(button.dataset.view);
+            });
+        });
+
+        window.addEventListener("keydown", (event) => {
+            if (event.key === "ArrowUp") accelerate();
+            if (event.key === "ArrowDown") brake();
+            if (event.key === " ") {
+                event.preventDefault();
+                state.playing = !state.playing;
+            }
+            if (event.key.toLowerCase() === "c") toggleCruise();
+            if (event.key.toLowerCase() === "l") toggleLaneKeep();
+            if (event.key.toLowerCase() === "r") cycleRoute();
+            if (/^[1-6]$/.test(event.key)) {
+                const map = ["dashboard", "maps", "music", "phone", "messages", "settings"];
+                setActiveView(map[Number(event.key) - 1]);
+            }
+            updateUI();
         });
 
         setTrack(0);
+        renderCalendar();
+        renderMessages();
+        renderPhone();
         updateUI();
         tick();
     </script>
