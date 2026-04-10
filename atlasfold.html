@@ -142,6 +142,42 @@
             </article>
         </section>
 
+        <!-- Live Interactive Runtime -->
+        <section class="project-stage-card section-animate">
+            <div class="project-stage-bar">
+                <div class="project-stage-label">Interactive 3D Anatomy Workspace</div>
+            </div>
+            <div style="padding:0 1.25rem 1.25rem;">
+                <div id="af-runtime" style="display:grid; grid-template-columns:220px minmax(0,1fr); gap:1rem; min-height:560px;">
+                    <!-- Sidebar -->
+                    <div style="display:grid; align-content:start; gap:0.85rem;">
+                        <div style="padding:1rem; border-radius:18px; border:1px solid rgba(148,163,184,0.16); background:rgba(10,14,23,0.55); display:grid; gap:0.35rem;">
+                            <span style="font-size:0.72rem; text-transform:uppercase; letter-spacing:0.12em; color:#94a3b8; font-weight:700;">Module</span>
+                            <strong style="font-size:0.96rem; color:#f8fafc;">Neurovascular Layers</strong>
+                            <small style="color:#9fb0c8; line-height:1.55; font-size:0.8rem;">Guided study: isolate layers, rotate to explore, then test recall.</small>
+                        </div>
+                        <div style="display:grid; gap:0.6rem;" id="af-layers"></div>
+                        <div style="display:grid; gap:0.5rem;">
+                            <button class="btn btn-secondary" style="padding:0.55rem 1rem; font-size:0.82rem; width:100%;" id="af-labels-btn">Toggle Labels</button>
+                            <button class="btn btn-primary" style="padding:0.55rem 1rem; font-size:0.82rem; width:100%;" id="af-quiz-btn">Start Quiz</button>
+                            <button class="btn btn-secondary" style="padding:0.55rem 1rem; font-size:0.82rem; width:100%;" id="af-reset-btn">Reset View</button>
+                        </div>
+                        <div id="af-quiz-panel" style="display:none; padding:1rem; border-radius:18px; border:1px solid rgba(96,165,250,0.3); background:rgba(59,130,246,0.06); display:grid; gap:0.5rem;">
+                        </div>
+                        <div id="af-score" style="font-size:0.82rem; color:#94a3b8; min-height:1.4em;"></div>
+                    </div>
+                    <!-- 3D canvas -->
+                    <div style="position:relative; border-radius:22px; border:1px solid rgba(148,163,184,0.16); background:rgba(10,14,23,0.55); overflow:hidden; min-height:500px;">
+                        <div style="position:absolute; top:0.85rem; left:1rem; right:1rem; display:flex; justify-content:space-between; z-index:2; pointer-events:none;">
+                            <strong style="font-size:0.92rem; color:#ecfeff;">3D Study Space</strong>
+                            <span style="font-size:0.72rem; color:#94a3b8; letter-spacing:0.1em; text-transform:uppercase;">click + drag to rotate</span>
+                        </div>
+                        <canvas id="af-canvas" style="width:100%; height:100%; display:block; cursor:grab;"></canvas>
+                    </div>
+                </div>
+            </div>
+        </section>
+
         <section class="project-copy-grid section-animate">
             <article class="project-copy-card">
                 <h3>Visual Direction</h3>
@@ -150,13 +186,433 @@
                 </p>
             </article>
             <article class="project-copy-card">
+                <h3>Rendering Pipeline</h3>
+                <p>
+                    The 3D model uses a lightweight wireframe renderer on a 2D canvas with manual projection math (no Three.js dependency). Each anatomical layer is a separate vertex/edge set that can be toggled independently, giving the learner direct control over visual complexity. Depth sorting and opacity scaling create a sense of spatial structure without a full WebGL pipeline.
+                </p>
+            </article>
+            <article class="project-copy-card">
+                <h3>Study + Recall Loop</h3>
+                <p>
+                    The workspace is structured around a three-phase loop: explore with labels visible, then hide labels and try to name structures from their spatial position, then enter quiz mode where the system highlights a region and asks for identification. This mirrors proven active-recall strategies from spaced-repetition research applied to spatial anatomy content.
+                </p>
+            </article>
+            <article class="project-copy-card">
                 <h3>Next Step</h3>
                 <p>
-                    A stronger prototype would add real rotation controls, label reveal states, and study checkpoints tied to anatomy selection. That would turn the concept from a polished mock interface into a genuinely interactive education demo.
+                    A stronger prototype would add real medical mesh data (e.g. skull or limb models), cross-section plane slicing, and study checkpoint scoring tied to anatomy selection. That would turn the concept from a polished mock interface into a genuinely interactive education demo.
                 </p>
             </article>
         </section>
     </main>
+
+    <script>
+    (function() {
+        const canvas = document.getElementById('af-canvas');
+        const ctx = canvas.getContext('2d');
+        let W, H;
+        let rotX = -0.35, rotY = 0.6, autoRotate = true;
+        let dragging = false, lastMX = 0, lastMY = 0;
+        let showLabels = true, quizMode = false;
+        let quizTarget = null, quizScore = 0, quizTotal = 0;
+
+        const layers = [
+            { name: 'Bone Structure', color: '#e2e8f0', visible: true, key: 'bone' },
+            { name: 'Arterial Path', color: '#ef4444', visible: true, key: 'artery' },
+            { name: 'Venous Return', color: '#3b82f6', visible: true, key: 'vein' },
+            { name: 'Nerve Bundle', color: '#fbbf24', visible: false, key: 'nerve' },
+            { name: 'Muscle Mass', color: '#10b981', visible: false, key: 'muscle' },
+        ];
+
+        function skull() {
+            const v = [];
+            const rings = 12, segs = 16;
+            for (let i = 0; i <= rings; i++) {
+                const phi = (i / rings) * Math.PI;
+                const ry = Math.cos(phi) * 55;
+                const r = Math.sin(phi) * 45 * (1 + 0.15 * Math.sin(phi * 2));
+                for (let j = 0; j < segs; j++) {
+                    const theta = (j / segs) * Math.PI * 2;
+                    v.push([Math.cos(theta) * r, ry + 20, Math.sin(theta) * r]);
+                }
+            }
+            const spine = [];
+            for (let i = 0; i < 8; i++) {
+                const y = -35 - i * 14;
+                const r = 8 + Math.sin(i * 0.5) * 2;
+                for (let j = 0; j < 8; j++) {
+                    const theta = (j / 8) * Math.PI * 2;
+                    spine.push([Math.cos(theta) * r, y, Math.sin(theta) * r]);
+                }
+            }
+            return { vertices: v.concat(spine), ringSize: segs, rings: rings + 1, spineStart: v.length, spineSegs: 8 };
+        }
+
+        function arteryPath() {
+            const pts = [];
+            for (let i = 0; i < 30; i++) {
+                const t = i / 29;
+                const y = 60 - t * 160;
+                const x = Math.sin(t * 4) * 12 + (t > 0.5 ? (t - 0.5) * 30 : 0);
+                const z = Math.cos(t * 3) * 8;
+                pts.push([x, y, z]);
+            }
+            const branches = [];
+            for (let b = 0; b < 5; b++) {
+                const baseIdx = 5 + b * 5;
+                const base = pts[baseIdx];
+                const dir = b % 2 === 0 ? 1 : -1;
+                for (let j = 1; j <= 4; j++) {
+                    branches.push([base[0] + dir * j * 8, base[1] - j * 4, base[2] + (j % 2 === 0 ? 5 : -5)]);
+                }
+            }
+            return { main: pts, branches };
+        }
+
+        function veinPath() {
+            const pts = [];
+            for (let i = 0; i < 25; i++) {
+                const t = i / 24;
+                const y = 50 - t * 150;
+                const x = -Math.sin(t * 3.5) * 14 - 8;
+                const z = Math.cos(t * 2.5) * 10 + 5;
+                pts.push([x, y, z]);
+            }
+            return pts;
+        }
+
+        function nervePath() {
+            const pts = [];
+            for (let i = 0; i < 20; i++) {
+                const t = i / 19;
+                const y = 40 - t * 130;
+                const x = Math.sin(t * 5) * 6 + 15;
+                const z = Math.cos(t * 4) * 6;
+                pts.push([x, y, z]);
+            }
+            const branches = [];
+            for (let b = 0; b < 4; b++) {
+                const base = pts[4 + b * 4];
+                for (let j = 1; j <= 3; j++) {
+                    branches.push([base[0] + j * 6, base[1] - j * 3, base[2] + j * 4 * (b % 2 === 0 ? 1 : -1)]);
+                }
+            }
+            return { main: pts, branches };
+        }
+
+        function muscleMass() {
+            const pts = [];
+            const groups = [
+                { cx: 25, cy: -20, cz: 0, rx: 18, ry: 30, rz: 12 },
+                { cx: -25, cy: -20, cz: 0, rx: 18, ry: 30, rz: 12 },
+                { cx: 0, cy: -60, cz: 0, rx: 14, ry: 20, rz: 14 },
+            ];
+            groups.forEach(g => {
+                for (let i = 0; i < 6; i++) {
+                    const phi = (i / 5) * Math.PI;
+                    for (let j = 0; j < 8; j++) {
+                        const theta = (j / 8) * Math.PI * 2;
+                        pts.push([
+                            g.cx + Math.sin(phi) * Math.cos(theta) * g.rx,
+                            g.cy + Math.cos(phi) * g.ry,
+                            g.cz + Math.sin(phi) * Math.sin(theta) * g.rz
+                        ]);
+                    }
+                }
+            });
+            return { vertices: pts, groupSize: 48 };
+        }
+
+        const boneData = skull();
+        const arteryData = arteryPath();
+        const veinData = veinPath();
+        const nerveData = nervePath();
+        const muscleData = muscleMass();
+
+        const labelPoints = [
+            { name: 'Temporal Bone', pos: [40, 30, 20], layer: 'bone' },
+            { name: 'Frontal Bone', pos: [0, 70, 40], layer: 'bone' },
+            { name: 'Cervical Spine', pos: [0, -60, 8], layer: 'bone' },
+            { name: 'Carotid Artery', pos: [12, 10, 0], layer: 'artery' },
+            { name: 'Vertebral Artery', pos: [20, -30, 5], layer: 'artery' },
+            { name: 'Jugular Vein', pos: [-14, 0, 10], layer: 'vein' },
+            { name: 'Facial Nerve', pos: [18, 20, 10], layer: 'nerve' },
+            { name: 'Trapezius', pos: [25, -20, 0], layer: 'muscle' },
+        ];
+
+        function project(x, y, z) {
+            const cy = Math.cos(rotY), sy = Math.sin(rotY);
+            const cx = Math.cos(rotX), sx = Math.sin(rotX);
+            let nx = x * cy - z * sy;
+            let nz = x * sy + z * cy;
+            let ny = y * cx - nz * sx;
+            nz = y * sx + nz * cx;
+            const scale = 320 / (320 + nz);
+            return { x: W / 2 + nx * scale, y: H / 2 - ny * scale, depth: nz, scale };
+        }
+
+        function drawLine(p1, p2, color, alpha, width) {
+            const a1 = Math.max(0.1, Math.min(1, 1 - p1.depth / 300)) * alpha;
+            const a2 = Math.max(0.1, Math.min(1, 1 - p2.depth / 300)) * alpha;
+            ctx.strokeStyle = color;
+            ctx.globalAlpha = (a1 + a2) / 2;
+            ctx.lineWidth = width * ((p1.scale + p2.scale) / 2);
+            ctx.beginPath();
+            ctx.moveTo(p1.x, p1.y);
+            ctx.lineTo(p2.x, p2.y);
+            ctx.stroke();
+        }
+
+        function drawBone() {
+            if (!layers[0].visible) return;
+            const d = boneData;
+            const color = layers[0].color;
+            for (let i = 0; i < d.rings; i++) {
+                for (let j = 0; j < d.ringSize; j++) {
+                    const idx = i * d.ringSize + j;
+                    const next = i * d.ringSize + (j + 1) % d.ringSize;
+                    const p1 = project(...d.vertices[idx]);
+                    const p2 = project(...d.vertices[next]);
+                    drawLine(p1, p2, color, 0.5, 0.8);
+                    if (i < d.rings - 1) {
+                        const below = (i + 1) * d.ringSize + j;
+                        drawLine(p1, project(...d.vertices[below]), color, 0.35, 0.6);
+                    }
+                }
+            }
+            for (let i = 0; i < 8; i++) {
+                for (let j = 0; j < d.spineSegs; j++) {
+                    const idx = d.spineStart + i * d.spineSegs + j;
+                    const next = d.spineStart + i * d.spineSegs + (j + 1) % d.spineSegs;
+                    drawLine(project(...d.vertices[idx]), project(...d.vertices[next]), color, 0.4, 0.7);
+                    if (i < 7) {
+                        const below = d.spineStart + (i + 1) * d.spineSegs + j;
+                        drawLine(project(...d.vertices[idx]), project(...d.vertices[below]), color, 0.25, 0.5);
+                    }
+                }
+            }
+        }
+
+        function drawPathLayer(pts, color, width, alpha) {
+            for (let i = 0; i < pts.length - 1; i++) {
+                drawLine(project(...pts[i]), project(...pts[i + 1]), color, alpha, width);
+            }
+        }
+
+        function drawArtery() {
+            if (!layers[1].visible) return;
+            drawPathLayer(arteryData.main, layers[1].color, 1.8, 0.85);
+            for (let b = 0; b < 5; b++) {
+                const baseIdx = 5 + b * 5;
+                const base = arteryData.main[baseIdx];
+                const bp = project(...base);
+                for (let j = 0; j < 4; j++) {
+                    const brPt = arteryData.branches[b * 4 + j];
+                    const prev = j === 0 ? base : arteryData.branches[b * 4 + j - 1];
+                    drawLine(project(...prev), project(...brPt), layers[1].color, 0.6, 1.0);
+                }
+            }
+        }
+
+        function drawVein() {
+            if (!layers[2].visible) return;
+            drawPathLayer(veinData, layers[2].color, 1.6, 0.75);
+        }
+
+        function drawNerve() {
+            if (!layers[3].visible) return;
+            drawPathLayer(nerveData.main, layers[3].color, 1.2, 0.8);
+            for (let b = 0; b < 4; b++) {
+                const base = nerveData.main[4 + b * 4];
+                for (let j = 0; j < 3; j++) {
+                    const prev = j === 0 ? base : nerveData.branches[b * 3 + j - 1];
+                    drawLine(project(...prev), project(...nerveData.branches[b * 3 + j]), layers[3].color, 0.5, 0.8);
+                }
+            }
+        }
+
+        function drawMuscle() {
+            if (!layers[4].visible) return;
+            const d = muscleData;
+            for (let g = 0; g < 3; g++) {
+                for (let i = 0; i < 6; i++) {
+                    for (let j = 0; j < 8; j++) {
+                        const idx = g * 48 + i * 8 + j;
+                        const next = g * 48 + i * 8 + (j + 1) % 8;
+                        drawLine(project(...d.vertices[idx]), project(...d.vertices[next]), layers[4].color, 0.3, 0.6);
+                        if (i < 5) {
+                            const below = g * 48 + (i + 1) * 8 + j;
+                            drawLine(project(...d.vertices[idx]), project(...d.vertices[below]), layers[4].color, 0.2, 0.4);
+                        }
+                    }
+                }
+            }
+        }
+
+        function drawLabels() {
+            if (!showLabels && !quizMode) return;
+            ctx.globalAlpha = 1;
+            labelPoints.forEach(lp => {
+                const layer = layers.find(l => l.key === lp.layer);
+                if (!layer || !layer.visible) return;
+                const p = project(...lp.pos);
+                const isTarget = quizMode && quizTarget && quizTarget.name === lp.name;
+
+                if (isTarget) {
+                    ctx.fillStyle = '#fbbf24';
+                    ctx.beginPath();
+                    ctx.arc(p.x, p.y, 8, 0, Math.PI * 2);
+                    ctx.fill();
+                    ctx.fillStyle = '#0f172a';
+                    ctx.font = `bold ${11 * devicePixelRatio}px Inter, sans-serif`;
+                    ctx.fillText('?', p.x - 3 * devicePixelRatio, p.y + 4 * devicePixelRatio);
+                } else if (showLabels && !quizMode) {
+                    ctx.fillStyle = layer.color + '99';
+                    ctx.beginPath();
+                    ctx.arc(p.x, p.y, 4, 0, Math.PI * 2);
+                    ctx.fill();
+                    ctx.fillStyle = '#e2e8f0';
+                    ctx.font = `${10 * devicePixelRatio}px Inter, sans-serif`;
+                    ctx.fillText(lp.name, p.x + 8, p.y + 4);
+                }
+            });
+        }
+
+        function resize() {
+            const r = canvas.getBoundingClientRect();
+            W = canvas.width = Math.round(r.width * devicePixelRatio);
+            H = canvas.height = Math.round(r.height * devicePixelRatio);
+        }
+
+        function draw() {
+            ctx.clearRect(0, 0, W, H);
+            ctx.globalAlpha = 1;
+
+            ctx.strokeStyle = 'rgba(125,211,252,0.08)';
+            ctx.lineWidth = 1;
+            for (let i = 0; i < 3; i++) {
+                const r = 80 + i * 50;
+                ctx.beginPath();
+                ctx.ellipse(W / 2, H / 2, r * 1.2, r * 0.5, 0, 0, Math.PI * 2);
+                ctx.stroke();
+            }
+
+            drawBone();
+            drawMuscle();
+            drawVein();
+            drawArtery();
+            drawNerve();
+            drawLabels();
+            ctx.globalAlpha = 1;
+        }
+
+        function loop() {
+            if (autoRotate && !dragging) rotY += 0.004;
+            draw();
+            requestAnimationFrame(loop);
+        }
+
+        canvas.addEventListener('pointerdown', e => {
+            dragging = true; autoRotate = false;
+            lastMX = e.clientX; lastMY = e.clientY;
+            canvas.style.cursor = 'grabbing';
+        });
+        window.addEventListener('pointermove', e => {
+            if (!dragging) return;
+            rotY += (e.clientX - lastMX) * 0.008;
+            rotX += (e.clientY - lastMY) * 0.008;
+            rotX = Math.max(-Math.PI / 2, Math.min(Math.PI / 2, rotX));
+            lastMX = e.clientX; lastMY = e.clientY;
+        });
+        window.addEventListener('pointerup', () => { dragging = false; canvas.style.cursor = 'grab'; });
+
+        function buildLayers() {
+            const el = document.getElementById('af-layers');
+            el.innerHTML = '';
+            layers.forEach((l, i) => {
+                const card = document.createElement('div');
+                card.style.cssText = `min-height:42px; border-radius:14px; border:1px solid ${l.visible ? l.color + '44' : 'rgba(148,163,184,0.12)'}; background:${l.visible ? l.color + '12' : 'rgba(10,14,23,0.4)'}; display:flex; align-items:center; justify-content:space-between; padding:0.55rem 0.85rem; cursor:pointer; transition:all 0.2s;`;
+                card.innerHTML = `<span style="font-size:0.82rem; color:${l.visible ? l.color : '#64748b'}; font-weight:600;">${l.name}</span><div style="width:12px; height:12px; border-radius:50%; background:${l.visible ? l.color : 'rgba(100,116,139,0.3)'}; border:2px solid ${l.visible ? l.color : 'rgba(100,116,139,0.4)'};"></div>`;
+                card.addEventListener('click', () => { l.visible = !l.visible; buildLayers(); });
+                el.appendChild(card);
+            });
+        }
+
+        document.getElementById('af-labels-btn').addEventListener('click', () => {
+            showLabels = !showLabels;
+            document.getElementById('af-labels-btn').textContent = showLabels ? 'Hide Labels' : 'Show Labels';
+        });
+
+        document.getElementById('af-reset-btn').addEventListener('click', () => {
+            rotX = -0.35; rotY = 0.6; autoRotate = true;
+            layers.forEach(l => l.visible = ['bone', 'artery', 'vein'].includes(l.key));
+            showLabels = true;
+            document.getElementById('af-labels-btn').textContent = 'Hide Labels';
+            buildLayers();
+        });
+
+        document.getElementById('af-quiz-btn').addEventListener('click', () => {
+            if (!quizMode) {
+                quizMode = true; quizScore = 0; quizTotal = 0;
+                showLabels = false;
+                layers.forEach(l => l.visible = true);
+                buildLayers();
+                document.getElementById('af-quiz-btn').textContent = 'End Quiz';
+                document.getElementById('af-labels-btn').textContent = 'Show Labels';
+                nextQuizQuestion();
+            } else {
+                quizMode = false; quizTarget = null;
+                document.getElementById('af-quiz-btn').textContent = 'Start Quiz';
+                document.getElementById('af-quiz-panel').style.display = 'none';
+                document.getElementById('af-score').textContent = `Quiz ended: ${quizScore}/${quizTotal}`;
+            }
+        });
+
+        function nextQuizQuestion() {
+            const visible = labelPoints.filter(lp => {
+                const layer = layers.find(l => l.key === lp.layer);
+                return layer && layer.visible;
+            });
+            if (visible.length === 0) return;
+            quizTarget = visible[Math.floor(Math.random() * visible.length)];
+            quizTotal++;
+            const panel = document.getElementById('af-quiz-panel');
+            panel.style.display = 'grid';
+
+            const options = [quizTarget.name];
+            const all = labelPoints.map(l => l.name).filter(n => n !== quizTarget.name);
+            while (options.length < Math.min(4, labelPoints.length)) {
+                const pick = all[Math.floor(Math.random() * all.length)];
+                if (!options.includes(pick)) options.push(pick);
+            }
+            options.sort(() => Math.random() - 0.5);
+
+            panel.innerHTML = `<span style="font-size:0.74rem; text-transform:uppercase; letter-spacing:0.12em; color:#60a5fa; font-weight:700;">Identify the highlighted structure</span>`;
+            options.forEach(opt => {
+                const btn = document.createElement('button');
+                btn.className = 'btn btn-secondary';
+                btn.style.cssText = 'padding:0.5rem 0.85rem; font-size:0.82rem; width:100%; text-align:left; justify-content:flex-start;';
+                btn.textContent = opt;
+                btn.addEventListener('click', () => {
+                    if (opt === quizTarget.name) {
+                        quizScore++;
+                        document.getElementById('af-score').textContent = `Correct! Score: ${quizScore}/${quizTotal}`;
+                        btn.style.borderColor = '#10b981'; btn.style.color = '#10b981';
+                    } else {
+                        document.getElementById('af-score').textContent = `Incorrect — it was "${quizTarget.name}". Score: ${quizScore}/${quizTotal}`;
+                        btn.style.borderColor = '#f87171'; btn.style.color = '#f87171';
+                    }
+                    setTimeout(nextQuizQuestion, 1200);
+                });
+                panel.appendChild(btn);
+            });
+        }
+
+        buildLayers();
+        window.addEventListener('load', () => { resize(); loop(); });
+        window.addEventListener('resize', resize);
+    })();
+    </script>
 
     <script src="script.js"></script>
 </body>

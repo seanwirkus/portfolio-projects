@@ -173,11 +173,75 @@
             </article>
         </section>
 
+        <!-- Live Interactive Runtime -->
+        <section class="project-stage-card section-animate">
+            <div class="project-stage-bar">
+                <div class="project-stage-label">Live Signal Monitor</div>
+                <div class="project-stage-actions">
+                    <span class="project-inline-link" id="ss-pause-btn" style="cursor:pointer;">Pause</span>
+                </div>
+            </div>
+            <div style="padding:0 1.25rem 1.25rem;">
+                <div id="ss-runtime" style="display:grid; grid-template-columns:210px minmax(0,1fr); gap:1rem; min-height:520px;">
+                    <!-- Patient queue -->
+                    <div id="ss-queue" style="display:grid; align-content:start; gap:0.7rem;"></div>
+                    <!-- Main review area -->
+                    <div style="display:grid; gap:0.85rem; align-content:start;">
+                        <div id="ss-banner" style="display:flex; justify-content:space-between; align-items:center; padding:0.9rem 1rem; border-radius:18px; border:1px solid rgba(148,163,184,0.16); background:rgba(10,14,23,0.55);"></div>
+                        <div style="display:grid; gap:0.7rem;">
+                            <div style="position:relative; border-radius:18px; border:1px solid rgba(45,212,191,0.22); background:rgba(10,14,23,0.55); padding:0.7rem 0.9rem; overflow:hidden;">
+                                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.3rem; position:relative; z-index:1;">
+                                    <strong style="font-size:0.92rem; color:#ecfeff;">ECG</strong>
+                                    <span style="font-size:0.72rem; color:#94a3b8; letter-spacing:0.08em;" id="ss-ecg-info">Lead II · 72s window</span>
+                                </div>
+                                <canvas id="ss-ecg" style="width:100%; height:90px; display:block; border-radius:12px;"></canvas>
+                            </div>
+                            <div style="position:relative; border-radius:18px; border:1px solid rgba(56,189,248,0.22); background:rgba(10,14,23,0.55); padding:0.7rem 0.9rem; overflow:hidden;">
+                                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.3rem; position:relative; z-index:1;">
+                                    <strong style="font-size:0.92rem; color:#ecfeff;">Respiration</strong>
+                                    <span style="font-size:0.72rem; color:#94a3b8; letter-spacing:0.08em;" id="ss-resp-info">Breath trend</span>
+                                </div>
+                                <canvas id="ss-resp" style="width:100%; height:70px; display:block; border-radius:12px;"></canvas>
+                            </div>
+                            <div style="position:relative; border-radius:18px; border:1px solid rgba(16,185,129,0.22); background:rgba(10,14,23,0.55); padding:0.7rem 0.9rem; overflow:hidden;">
+                                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.3rem; position:relative; z-index:1;">
+                                    <strong style="font-size:0.92rem; color:#ecfeff;">PPG / SpO₂</strong>
+                                    <span style="font-size:0.72rem; color:#94a3b8; letter-spacing:0.08em;" id="ss-ppg-info">Photoplethysmogram</span>
+                                </div>
+                                <canvas id="ss-ppg" style="width:100%; height:70px; display:block; border-radius:12px;"></canvas>
+                            </div>
+                        </div>
+                        <!-- Metrics strip -->
+                        <div id="ss-metrics" style="display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:0.7rem;"></div>
+                        <!-- Annotation bar -->
+                        <div style="display:flex; gap:0.65rem; flex-wrap:wrap;" id="ss-actions">
+                            <button class="btn btn-primary" style="padding:0.6rem 1.2rem; font-size:0.85rem;" id="ss-annotate">Mark Artifact</button>
+                            <button class="btn btn-secondary" style="padding:0.6rem 1.2rem; font-size:0.85rem;" id="ss-escalate">Escalate</button>
+                            <button class="btn btn-secondary" style="padding:0.6rem 1.2rem; font-size:0.85rem;" id="ss-dismiss">Dismiss</button>
+                        </div>
+                        <div id="ss-log" style="font-size:0.82rem; color:#94a3b8; min-height:1.4em;"></div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
         <section class="project-copy-grid section-animate">
             <article class="project-copy-card">
                 <h3>Interaction Model</h3>
                 <p>
                     The interface is intentionally biased toward scan-then-act behavior: a reviewer should be able to identify signal quality, compare channels, and record a concise note in seconds. The layout therefore keeps priority states and waveform relationships visible at the same time.
+                </p>
+            </article>
+            <article class="project-copy-card">
+                <h3>Architecture Rationale</h3>
+                <p>
+                    Streams arrive as packetized WebRTC data channels, decoded client-side into typed arrays for each signal modality. D3 handles axis scaling and annotation overlays while the raw waveform draws through a direct canvas path for consistent frame pacing. The queue state is event-sourced so multiple reviewers could share triage position without conflicts.
+                </p>
+            </article>
+            <article class="project-copy-card">
+                <h3>Clinical Signal Pipeline</h3>
+                <p>
+                    Each incoming segment passes through a quality gate that scores lead contact, baseline drift, and motion artifact density. Segments below threshold are flagged before a reviewer even opens the record, so the queue naturally front-loads the cases that need human judgment rather than routine confirmation.
                 </p>
             </article>
             <article class="project-copy-card">
@@ -188,6 +252,198 @@
             </article>
         </section>
     </main>
+
+    <script>
+    (function() {
+        const patients = [
+            { id: 'P-1041', label: 'Artifact Review', status: 'active', age: '2 min ago', detail: 'Motion spike + lead loss', hr: 74, spo2: 97, rr: 16, quality: 92, ecgNote: 'Lead II · 72s window' },
+            { id: 'P-1042', label: 'Stable Trend', status: 'stable', age: '8 min ago', detail: 'Overnight respiration drift', hr: 68, spo2: 99, rr: 14, quality: 98, ecgNote: 'Lead II · stable' },
+            { id: 'P-1043', label: 'Escalated Event', status: 'critical', age: '12 min ago', detail: 'Irregular peaks flagged', hr: 102, spo2: 93, rr: 22, quality: 71, ecgNote: 'Lead II · irregular' },
+            { id: 'P-1044', label: 'Baseline Check', status: 'stable', age: '19 min ago', detail: 'New wearable calibration', hr: 81, spo2: 98, rr: 17, quality: 88, ecgNote: 'Lead I · calibrating' },
+            { id: 'P-1045', label: 'Noise Segment', status: 'active', age: '26 min ago', detail: 'Electrode contact lost x3', hr: 77, spo2: 96, rr: 18, quality: 64, ecgNote: 'Lead II · noisy' },
+        ];
+        let current = 0;
+        let paused = false;
+        let t = 0;
+        let annotations = [];
+
+        function buildQueue() {
+            const el = document.getElementById('ss-queue');
+            el.innerHTML = '';
+            patients.forEach((p, i) => {
+                const card = document.createElement('div');
+                const isActive = i === current;
+                const borderColor = p.status === 'critical' ? 'rgba(248,113,113,0.32)' : p.status === 'active' ? 'rgba(45,212,191,0.32)' : 'rgba(148,163,184,0.16)';
+                const bg = isActive ? 'rgba(45,212,191,0.08)' : 'rgba(10,14,23,0.55)';
+                card.style.cssText = `padding:0.85rem; border-radius:18px; border:1px solid ${borderColor}; background:${bg}; cursor:pointer; display:grid; gap:0.25rem; transition:background 0.2s, border-color 0.2s;`;
+                if (isActive) card.style.borderColor = 'rgba(45,212,191,0.5)';
+                const statusColor = p.status === 'critical' ? '#f87171' : p.status === 'active' ? '#2dd4bf' : '#94a3b8';
+                card.innerHTML = `<span style="font-size:0.7rem; text-transform:uppercase; letter-spacing:0.12em; color:${statusColor}; font-weight:700;">${p.id} · ${p.status}</span><strong style="font-size:0.92rem; color:#f8fafc;">${p.label}</strong><small style="color:#9fb0c8; font-size:0.78rem; line-height:1.5;">${p.age} · ${p.detail}</small>`;
+                card.addEventListener('click', () => { current = i; annotations = []; buildQueue(); updateBanner(); updateMetrics(); });
+                el.appendChild(card);
+            });
+        }
+
+        function updateBanner() {
+            const p = patients[current];
+            const el = document.getElementById('ss-banner');
+            const qColor = p.quality >= 90 ? '#2dd4bf' : p.quality >= 75 ? '#fbbf24' : '#f87171';
+            el.innerHTML = `<div style="display:grid; gap:0.15rem;"><em style="font-style:normal; color:rgba(148,163,184,0.88); font-size:0.74rem; text-transform:uppercase; letter-spacing:0.1em;">Current review</em><strong style="font-size:1rem; color:#ecfeff;">Session ${p.id}</strong></div><div style="padding:0.42rem 0.72rem; border-radius:999px; font-size:0.76rem; font-weight:700; color:${qColor}; border:1px solid ${qColor}44; background:${qColor}18;">confidence ${p.quality}%</div>`;
+            document.getElementById('ss-ecg-info').textContent = p.ecgNote;
+        }
+
+        function updateMetrics() {
+            const p = patients[current];
+            const el = document.getElementById('ss-metrics');
+            const items = [
+                { label: 'HR', value: `${p.hr} bpm`, color: '#2dd4bf' },
+                { label: 'SpO₂', value: `${p.spo2}%`, color: '#38bdf8' },
+                { label: 'RR', value: `${p.rr}/min`, color: '#10b981' },
+                { label: 'Signal', value: p.quality >= 90 ? 'Good' : p.quality >= 75 ? 'Fair' : 'Poor', color: p.quality >= 90 ? '#2dd4bf' : p.quality >= 75 ? '#fbbf24' : '#f87171' },
+            ];
+            el.innerHTML = items.map(m => `<div style="padding:0.85rem; border-radius:18px; border:1px solid rgba(148,163,184,0.16); background:rgba(10,14,23,0.55); display:grid; gap:0.25rem;"><span style="font-size:0.72rem; letter-spacing:0.12em; text-transform:uppercase; color:#94a3b8; font-weight:700;">${m.label}</span><strong style="font-size:1.15rem; color:${m.color};">${m.value}</strong></div>`).join('');
+        }
+
+        function setupCanvases() {
+            ['ss-ecg','ss-resp','ss-ppg'].forEach(id => {
+                const c = document.getElementById(id);
+                const r = c.getBoundingClientRect();
+                c.width = Math.round(r.width * devicePixelRatio);
+                c.height = Math.round(r.height * devicePixelRatio);
+            });
+        }
+
+        function ecgWave(x, hr) {
+            const period = 60 / hr;
+            const phase = ((x % period) + period) % period;
+            const norm = phase / period;
+            if (norm < 0.08) return 0;
+            if (norm < 0.12) return Math.sin((norm - 0.08) / 0.04 * Math.PI) * 0.15;
+            if (norm < 0.16) return 0;
+            if (norm < 0.20) return -0.08;
+            if (norm < 0.24) {
+                const p = (norm - 0.20) / 0.04;
+                return -0.08 + p * 1.08;
+            }
+            if (norm < 0.28) {
+                const p = (norm - 0.24) / 0.04;
+                return 1.0 - p * 1.35;
+            }
+            if (norm < 0.32) {
+                const p = (norm - 0.28) / 0.04;
+                return -0.35 + p * 0.35;
+            }
+            if (norm < 0.44) return 0;
+            if (norm < 0.56) return Math.sin((norm - 0.44) / 0.12 * Math.PI) * 0.18;
+            return 0;
+        }
+
+        function respWave(x, rr) {
+            const period = 60 / rr;
+            return Math.sin(x / period * Math.PI * 2) * 0.7 + Math.sin(x / period * Math.PI * 4) * 0.1;
+        }
+
+        function ppgWave(x, hr) {
+            const period = 60 / hr;
+            const phase = ((x % period) + period) % period;
+            const norm = phase / period;
+            if (norm < 0.15) {
+                return Math.sin(norm / 0.15 * Math.PI) * 0.9;
+            }
+            if (norm < 0.35) {
+                const p = (norm - 0.15) / 0.2;
+                return 0.9 * (1 - p) * 0.5 + Math.sin(p * Math.PI) * 0.25;
+            }
+            return 0;
+        }
+
+        function drawWave(canvasId, waveFn, color, noiseAmt) {
+            const c = document.getElementById(canvasId);
+            const ctx = c.getContext('2d');
+            const w = c.width, h = c.height;
+            ctx.clearRect(0, 0, w, h);
+
+            ctx.strokeStyle = color;
+            ctx.lineWidth = 2.2 * devicePixelRatio;
+            ctx.lineJoin = 'round';
+            ctx.lineCap = 'round';
+            ctx.beginPath();
+
+            const p = patients[current];
+            const quality = p.quality / 100;
+            const timeWindow = 4;
+            const steps = Math.min(w, 600);
+
+            for (let i = 0; i <= steps; i++) {
+                const frac = i / steps;
+                const time = t - timeWindow * (1 - frac);
+                let val = waveFn(time);
+                val += (Math.random() - 0.5) * noiseAmt * (1.2 - quality);
+                const px = frac * w;
+                const py = h / 2 - val * h * 0.38;
+                if (i === 0) ctx.moveTo(px, py); else ctx.lineTo(px, py);
+            }
+            ctx.stroke();
+
+            annotations.forEach(a => {
+                const age = t - a.time;
+                if (age >= 0 && age < timeWindow) {
+                    const px = (1 - age / timeWindow) * w;
+                    ctx.save();
+                    ctx.fillStyle = 'rgba(248,113,113,0.35)';
+                    ctx.fillRect(px - 2, 0, 4 * devicePixelRatio, h);
+                    ctx.fillStyle = '#f87171';
+                    ctx.font = `${10 * devicePixelRatio}px Inter, sans-serif`;
+                    ctx.fillText('artifact', px + 6, 14 * devicePixelRatio);
+                    ctx.restore();
+                }
+            });
+        }
+
+        let raf;
+        function loop() {
+            if (!paused) {
+                t += 0.025;
+                const p = patients[current];
+                drawWave('ss-ecg', x => ecgWave(x, p.hr), '#2dd4bf', 0.12);
+                drawWave('ss-resp', x => respWave(x, p.rr), '#38bdf8', 0.08);
+                drawWave('ss-ppg', x => ppgWave(x, p.hr), '#10b981', 0.06);
+            }
+            raf = requestAnimationFrame(loop);
+        }
+
+        document.getElementById('ss-pause-btn').addEventListener('click', function() {
+            paused = !paused;
+            this.textContent = paused ? 'Resume' : 'Pause';
+        });
+
+        document.getElementById('ss-annotate').addEventListener('click', () => {
+            annotations.push({ time: t });
+            document.getElementById('ss-log').textContent = `Artifact marked at t=${t.toFixed(1)}s on patient ${patients[current].id}`;
+        });
+
+        document.getElementById('ss-escalate').addEventListener('click', () => {
+            patients[current].status = 'critical';
+            buildQueue();
+            document.getElementById('ss-log').textContent = `Patient ${patients[current].id} escalated to critical review.`;
+        });
+
+        document.getElementById('ss-dismiss').addEventListener('click', () => {
+            document.getElementById('ss-log').textContent = `Patient ${patients[current].id} review dismissed. Moving to next.`;
+            if (current < patients.length - 1) {
+                current++;
+                annotations = [];
+                buildQueue(); updateBanner(); updateMetrics();
+            }
+        });
+
+        buildQueue();
+        updateBanner();
+        updateMetrics();
+        window.addEventListener('load', () => { setupCanvases(); loop(); });
+        window.addEventListener('resize', setupCanvases);
+    })();
+    </script>
 
     <script src="script.js"></script>
 </body>

@@ -166,11 +166,47 @@
             </article>
         </section>
 
+        <!-- Live Interactive Runtime -->
+        <section class="project-stage-card section-animate">
+            <div class="project-stage-bar">
+                <div class="project-stage-label">Live Medication Console</div>
+            </div>
+            <div style="padding:0 1.25rem 1.25rem;">
+                <div id="df-runtime" style="display:grid; grid-template-columns:minmax(0,1fr) 280px; gap:1rem; min-height:520px;">
+                    <!-- Timeline lanes -->
+                    <div id="df-lanes" style="display:grid; align-content:start; gap:0.85rem;"></div>
+                    <!-- Side panel -->
+                    <div style="display:grid; align-content:start; gap:0.85rem;">
+                        <div id="df-patient" style="padding:1rem; border-radius:18px; border:1px solid rgba(148,163,184,0.16); background:rgba(10,14,23,0.55); display:grid; gap:0.35rem;">
+                            <em style="font-style:normal; font-size:0.74rem; text-transform:uppercase; letter-spacing:0.12em; color:#94a3b8; font-weight:700;">Patient context</em>
+                            <strong style="font-size:1.06rem; color:#f8fafc;">ICU Bed 12 · Sepsis protocol</strong>
+                            <small style="color:#9fb0c8; line-height:1.55; font-size:0.82rem;">Goals: hemodynamic stability, antibiotic timing, fluid balance review.</small>
+                        </div>
+                        <div id="df-alerts" style="display:grid; gap:0.7rem;"></div>
+                        <div id="df-checks" style="display:grid; gap:0.7rem;"></div>
+                        <div id="df-log" style="font-size:0.82rem; color:#94a3b8; min-height:1.4em;"></div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
         <section class="project-copy-grid section-animate">
             <article class="project-copy-card">
                 <h3>Interface Direction</h3>
                 <p>
                     The layout treats medication administration as a timing and confidence problem. Instead of leading with tables, it leads with status bands, active windows, and explicit blockers so the user sees the decision path immediately.
+                </p>
+            </article>
+            <article class="project-copy-card">
+                <h3>Data Model</h3>
+                <p>
+                    Each medication order maps to a lane with discrete state transitions: scheduled, queued, active, paused, and completed. Transition timestamps flow from FHIR MedicationAdministration resources, extended with pump telemetry events when available, so the timeline reflects real bedside timing rather than charted approximations.
+                </p>
+            </article>
+            <article class="project-copy-card">
+                <h3>Safety Logic</h3>
+                <p>
+                    Line compatibility rules run as a constraint check before any queued medication can advance to active. The system cross-references active infusion line IDs against known incompatibilities and surfaces a blocking alert with the specific conflict, rather than a generic warning, so the nurse can act on it without looking up the reference themselves.
                 </p>
             </article>
             <article class="project-copy-card">
@@ -181,6 +217,130 @@
             </article>
         </section>
     </main>
+
+    <script>
+    (function() {
+        const meds = [
+            { name: 'Norepinephrine', status: 'active', rate: '8 mcg/min', elapsed: 47, total: 120, color: '#f59e0b', titrations: 2, line: 'Central Line A' },
+            { name: 'Vancomycin', status: 'queued', rate: '1g / 60min', elapsed: 0, total: 60, color: '#38bdf8', titrations: 0, line: 'Peripheral IV' },
+            { name: 'Normal Saline', status: 'scheduled', rate: '125 mL/hr', elapsed: 0, total: 480, color: '#10b981', titrations: 0, line: 'Central Line B' },
+            { name: 'Heparin', status: 'active', rate: '900 units/hr', elapsed: 112, total: 360, color: '#a78bfa', titrations: 1, line: 'Central Line A' },
+            { name: 'Piperacillin-Tazo', status: 'completed', rate: '3.375g / 30min', elapsed: 30, total: 30, color: '#6b7280', titrations: 0, line: 'Peripheral IV' },
+        ];
+
+        const alerts = [
+            { id: 'a1', text: 'Line compatibility check pending', detail: 'Vancomycin cannot start on Central Line A while Norepinephrine is active.', severity: 'critical', acknowledged: false },
+            { id: 'a2', text: 'Antibiotic window closing', detail: 'Vancomycin due within 14 minutes per sepsis protocol.', severity: 'warning', acknowledged: false },
+        ];
+
+        const checks = [
+            { id: 'c1', label: 'Identity + dose confirmed', detail: 'Two-person med check', done: false },
+            { id: 'c2', label: 'Line access verified', detail: 'Peripheral IV patency', done: false },
+            { id: 'c3', label: 'Night shift note attached', detail: 'Last titration reason', done: true },
+        ];
+
+        let intervalId;
+
+        function buildLanes() {
+            const el = document.getElementById('df-lanes');
+            el.innerHTML = '';
+            meds.forEach((m, i) => {
+                const lane = document.createElement('div');
+                lane.style.cssText = 'padding:1rem; border-radius:18px; border:1px solid rgba(148,163,184,0.16); background:rgba(10,14,23,0.55); display:grid; gap:0.65rem;';
+
+                const statusColors = { active: '#f59e0b', queued: '#38bdf8', scheduled: '#6b7280', completed: '#10b981', paused: '#f87171' };
+                const sc = statusColors[m.status] || '#94a3b8';
+
+                const pct = Math.min(100, (m.elapsed / m.total) * 100);
+                const remaining = Math.max(0, m.total - m.elapsed);
+                const remMin = Math.floor(remaining);
+                const remSec = Math.round((remaining - remMin) * 60);
+
+                let actionsHtml = '';
+                if (m.status === 'active') actionsHtml = `<button class="btn btn-secondary" style="padding:0.4rem 0.85rem; font-size:0.78rem;" data-action="pause" data-idx="${i}">Pause</button><button class="btn btn-secondary" style="padding:0.4rem 0.85rem; font-size:0.78rem;" data-action="titrate" data-idx="${i}">Titrate</button>`;
+                else if (m.status === 'queued') actionsHtml = `<button class="btn btn-primary" style="padding:0.4rem 0.85rem; font-size:0.78rem;" data-action="start" data-idx="${i}">Start Infusion</button>`;
+                else if (m.status === 'paused') actionsHtml = `<button class="btn btn-primary" style="padding:0.4rem 0.85rem; font-size:0.78rem;" data-action="resume" data-idx="${i}">Resume</button>`;
+                else if (m.status === 'scheduled') actionsHtml = `<button class="btn btn-secondary" style="padding:0.4rem 0.85rem; font-size:0.78rem;" data-action="queue" data-idx="${i}">Move to Queue</button>`;
+
+                lane.innerHTML = `<div style="display:flex; justify-content:space-between; align-items:center;"><div style="display:grid; gap:0.15rem;"><strong style="font-size:0.96rem; color:#f8fafc;">${m.name}</strong><span style="font-size:0.74rem; letter-spacing:0.1em; text-transform:uppercase; color:${sc}; font-weight:700;">${m.status} · ${m.rate}</span></div><span style="font-size:0.78rem; color:#94a3b8;">${m.line}</span></div><div style="position:relative; height:28px; border-radius:14px; background:rgba(255,255,255,0.04); border:1px solid rgba(148,163,184,0.1); overflow:hidden;"><div style="position:absolute; inset:0; width:${pct}%; background:linear-gradient(90deg, ${m.color}33, ${m.color}bb); border-radius:14px; transition:width 1s linear;"></div><span style="position:absolute; right:8px; top:50%; transform:translateY(-50%); font-size:0.72rem; color:#cbd5e1; font-weight:600;">${m.status === 'completed' ? 'Complete' : remMin + 'm ' + remSec + 's remaining'}</span></div><div style="display:flex; justify-content:space-between; align-items:center;"><small style="color:#9fb0c8; font-size:0.78rem;">${m.titrations > 0 ? m.titrations + ' titration' + (m.titrations > 1 ? 's' : '') : 'No titrations'}</small><div style="display:flex; gap:0.5rem;">${actionsHtml}</div></div>`;
+
+                el.appendChild(lane);
+            });
+
+            el.querySelectorAll('[data-action]').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    const idx = parseInt(btn.dataset.idx);
+                    const action = btn.dataset.action;
+                    if (action === 'pause') { meds[idx].status = 'paused'; log(`${meds[idx].name} paused.`); }
+                    else if (action === 'resume') { meds[idx].status = 'active'; log(`${meds[idx].name} resumed.`); }
+                    else if (action === 'start') {
+                        const hasBlock = alerts.some(a => !a.acknowledged && a.severity === 'critical');
+                        if (hasBlock) { log('Cannot start: unacknowledged safety alert. Acknowledge first.'); return; }
+                        meds[idx].status = 'active'; log(`${meds[idx].name} infusion started.`);
+                    }
+                    else if (action === 'queue') { meds[idx].status = 'queued'; log(`${meds[idx].name} moved to queue.`); }
+                    else if (action === 'titrate') { meds[idx].titrations++; log(`${meds[idx].name} titration #${meds[idx].titrations} recorded.`); }
+                    buildLanes();
+                });
+            });
+        }
+
+        function buildAlerts() {
+            const el = document.getElementById('df-alerts');
+            el.innerHTML = '';
+            alerts.forEach((a, i) => {
+                if (a.acknowledged) return;
+                const isCrit = a.severity === 'critical';
+                const card = document.createElement('div');
+                card.style.cssText = `padding:1rem; border-radius:18px; border:1px solid ${isCrit ? 'rgba(248,113,113,0.28)' : 'rgba(251,191,36,0.28)'}; background:${isCrit ? 'rgba(248,113,113,0.06)' : 'rgba(251,191,36,0.06)'}; display:grid; gap:0.3rem; cursor:pointer;`;
+                card.innerHTML = `<em style="font-style:normal; font-size:0.74rem; text-transform:uppercase; letter-spacing:0.12em; color:${isCrit ? '#f87171' : '#fbbf24'}; font-weight:700;">${a.severity} alert</em><strong style="font-size:0.94rem; color:#f8fafc;">${a.text}</strong><small style="color:#9fb0c8; line-height:1.55; font-size:0.8rem;">${a.detail}</small><span style="font-size:0.72rem; color:#94a3b8; margin-top:0.2rem;">Click to acknowledge</span>`;
+                card.addEventListener('click', () => {
+                    a.acknowledged = true;
+                    log(`Alert acknowledged: "${a.text}"`);
+                    buildAlerts();
+                });
+                el.appendChild(card);
+            });
+        }
+
+        function buildChecks() {
+            const el = document.getElementById('df-checks');
+            el.innerHTML = '';
+            checks.forEach((c, i) => {
+                const card = document.createElement('div');
+                card.style.cssText = `padding:0.9rem; border-radius:18px; border:1px solid rgba(148,163,184,0.16); background:rgba(10,14,23,0.55); display:flex; gap:0.75rem; align-items:flex-start; cursor:pointer; transition:border-color 0.2s;`;
+                if (c.done) card.style.borderColor = 'rgba(16,185,129,0.3)';
+                const checkBox = `<div style="width:22px; height:22px; border-radius:6px; border:2px solid ${c.done ? '#10b981' : 'rgba(148,163,184,0.3)'}; background:${c.done ? 'rgba(16,185,129,0.15)' : 'transparent'}; flex-shrink:0; display:flex; align-items:center; justify-content:center; font-size:0.75rem; color:#10b981;">${c.done ? '✓' : ''}</div>`;
+                card.innerHTML = `${checkBox}<div style="display:grid; gap:0.15rem;"><strong style="font-size:0.9rem; color:${c.done ? '#10b981' : '#f8fafc'};">${c.label}</strong><small style="color:#9fb0c8; font-size:0.78rem;">${c.detail}</small></div>`;
+                card.addEventListener('click', () => {
+                    c.done = !c.done;
+                    log(`${c.done ? 'Verified' : 'Unverified'}: ${c.label}`);
+                    buildChecks();
+                });
+                el.appendChild(card);
+            });
+        }
+
+        function log(msg) {
+            document.getElementById('df-log').textContent = msg;
+        }
+
+        function tick() {
+            meds.forEach(m => {
+                if (m.status === 'active' && m.elapsed < m.total) {
+                    m.elapsed += 1 / 60;
+                    if (m.elapsed >= m.total) { m.status = 'completed'; m.elapsed = m.total; }
+                }
+            });
+            buildLanes();
+        }
+
+        buildLanes();
+        buildAlerts();
+        buildChecks();
+        intervalId = setInterval(tick, 1000);
+    })();
+    </script>
 
     <script src="script.js"></script>
 </body>
