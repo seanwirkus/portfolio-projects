@@ -39,11 +39,40 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
+    function syncThemeImages() {
+        const isLight = themeState.mode === 'light';
+        document.querySelectorAll('[data-theme-src-dark][data-theme-src-light]').forEach((element) => {
+            const nextSrc = isLight ? element.dataset.themeSrcLight : element.dataset.themeSrcDark;
+            if (!nextSrc) return;
+
+            if (element.tagName === 'IMG') {
+                if (element.getAttribute('src') !== nextSrc) {
+                    element.setAttribute('src', nextSrc);
+                }
+                return;
+            }
+
+            if (element.tagName === 'SOURCE') {
+                if (element.getAttribute('srcset') !== nextSrc) {
+                    element.setAttribute('srcset', nextSrc);
+                }
+            }
+        });
+
+        document.querySelectorAll('meta[data-theme-content-dark][data-theme-content-light]').forEach((meta) => {
+            const nextContent = isLight ? meta.dataset.themeContentLight : meta.dataset.themeContentDark;
+            if (nextContent && meta.getAttribute('content') !== nextContent) {
+                meta.setAttribute('content', nextContent);
+            }
+        });
+    }
+
     function applyThemeState() {
         document.body.dataset.themeMode = themeState.mode;
         document.body.dataset.themePalette = themeState.palette;
         document.documentElement.style.colorScheme = themeState.mode;
         document.body.classList.toggle('cell-light-mode', themeState.mode === 'light');
+        syncThemeImages();
         window.dispatchEvent(new CustomEvent('site-theme-change', {
             detail: { ...themeState }
         }));
