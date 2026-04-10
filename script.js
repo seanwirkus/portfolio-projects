@@ -317,7 +317,6 @@ document.addEventListener('DOMContentLoaded', () => {
         if (heroSection && heroVisual) {
             const rings = heroVisual.querySelectorAll('.hero-orbit-ring');
             const imgWrapper = heroVisual.querySelector('.hero-image-wrapper');
-            const floatingCards = heroVisual.querySelectorAll('.hero-floating-card');
 
             heroSection.addEventListener('mousemove', (e) => {
                 const rect = heroSection.getBoundingClientRect();
@@ -335,11 +334,6 @@ document.addEventListener('DOMContentLoaded', () => {
                     ring.style.marginLeft = `${x * intensity}px`;
                     ring.style.marginTop = `${y * intensity}px`;
                 });
-
-                floatingCards.forEach((card, i) => {
-                    const intensity = (i + 1) * 5;
-                    card.style.transform = `translate(${x * intensity}px, ${y * intensity}px)`;
-                });
             });
 
             heroSection.addEventListener('mouseleave', () => {
@@ -354,11 +348,6 @@ document.addEventListener('DOMContentLoaded', () => {
                     ring.style.transition = 'margin 0.6s ease';
                     setTimeout(() => { ring.style.transition = ''; }, 600);
                 });
-                floatingCards.forEach((card) => {
-                    card.style.transform = '';
-                    card.style.transition = 'transform 0.6s ease';
-                    setTimeout(() => { card.style.transition = ''; }, 600);
-                });
             });
         }
     }
@@ -370,7 +359,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (heroCanvas) {
         const ctx = heroCanvas.getContext('2d');
         let particles = [];
-        const particleCount = 45; // Increased particle count for more interaction
+        const particleCount = 24;
         let mousePos = { x: -1000, y: -1000 };
         const heroSection = document.querySelector('.hero');
         
@@ -387,10 +376,10 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         const colors = [
-            'rgba(59, 130, 246, 0.35)',
-            'rgba(139, 92, 246, 0.3)',
-            'rgba(16, 185, 129, 0.3)',
-            'rgba(255, 255, 255, 0.15)'
+            'rgba(59, 130, 246, 0.24)',
+            'rgba(139, 92, 246, 0.18)',
+            'rgba(16, 185, 129, 0.16)',
+            'rgba(255, 255, 255, 0.08)'
         ];
 
         function resizeHeroCanvas() {
@@ -432,27 +421,27 @@ document.addEventListener('DOMContentLoaded', () => {
             for (let i = 0; i < particles.length; i++) {
                 // Connect to mouse with interactive glow
                 const mouseDist = Math.hypot(particles[i].x - mousePos.x, particles[i].y - mousePos.y);
-                if (mouseDist < 180) {
+                if (mouseDist < 120) {
                     ctx.beginPath();
                     ctx.moveTo(particles[i].x, particles[i].y);
                     ctx.lineTo(mousePos.x, mousePos.y);
-                    ctx.strokeStyle = `rgba(139, 92, 246, ${0.2 * (1 - mouseDist / 180)})`;
-                    ctx.lineWidth = 1.5;
+                    ctx.strokeStyle = `rgba(139, 92, 246, ${0.08 * (1 - mouseDist / 120)})`;
+                    ctx.lineWidth = 1;
                     ctx.stroke();
                     
                     // slight attraction to mouse for interactive feel
-                    particles[i].dx += (mousePos.x - particles[i].x) * 0.00015;
-                    particles[i].dy += (mousePos.y - particles[i].y) * 0.00015;
+                    particles[i].dx += (mousePos.x - particles[i].x) * 0.00005;
+                    particles[i].dy += (mousePos.y - particles[i].y) * 0.00005;
                 }
 
                 for (let j = i + 1; j < particles.length; j++) {
                     const dist = Math.hypot(particles[i].x - particles[j].x, particles[i].y - particles[j].y);
-                    if (dist < 120) {
+                    if (dist < 84) {
                         ctx.beginPath();
                         ctx.moveTo(particles[i].x, particles[i].y);
                         ctx.lineTo(particles[j].x, particles[j].y);
-                        ctx.strokeStyle = `rgba(59, 130, 246, ${0.08 * (1 - dist / 120)})`;
-                        ctx.lineWidth = 0.8;
+                        ctx.strokeStyle = `rgba(59, 130, 246, ${0.04 * (1 - dist / 84)})`;
+                        ctx.lineWidth = 0.7;
                         ctx.stroke();
                     }
                 }

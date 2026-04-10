@@ -280,7 +280,7 @@ h1, h2, h3, h4, .nav-links, .logo {
 .hero-backdrop-grid {
     inset: 6rem 1.25rem 3.5rem;
     border-radius: 32px;
-    opacity: 0.5;
+    opacity: 0.3;
     background-image:
         linear-gradient(rgba(255, 255, 255, 0.04) 1px, transparent 1px),
         linear-gradient(90deg, rgba(255, 255, 255, 0.04) 1px, transparent 1px);
@@ -291,7 +291,7 @@ h1, h2, h3, h4, .nav-links, .logo {
 
 .hero-ambient {
     filter: blur(90px);
-    opacity: 0.75;
+    opacity: 0.52;
 }
 
 .hero-ambient-1 {
@@ -467,36 +467,26 @@ h1, h2, h3, h4, .nav-links, .logo {
     border: 1px dashed rgba(59, 130, 246, 0.15);
     pointer-events: none;
     transform-style: preserve-3d;
-    box-shadow: inset 0 0 20px rgba(59, 130, 246, 0.05);
+    box-shadow: inset 0 0 14px rgba(59, 130, 246, 0.03);
 }
 
 .hero-orbit-ring.ring-1 {
-    width: 360px;
-    height: 360px;
+    width: 332px;
+    height: 332px;
     top: 50%;
     left: 50%;
-    border: 1px dashed rgba(59, 130, 246, 0.25);
-    animation: orbitSpin1 20s linear infinite;
+    border: 1px dashed rgba(59, 130, 246, 0.14);
+    animation: orbitSpin1 24s linear infinite;
 }
 
 .hero-orbit-ring.ring-2 {
-    width: 440px;
-    height: 440px;
+    width: 392px;
+    height: 392px;
     top: 50%;
     left: 50%;
-    border: 2px dotted rgba(139, 92, 246, 0.2);
-    box-shadow: inset 0 0 20px rgba(139, 92, 246, 0.05);
-    animation: orbitSpin2 30s linear infinite reverse;
-}
-
-.hero-orbit-ring.ring-3 {
-    width: 520px;
-    height: 520px;
-    top: 50%;
-    left: 50%;
-    border: 1px dashed rgba(16, 185, 129, 0.2);
-    box-shadow: inset 0 0 20px rgba(16, 185, 129, 0.05);
-    animation: orbitSpin3 40s linear infinite;
+    border: 1px dotted rgba(139, 92, 246, 0.12);
+    box-shadow: inset 0 0 14px rgba(139, 92, 246, 0.03);
+    animation: orbitSpin2 34s linear infinite reverse;
 }
 
 /* Ring orbital dots */
@@ -504,8 +494,8 @@ h1, h2, h3, h4, .nav-links, .logo {
 .hero-orbit-ring::before {
     content: '';
     position: absolute;
-    width: 8px;
-    height: 8px;
+    width: 6px;
+    height: 6px;
     border-radius: 50%;
     left: 50%;
     transform: translateX(-50%);
@@ -527,14 +517,8 @@ h1, h2, h3, h4, .nav-links, .logo {
 
 .hero-orbit-ring.ring-2::after,
 .hero-orbit-ring.ring-2::before {
-    background: rgba(139, 92, 246, 0.8);
-    box-shadow: 0 0 15px 3px rgba(139, 92, 246, 0.6);
-}
-
-.hero-orbit-ring.ring-3::after,
-.hero-orbit-ring.ring-3::before {
-    background: rgba(16, 185, 129, 0.8);
-    box-shadow: 0 0 15px 3px rgba(16, 185, 129, 0.6);
+    background: rgba(139, 92, 246, 0.58);
+    box-shadow: 0 0 10px 2px rgba(139, 92, 246, 0.36);
 }
 
 @keyframes orbitSpin1 {
@@ -547,11 +531,6 @@ h1, h2, h3, h4, .nav-links, .logo {
     to { transform: translate(-50%, -50%) rotateX(70deg) rotateY(-40deg) rotateZ(360deg); }
 }
 
-@keyframes orbitSpin3 {
-    from { transform: translate(-50%, -50%) rotateX(55deg) rotateY(60deg) rotateZ(0deg); }
-    to { transform: translate(-50%, -50%) rotateX(55deg) rotateY(60deg) rotateZ(360deg); }
-}
-
 /* Floating particle canvas behind portrait */
 .hero-particles-canvas {
     position: absolute;
@@ -560,6 +539,7 @@ h1, h2, h3, h4, .nav-links, .logo {
     height: calc(100% + 120px);
     z-index: 0;
     pointer-events: none;
+    opacity: 0.42;
 }
 
 .hero-title {
@@ -704,18 +684,18 @@ h1, h2, h3, h4, .nav-links, .logo {
 }
 
 .hero-visual {
-    min-height: 42rem;
+    min-height: 37rem;
     display: flex;
     justify-content: center;
     align-items: center;
     position: relative;
-    padding: 4.2rem 0 3rem;
+    padding: 1.5rem 0 1rem;
 }
 
 .hero-visual-shell {
     position: relative;
-    width: min(100%, 29.5rem);
-    margin-left: clamp(2rem, 3.4vw, 3.5rem);
+    width: min(100%, 28rem);
+    margin-left: 0;
     padding: 1.15rem;
     border-radius: 32px;
     z-index: 3;
@@ -755,14 +735,14 @@ h1, h2, h3, h4, .nav-links, .logo {
 
 .hero-visual-status {
     color: #d1fae5;
-    background: rgba(16, 185, 129, 0.12);
-    border: 1px solid rgba(52, 211, 153, 0.2);
+    background: rgba(16, 185, 129, 0.1);
+    border: 1px solid rgba(52, 211, 153, 0.16);
 }
 
 .hero-image-wrapper {
     position: relative;
     width: 100%;
-    height: 35rem;
+    height: 32.5rem;
     border-radius: 28px;
     overflow: hidden;
     z-index: 2;
@@ -786,18 +766,18 @@ h1, h2, h3, h4, .nav-links, .logo {
     width: 100%;
     height: 100%;
     object-fit: cover;
-    object-position: center 18%;
+    object-position: center 16%;
     position: relative;
     z-index: 1;
     border: none;
     border-radius: 0;
     transition: transform 0.8s cubic-bezier(0.16, 1, 0.3, 1), filter 0.8s ease;
-    filter: saturate(1.08) contrast(1.04);
+    filter: saturate(1.02) contrast(1.04) brightness(0.98);
 }
 
 .hero-image-wrapper:hover .hero-img {
     transform: scale(1.03);
-    filter: saturate(1.14) contrast(1.08);
+    filter: saturate(1.08) contrast(1.06) brightness(1);
 }
 
 .image-glow {
@@ -835,30 +815,36 @@ h1, h2, h3, h4, .nav-links, .logo {
     z-index: 4;
     display: grid;
     grid-template-columns: repeat(3, minmax(0, 1fr));
-    gap: 0.65rem;
-    padding: 0.75rem;
+    gap: 0;
+    padding: 0.82rem 0.9rem;
     border-radius: 22px;
     background:
-        linear-gradient(180deg, rgba(6, 10, 18, 0.3), rgba(6, 10, 18, 0.65)),
-        rgba(4, 8, 16, 0.76);
+        linear-gradient(180deg, rgba(6, 10, 18, 0.18), rgba(6, 10, 18, 0.55)),
+        rgba(4, 8, 16, 0.72);
+    border: 1px solid rgba(148, 163, 184, 0.14);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    box-shadow: 0 18px 38px rgba(2, 6, 23, 0.28);
 }
 
 .hero-image-dock__item {
     min-width: 0;
-    padding: 0.78rem 0.85rem 0.82rem;
-    border-radius: 16px;
-    border: 1px solid rgba(148, 163, 184, 0.14);
-    background:
-        linear-gradient(180deg, rgba(255, 255, 255, 0.06), rgba(255, 255, 255, 0)),
-        rgba(7, 10, 16, 0.68);
-    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.03);
+    padding: 0 0.9rem;
+    display: grid;
+    gap: 0.18rem;
+    align-content: center;
+    border-left: 1px solid rgba(148, 163, 184, 0.12);
+}
+
+.hero-image-dock__item:first-child {
+    padding-left: 0;
+    border-left: 0;
 }
 
 .hero-image-dock__item span {
     display: block;
-    margin-bottom: 0.32rem;
-    color: rgba(191, 219, 254, 0.84);
-    font-size: 0.66rem;
+    color: rgba(191, 219, 254, 0.72);
+    font-size: 0.62rem;
     font-weight: 700;
     letter-spacing: 0.14em;
     text-transform: uppercase;
@@ -867,54 +853,8 @@ h1, h2, h3, h4, .nav-links, .logo {
 .hero-image-dock__item strong {
     display: block;
     color: #f8fafc;
-    font-size: 0.88rem;
-    line-height: 1.35;
-}
-
-.hero-floating-card {
-    position: absolute;
-    display: grid;
-    gap: 0.45rem;
-    width: min(13.6rem, 38vw);
-    padding: 1rem 1.05rem;
-    border-radius: 22px;
-    z-index: 4;
-}
-
-.hero-floating-card__eyebrow {
-    color: rgba(148, 163, 184, 0.92);
-    font-size: 0.7rem;
-    font-weight: 700;
-    letter-spacing: 0.14em;
-    text-transform: uppercase;
-}
-
-.hero-floating-card strong {
-    font-size: 0.96rem;
-    line-height: 1.5;
-    color: #f8fafc;
-}
-
-.hero-floating-card p {
-    margin: 0;
-    color: #a8b3c7;
-    font-size: 0.82rem;
-    line-height: 1.55;
-}
-
-.hero-floating-card--north {
-    top: 0.85rem;
-    left: 0;
-}
-
-.hero-floating-card--east {
-    top: 8.6rem;
-    right: -1.15rem;
-}
-
-.hero-floating-card--south {
-    right: 0.45rem;
-    bottom: 2.2rem;
+    font-size: 0.84rem;
+    line-height: 1.28;
 }
 
 @media (max-width: 1200px) {
@@ -939,36 +879,7 @@ h1, h2, h3, h4, .nav-links, .logo {
     }
 
     .hero-visual {
-        min-height: 36rem;
-    }
-
-    .hero-floating-card {
-        width: min(12.75rem, 34vw);
-        padding: 0.88rem 0.9rem;
-    }
-
-    .hero-floating-card strong {
-        font-size: 0.9rem;
-        line-height: 1.4;
-    }
-
-    .hero-floating-card--north {
-        top: 1rem;
-        left: 0.1rem;
-    }
-
-    .hero-floating-card--east {
-        top: 7.4rem;
-        right: -0.4rem;
-    }
-
-    .hero-floating-card--south {
-        right: 0.2rem;
-        bottom: 1.5rem;
-    }
-
-    .hero-orbit-ring.ring-3 {
-        display: none;
+        min-height: 33rem;
     }
 }
 
@@ -4364,29 +4275,6 @@ footer {
         margin-left: 0;
     }
 
-    .hero-floating-card {
-        width: min(14rem, 40vw);
-    }
-
-    .hero-floating-card--north {
-        top: 2rem;
-        left: 0;
-    }
-
-    .hero-floating-card--east {
-        top: 6rem;
-        right: 0;
-    }
-
-    .hero-floating-card--south {
-        right: 1.25rem;
-        bottom: 1rem;
-    }
-
-    .hero-orbit-ring.ring-3 {
-        display: none;
-    }
-
     .project-meta-grid,
     .project-copy-grid {
         grid-template-columns: 1fr;
@@ -4559,12 +4447,6 @@ footer {
     .hero-image-wrapper {
         height: 24rem;
         border-radius: 22px;
-    }
-
-    .hero-floating-card {
-        position: relative;
-        width: 100%;
-        inset: auto;
     }
 
     .hero-visual {
