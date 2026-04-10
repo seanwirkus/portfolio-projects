@@ -1481,21 +1481,31 @@
             spinDragging = false;
         }
 
-        function strikeCueBall(power, angle) {
+        function getPullPower(distance) {
+            const normalized = Math.max(0, Math.min(1, distance / MAX_PULL_DISTANCE));
+            return MIN_SHOT_POWER + (MAX_POWER - MIN_SHOT_POWER) * Math.pow(normalized, 1.12);
+        }
+
+        function applyCueStrike(ball, power, angle, shotSpin) {
             const forwardX = Math.cos(angle);
             const forwardY = Math.sin(angle);
             const tangentX = -forwardY;
             const tangentY = forwardX;
+            const spinMagnitude = Math.hypot(shotSpin.x, shotSpin.y);
 
-            cueBall.vx = forwardX * power;
-            cueBall.vy = forwardY * power;
-            cueBall.vx += tangentX * spin.x * power * 0.26;
-            cueBall.vy += tangentY * spin.x * power * 0.26;
-            cueBall.vx += forwardX * (-spin.y) * power * 0.1;
-            cueBall.vy += forwardY * (-spin.y) * power * 0.1;
-            cueBall.spinX = spin.x;
-            cueBall.spinY = spin.y;
-            cueBall.spinEnergy = power * 0.18;
+            ball.vx = forwardX * power;
+            ball.vy = forwardY * power;
+            ball.vx += tangentX * shotSpin.x * power * 0.22;
+            ball.vy += tangentY * shotSpin.x * power * 0.22;
+            ball.vx += forwardX * (-shotSpin.y) * power * 0.08;
+            ball.vy += forwardY * (-shotSpin.y) * power * 0.08;
+            ball.spinX = shotSpin.x;
+            ball.spinY = shotSpin.y;
+            ball.spinEnergy = power * (0.1 + spinMagnitude * 0.12);
+        }
+
+        function strikeCueBall(power, angle) {
+            applyCueStrike(cueBall, power, angle, spin);
             state = 'moving';
             spawnRipple(cueBall.x, cueBall.y, power * 0.35);
         }
@@ -1528,13 +1538,15 @@
             powerFill.style.width = `${pct}%`;
             powerThumb.style.left = `${pct}%`;
             powerValue.textContent = `${Math.round(pct)}%`;
-            shootBtn.disabled = (state !== 'aim' || shotPower < 1.5);
+            shootBtn.disabled = (state !== 'aim' || shotPower < MIN_SHOT_POWER);
             if (mode === '1p' && turn === 2) {
                 powerHelp.textContent = 'Computer is lining up.';
+            } else if (isAiming && shotPower > 0) {
+                powerHelp.textContent = 'Release to fire, or fine-tune with the slider.';
             } else {
                 powerHelp.textContent = shotPower > 0
                     ? 'Press Shoot, or release slider at high power to auto-fire.'
-                    : 'Click-drag on cloth to aim. Drag slider for power.';
+                    : 'Move pointer to aim. Hold and pull back to shoot, or use the slider.';
             }
         }
 
@@ -1572,6 +1584,11 @@
             pointerPoint = { x: TABLE_WIDTH * 0.78, y: TABLE_HEIGHT / 2 };
             dragging = false;
             shotPower = 0;
+            isAiming = false;
+            shotPullStart = null;
+            shotPullDirection = null;
+            shotLockedAimPoint = null;
+            shotPullDistance = 0;
             cueBall.spinX = 0;
             cueBall.spinY = 0;
             cueBall.spinEnergy = 0;
@@ -1581,7 +1598,7 @@
         }
 
         function collisionSystem() {
-            const STEPS = 4;
+            const STEPS = 5;
             let isMoving = false;
 
             for (let step = 0; step < STEPS; step++) {
@@ -1594,41 +1611,45 @@
 
                     if (ball.x < BALL_RADIUS + RAIL_OFFSET) {
                         ball.x = BALL_RADIUS + RAIL_OFFSET;
-                        ball.vx *= -RESTITUTION;
+                        if (ball.vx < 0) ball.vx *= -RAIL_RESTITUTION;
+                        ball.vy *= RAIL_TANGENT_DAMPING;
                         if (ball.type === 'cue' && ball.spinEnergy > 0.02) {
-                            ball.vy += ball.spinX * 0.7;
+                            ball.vy += ball.spinX * 0.52;
                             ball.spinX *= 0.74;
-                            ball.spinEnergy *= 0.92;
+                            ball.spinEnergy *= 0.9;
                         }
                         spawnRipple(ball.x, ball.y, Math.abs(ball.vx));
                     }
                     if (ball.x > TABLE_WIDTH - BALL_RADIUS - RAIL_OFFSET) {
                         ball.x = TABLE_WIDTH - BALL_RADIUS - RAIL_OFFSET;
-                        ball.vx *= -RESTITUTION;
+                        if (ball.vx > 0) ball.vx *= -RAIL_RESTITUTION;
+                        ball.vy *= RAIL_TANGENT_DAMPING;
                         if (ball.type === 'cue' && ball.spinEnergy > 0.02) {
-                            ball.vy -= ball.spinX * 0.7;
+                            ball.vy -= ball.spinX * 0.52;
                             ball.spinX *= 0.74;
-                            ball.spinEnergy *= 0.92;
+                            ball.spinEnergy *= 0.9;
                         }
                         spawnRipple(ball.x, ball.y, Math.abs(ball.vx));
                     }
                     if (ball.y < BALL_RADIUS + RAIL_OFFSET) {
                         ball.y = BALL_RADIUS + RAIL_OFFSET;
-                        ball.vy *= -RESTITUTION;
+                        if (ball.vy < 0) ball.vy *= -RAIL_RESTITUTION;
+                        ball.vx *= RAIL_TANGENT_DAMPING;
                         if (ball.type === 'cue' && ball.spinEnergy > 0.02) {
-                            ball.vx -= ball.spinX * 0.7;
+                            ball.vx -= ball.spinX * 0.52;
                             ball.spinX *= 0.74;
-                            ball.spinEnergy *= 0.92;
+                            ball.spinEnergy *= 0.9;
                         }
                         spawnRipple(ball.x, ball.y, Math.abs(ball.vy));
                     }
                     if (ball.y > TABLE_HEIGHT - BALL_RADIUS - RAIL_OFFSET) {
                         ball.y = TABLE_HEIGHT - BALL_RADIUS - RAIL_OFFSET;
-                        ball.vy *= -RESTITUTION;
+                        if (ball.vy > 0) ball.vy *= -RAIL_RESTITUTION;
+                        ball.vx *= RAIL_TANGENT_DAMPING;
                         if (ball.type === 'cue' && ball.spinEnergy > 0.02) {
-                            ball.vx += ball.spinX * 0.7;
+                            ball.vx += ball.spinX * 0.52;
                             ball.spinX *= 0.74;
-                            ball.spinEnergy *= 0.92;
+                            ball.spinEnergy *= 0.9;
                         }
                         spawnRipple(ball.x, ball.y, Math.abs(ball.vy));
                     }
@@ -1682,15 +1703,30 @@
                             b2.x += nx * overlap / 2;
                             b2.y += ny * overlap / 2;
 
-                            const relVx = b1.vx - b2.vx;
-                            const relVy = b1.vy - b2.vy;
-                            const impulse = nx * relVx + ny * relVy;
-                            const transfer = impulse * RESTITUTION;
+                            const relVx = b2.vx - b1.vx;
+                            const relVy = b2.vy - b1.vy;
+                            const velAlongNormal = (relVx * nx) + (relVy * ny);
 
-                            b1.vx -= transfer * nx;
-                            b1.vy -= transfer * ny;
-                            b2.vx += transfer * nx;
-                            b2.vy += transfer * ny;
+                            if (velAlongNormal >= 0) {
+                                continue;
+                            }
+
+                            const impulseMagnitude = -((1 + BALL_RESTITUTION) * velAlongNormal) / 2;
+                            const impulseX = impulseMagnitude * nx;
+                            const impulseY = impulseMagnitude * ny;
+                            b1.vx -= impulseX;
+                            b1.vy -= impulseY;
+                            b2.vx += impulseX;
+                            b2.vy += impulseY;
+
+                            const tangentX = -ny;
+                            const tangentY = nx;
+                            const relTangent = (relVx * tangentX) + (relVy * tangentY);
+                            const tangentImpulse = relTangent * CONTACT_FRICTION;
+                            b1.vx += tangentX * tangentImpulse;
+                            b1.vy += tangentY * tangentImpulse;
+                            b2.vx -= tangentX * tangentImpulse;
+                            b2.vy -= tangentY * tangentImpulse;
 
                             const cueBallInCollision = b1.type === 'cue' ? b1 : (b2.type === 'cue' ? b2 : null);
                             if (cueBallInCollision && cueBallInCollision.spinEnergy > 0.02) {
@@ -1698,20 +1734,20 @@
                                 const cueNormalY = cueBallInCollision === b1 ? ny : -ny;
                                 const tangentX = -cueNormalY;
                                 const tangentY = cueNormalX;
-                                const englishKick = cueBallInCollision.spinX * cueBallInCollision.spinEnergy * 0.42;
-                                const drawFollow = cueBallInCollision.spinY * cueBallInCollision.spinEnergy * 0.56;
+                                const englishKick = cueBallInCollision.spinX * cueBallInCollision.spinEnergy * 0.26;
+                                const drawFollow = cueBallInCollision.spinY * cueBallInCollision.spinEnergy * 0.34;
                                 const otherBall = cueBallInCollision === b1 ? b2 : b1;
 
                                 cueBallInCollision.vx += tangentX * englishKick - cueNormalX * drawFollow;
                                 cueBallInCollision.vy += tangentY * englishKick - cueNormalY * drawFollow;
-                                otherBall.vx += tangentX * englishKick * 0.34;
-                                otherBall.vy += tangentY * englishKick * 0.34;
-                                cueBallInCollision.spinEnergy *= 0.54;
-                                cueBallInCollision.spinX *= 0.78;
-                                cueBallInCollision.spinY *= 0.72;
+                                otherBall.vx += tangentX * englishKick * 0.24;
+                                otherBall.vy += tangentY * englishKick * 0.24;
+                                cueBallInCollision.spinEnergy *= 0.58;
+                                cueBallInCollision.spinX *= 0.8;
+                                cueBallInCollision.spinY *= 0.76;
                             }
 
-                            spawnRipple((b1.x + b2.x) / 2, (b1.y + b2.y) / 2, Math.abs(impulse));
+                            spawnRipple((b1.x + b2.x) / 2, (b1.y + b2.y) / 2, Math.abs(impulseMagnitude));
                         }
                     }
                 }
@@ -1719,11 +1755,11 @@
 
             for (const ball of balls) {
                 if (!ball.active) continue;
-                ball.vx *= FRICTION;
-                ball.vy *= FRICTION;
+                ball.vx *= CLOTH_FRICTION;
+                ball.vy *= CLOTH_FRICTION;
                 const speed = Math.hypot(ball.vx, ball.vy);
 
-                if (speed < 0.05) {
+                if (speed < STOP_SPEED) {
                     ball.vx = 0;
                     ball.vy = 0;
                 } else {
@@ -1734,12 +1770,14 @@
                         const dirY = ball.vy / speed;
                         const tangentX = -dirY;
                         const tangentY = dirX;
-                        ball.vx += tangentX * ball.spinX * ball.spinEnergy * 0.012;
-                        ball.vy += tangentY * ball.spinX * ball.spinEnergy * 0.012;
-                        const rollBias = -ball.spinY * ball.spinEnergy * 0.006;
+                        ball.vx += tangentX * ball.spinX * ball.spinEnergy * 0.009;
+                        ball.vy += tangentY * ball.spinX * ball.spinEnergy * 0.009;
+                        const rollBias = -ball.spinY * ball.spinEnergy * 0.0045;
                         ball.vx += dirX * rollBias;
                         ball.vy += dirY * rollBias;
-                        ball.spinEnergy *= 0.986;
+                        ball.spinEnergy *= 0.979;
+                        ball.spinX *= 0.996;
+                        ball.spinY *= 0.994;
                     }
                 }
 
@@ -1774,15 +1812,10 @@
                     const dy = activeObject.y - cueBall.y;
                     const angle = Math.atan2(dy, dx) + (Math.random() - 0.5) * 0.1;
                     const power = 15 + Math.random() * 10;
-                    cueBall.spinX = (Math.random() - 0.5) * 0.12;
-                    cueBall.spinY = -0.18 - Math.random() * 0.1;
-                    cueBall.spinEnergy = power * 0.12;
-                    cueBall.vx = Math.cos(angle) * power;
-                    cueBall.vy = Math.sin(angle) * power;
-                    cueBall.vx += -Math.sin(angle) * cueBall.spinX * power * 0.24;
-                    cueBall.vy += Math.cos(angle) * cueBall.spinX * power * 0.24;
-                    cueBall.vx += Math.cos(angle) * (-cueBall.spinY) * power * 0.08;
-                    cueBall.vy += Math.sin(angle) * (-cueBall.spinY) * power * 0.08;
+                    applyCueStrike(cueBall, power, angle, {
+                        x: (Math.random() - 0.5) * 0.12,
+                        y: -0.18 - Math.random() * 0.1
+                    });
                     state = 'moving';
                     spawnRipple(cueBall.x, cueBall.y, power * 0.35);
                 } else {
@@ -1825,21 +1858,75 @@
             pointerPoint = getMousePos(event);
         }
 
-        // Canvas only controls aim direction
-        // Canvas controls aim direction ONLY while dragging
-        function handleCanvasPointer(event) {
-            if (state !== 'aim' || !isAiming) return;
+        function beginCanvasShot(event) {
+            if (state !== 'aim' || !cueBall || !cueBall.active) return;
+
             updatePointer(event);
+            const aim = getAimData();
+            if (!aim) return;
+
+            isAiming = true;
+            shotPullStart = getMousePos(event);
+            shotLockedAimPoint = { x: pointerPoint.x, y: pointerPoint.y };
+            shotPullDirection = {
+                x: -Math.cos(aim.angle),
+                y: -Math.sin(aim.angle)
+            };
+            shotPullDistance = 0;
+            shotPower = 0;
+            updatePowerUI();
             if (event.cancelable) event.preventDefault();
+        }
+
+        function updateCanvasShot(event) {
+            if (state !== 'aim') return;
+
+            if (!isAiming || !shotPullStart || !shotPullDirection || !shotLockedAimPoint) {
+                updatePointer(event);
+                return;
+            }
+
+            const pos = getMousePos(event);
+            const dx = pos.x - shotPullStart.x;
+            const dy = pos.y - shotPullStart.y;
+            const projectedPull = Math.max(0, (dx * shotPullDirection.x) + (dy * shotPullDirection.y));
+
+            pointerPoint = shotLockedAimPoint;
+            shotPullDistance = projectedPull;
+            shotPower = projectedPull > 4 ? getPullPower(projectedPull) : 0;
+            updatePowerUI();
+            if (event.cancelable) event.preventDefault();
+        }
+
+        function endCanvasShot(event) {
+            if (state !== 'aim' || !isAiming) return;
+
+            const shouldFire = shotPower >= MIN_SHOT_POWER && shotPullDistance > 8;
+            isAiming = false;
+            shotPullStart = null;
+            shotPullDirection = null;
+            shotLockedAimPoint = null;
+            shotPullDistance = 0;
+
+            if (shouldFire) {
+                fireShot();
+            } else {
+                shotPower = 0;
+                if (event && state === 'aim') {
+                    updatePointer(event);
+                }
+                updatePowerUI();
+            }
         }
 
         function fireShot() {
             if (state !== 'aim' || !cueBall || !cueBall.active) return;
-            if (shotPower < 1.5) return;
+            if (shotPower < MIN_SHOT_POWER) return;
             const aim = getAimData();
             if (aim) {
                 strikeCueBall(shotPower, aim.angle);
                 shotPower = 0;
+                shotPullDistance = 0;
                 updatePowerUI();
             }
         }
@@ -1905,19 +1992,18 @@
         // Canvas events — Drag to Aim
         canvas.addEventListener('pointerdown', (e) => {
             if (state !== 'aim') return;
-            isAiming = true;
             canvas.setPointerCapture(e.pointerId);
-            handleCanvasPointer(e);
+            beginCanvasShot(e);
         });
 
-        canvas.addEventListener('pointermove', handleCanvasPointer);
+        canvas.addEventListener('pointermove', updateCanvasShot);
 
         window.addEventListener('pointerup', (e) => {
-            isAiming = false;
+            endCanvasShot(e);
         });
 
-        canvas.addEventListener('pointercancel', () => {
-            isAiming = false;
+        canvas.addEventListener('pointercancel', (e) => {
+            endCanvasShot(e);
         });
 
         spinPad.addEventListener('pointerdown', (event) => {

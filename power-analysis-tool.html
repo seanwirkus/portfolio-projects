@@ -32,6 +32,10 @@
         var(--bg);
     }
 
+    body.embedded {
+      background: #05070c;
+    }
+
     .container {
       max-width: 1240px;
       margin: 0 auto;
@@ -49,6 +53,16 @@
       border: 1px solid var(--panel-border);
       border-radius: 16px;
       background: var(--panel);
+    }
+
+    body.embedded .topbar {
+      display: none;
+    }
+
+    body.embedded .container {
+      max-width: 100%;
+      padding: 10px;
+      gap: 10px;
     }
 
     .title-wrap h1 {
@@ -586,6 +600,12 @@
     }
 
     function init() {
+      const params = new URLSearchParams(window.location.search);
+      const embedded = window.self !== window.top || params.get("embed") === "1";
+      if (embedded) {
+        document.body.classList.add("embedded");
+      }
+
       syncPair(controls.n, controls.nInput);
       syncPair(controls.alpha, controls.alphaInput, (v) => v.toFixed(3));
       syncPair(controls.targetPower, controls.targetPowerInput, (v) => v.toFixed(2));
