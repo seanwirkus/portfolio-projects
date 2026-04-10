@@ -162,7 +162,55 @@ document.addEventListener('DOMContentLoaded', () => {
             window.addEventListener('resize', applyHeight);
         });
 
-    // 6. Live MPH counter synced with gauge animation
+    // 6. Click-to-expand theater previews for full-page scrolling inside embedded sites
+    const previewOpeners = document.querySelectorAll('[data-preview-theater-open]');
+    previewOpeners.forEach((opener) => {
+        const modalId = opener.dataset.previewTheaterOpen;
+        if (!modalId) return;
+
+        const modal = document.getElementById(modalId);
+        if (!modal) return;
+
+        const frame = modal.querySelector('[data-preview-theater-frame]');
+        const closeTargets = modal.querySelectorAll('[data-preview-theater-close]');
+        const closeButton = modal.querySelector('.project-preview-modal__close');
+        const sourceFrame = opener.closest('.project-frame-shell')?.querySelector('.project-frame');
+        const source = opener.dataset.previewSrc || sourceFrame?.getAttribute('src') || '';
+        let lastFocused = null;
+
+        const openModal = () => {
+            lastFocused = document.activeElement;
+            if (frame && source && frame.getAttribute('src') !== source) {
+                frame.setAttribute('src', source);
+            }
+            modal.hidden = false;
+            modal.setAttribute('aria-hidden', 'false');
+            document.body.classList.add('modal-open');
+            window.setTimeout(() => {
+                if (closeButton) closeButton.focus();
+            }, 30);
+        };
+
+        const closeModal = () => {
+            modal.hidden = true;
+            modal.setAttribute('aria-hidden', 'true');
+            document.body.classList.remove('modal-open');
+            if (lastFocused instanceof HTMLElement) {
+                lastFocused.focus();
+            }
+        };
+
+        opener.addEventListener('click', openModal);
+        closeTargets.forEach((target) => target.addEventListener('click', closeModal));
+
+        document.addEventListener('keydown', (event) => {
+            if (event.key === 'Escape' && !modal.hidden) {
+                closeModal();
+            }
+        });
+    });
+
+    // 7. Live MPH counter synced with gauge animation
     const mphEls = document.querySelectorAll('.mph-value');
     if (mphEls.length > 0) {
         // Keyframes match the CSS fillGauge / sweepNeedle animation (3s loop)
@@ -199,7 +247,7 @@ document.addEventListener('DOMContentLoaded', () => {
         requestAnimationFrame(animateMPH);
     }
 
-    // 7. Interactive card hover glow that follows mouse
+    // 8. Interactive card hover glow that follows mouse
     if (!isTouchDevice) {
         document.querySelectorAll('.project-card').forEach(card => {
             card.addEventListener('mousemove', (e) => {
@@ -213,7 +261,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // ═══════════════════════════════════════
-    // 8. Hero – Typing Role Animation
+    // 9. Hero – Typing Role Animation
     // ═══════════════════════════════════════
     const typedEl = document.getElementById('typed-role');
     if (typedEl) {
@@ -260,7 +308,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // ═══════════════════════════════════════
-    // 9. Hero – Parallax Mouse Tracking
+    // 10. Hero – Parallax Mouse Tracking
     // ═══════════════════════════════════════
     if (!isTouchDevice) {
         const heroSection = document.querySelector('.hero');
@@ -305,7 +353,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // ═══════════════════════════════════════
-    // 10. Hero – Floating Particles Canvas
+    // 11. Hero – Floating Particles Canvas
     // ═══════════════════════════════════════
     const heroCanvas = document.getElementById('hero-particles');
     if (heroCanvas) {
@@ -413,7 +461,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // ═══════════════════════════════════════
-    // 11. Hero – Scroll Parallax (Content fades / shifts as you scroll down)
+    // 12. Hero – Scroll Parallax (Content fades / shifts as you scroll down)
     // ═══════════════════════════════════════
     const heroContent = document.querySelector('.hero-content');
     const heroVisualEl = document.querySelector('.hero-visual');

@@ -69,6 +69,52 @@
                     loading="eager"
                     scrolling="no"
                 ></iframe>
+                <button
+                    class="project-frame-theater-trigger"
+                    type="button"
+                    data-preview-theater-open="radiology-preview-modal"
+                    data-preview-src="UCSD-Radiology/index.html"
+                    aria-haspopup="dialog"
+                    aria-controls="radiology-preview-modal"
+                >
+                    <span class="project-frame-theater-pill">Theater View</span>
+                    <span class="project-frame-theater-copy">Click to expand the live site and scroll inside the preview.</span>
+                </button>
+            </div>
+            <div
+                class="project-preview-modal"
+                id="radiology-preview-modal"
+                hidden
+                aria-hidden="true"
+            >
+                <div class="project-preview-modal__backdrop" data-preview-theater-close></div>
+                <div
+                    class="project-preview-modal__dialog"
+                    role="dialog"
+                    aria-modal="true"
+                    aria-labelledby="radiology-preview-modal-title"
+                >
+                    <div class="project-preview-modal__bar">
+                        <div class="project-preview-modal__heading">
+                            <span>Interactive Preview</span>
+                            <strong id="radiology-preview-modal-title">UCSD Radiology Theater View</strong>
+                        </div>
+                        <div class="project-preview-modal__actions">
+                            <a class="project-inline-link" href="UCSD-Radiology/index.html" target="_blank" rel="noreferrer">Open full site</a>
+                            <button class="project-preview-modal__close" type="button" data-preview-theater-close>Close</button>
+                        </div>
+                    </div>
+                    <div class="project-preview-modal__body">
+                        <iframe
+                            class="project-preview-modal__frame"
+                            data-preview-theater-frame
+                            src="about:blank"
+                            title="UCSD Radiology theater view"
+                            loading="lazy"
+                            scrolling="yes"
+                        ></iframe>
+                    </div>
+                </div>
             </div>
         </section>
 
