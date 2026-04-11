@@ -79,193 +79,50 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function createThemeDock() {
-        if (!document.body || document.querySelector('.theme-dock')) return;
+        if (!document.body || document.querySelector('.theme-toggle-btn')) return;
 
-        const dock = document.createElement('aside');
-        dock.className = 'theme-dock';
-        dock.setAttribute('aria-label', 'Theme controls');
-        dock.innerHTML = `
-            <button type="button" class="theme-dock__toggle magnetic" aria-expanded="false" aria-controls="theme-panel">
-                <span class="theme-dock__toggle-icon" aria-hidden="true">
-                    <svg viewBox="0 0 24 24">
-                        <path d="M4 7.5h10"></path>
-                        <path d="M4 16.5h16"></path>
-                        <circle cx="16" cy="7.5" r="2.5"></circle>
-                        <circle cx="10" cy="16.5" r="2.5"></circle>
-                    </svg>
-                </span>
-                <span class="theme-dock__toggle-label">Theme</span>
-            </button>
-            <div class="theme-dock__panel" id="theme-panel" hidden>
-                <header>
-                    <span>Theme controls</span>
-                    <strong>Accessible site-wide appearance</strong>
-                    <p>Switch between light and dark mode, then choose one of three high-contrast accent palettes.</p>
-                </header>
-                <section class="theme-dock__section">
-                    <div class="theme-dock__section-label">Mode</div>
-                    <div class="theme-dock__modes" role="group" aria-label="Color mode">
-                        <button type="button" class="theme-dock__mode" data-theme-mode="dark">
-                            <span class="theme-dock__mode-icon" aria-hidden="true">
-                                <svg viewBox="0 0 24 24">
-                                    <path d="M20 14.5A8.5 8.5 0 0 1 9.5 4A9 9 0 1 0 20 14.5z"></path>
-                                </svg>
-                            </span>
-                            <span>Dark</span>
-                        </button>
-                        <button type="button" class="theme-dock__mode" data-theme-mode="light">
-                            <span class="theme-dock__mode-icon" aria-hidden="true">
-                                <svg viewBox="0 0 24 24">
-                                    <circle cx="12" cy="12" r="4"></circle>
-                                    <path d="M12 2.5v2.5"></path>
-                                    <path d="M12 19v2.5"></path>
-                                    <path d="M4.93 4.93l1.77 1.77"></path>
-                                    <path d="M17.3 17.3l1.77 1.77"></path>
-                                    <path d="M2.5 12H5"></path>
-                                    <path d="M19 12h2.5"></path>
-                                    <path d="M4.93 19.07l1.77-1.77"></path>
-                                    <path d="M17.3 6.7l1.77-1.77"></path>
-                                </svg>
-                            </span>
-                            <span>Light</span>
-                        </button>
-                    </div>
-                </section>
-                <section class="theme-dock__section">
-                    <div class="theme-dock__section-label">Palette</div>
-                    <div class="theme-dock__palettes" role="group" aria-label="Accent palette">
-                        <button type="button" class="theme-dock__palette" data-theme-palette="ocean">
-                            <span class="theme-dock__palette-icon" aria-hidden="true">
-                                <svg viewBox="0 0 24 24">
-                                    <path d="M3 15c2.2 0 2.2-2 4.4-2s2.2 2 4.4 2 2.2-2 4.4-2 2.2 2 4.4 2"></path>
-                                    <path d="M3 10c2.2 0 2.2-2 4.4-2s2.2 2 4.4 2 2.2-2 4.4-2 2.2 2 4.4 2"></path>
-                                </svg>
-                            </span>
-                            <span class="theme-dock__swatches" aria-hidden="true">
-                                <span style="background:#2563eb"></span>
-                                <span style="background:#7c3aed"></span>
-                                <span style="background:#059669"></span>
-                            </span>
-                            <span>
-                                <strong>Ocean</strong>
-                                <small>Cool blue, indigo, and teal for the default product look.</small>
-                            </span>
-                        </button>
-                        <button type="button" class="theme-dock__palette" data-theme-palette="forest">
-                            <span class="theme-dock__palette-icon" aria-hidden="true">
-                                <svg viewBox="0 0 24 24">
-                                    <path d="M12 21c0-4.5 2.7-7.2 6-8.8C16.8 7.5 13 4.5 7 4.5c0 4.6 1.6 8.2 5 10.3"></path>
-                                    <path d="M12 21c0-4.5-2.3-6.9-6-8.8"></path>
-                                </svg>
-                            </span>
-                            <span class="theme-dock__swatches" aria-hidden="true">
-                                <span style="background:#0f766e"></span>
-                                <span style="background:#15803d"></span>
-                                <span style="background:#ca8a04"></span>
-                            </span>
-                            <span>
-                                <strong>Forest</strong>
-                                <small>Teal and green with a warm yellow accent for stronger wayfinding.</small>
-                            </span>
-                        </button>
-                        <button type="button" class="theme-dock__palette" data-theme-palette="sunrise">
-                            <span class="theme-dock__palette-icon" aria-hidden="true">
-                                <svg viewBox="0 0 24 24">
-                                    <path d="M4 16h16"></path>
-                                    <path d="M7 16a5 5 0 0 1 10 0"></path>
-                                    <path d="M12 6V3.5"></path>
-                                    <path d="M7.5 8.5L6 7"></path>
-                                    <path d="M16.5 8.5L18 7"></path>
-                                </svg>
-                            </span>
-                            <span class="theme-dock__swatches" aria-hidden="true">
-                                <span style="background:#b45309"></span>
-                                <span style="background:#be123c"></span>
-                                <span style="background:#6d28d9"></span>
-                            </span>
-                            <span>
-                                <strong>Sunrise</strong>
-                                <small>Amber, rose, and violet for warmer contrast without lowering readability.</small>
-                            </span>
-                        </button>
-                    </div>
-                </section>
-                <p class="theme-dock__hint">Selections stay saved on this browser and apply across the portfolio pages.</p>
-            </div>
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        btn.className = 'theme-toggle-btn magnetic';
+        btn.setAttribute('aria-label', 'Toggle dark/light mode');
+        btn.innerHTML = `
+            <span class="theme-toggle-icon theme-toggle-icon--dark" aria-hidden="true">
+                <svg viewBox="0 0 24 24">
+                    <path d="M20 14.5A8.5 8.5 0 0 1 9.5 4A9 9 0 1 0 20 14.5z"></path>
+                </svg>
+            </span>
+            <span class="theme-toggle-icon theme-toggle-icon--light" aria-hidden="true">
+                <svg viewBox="0 0 24 24">
+                    <circle cx="12" cy="12" r="4"></circle>
+                    <path d="M12 2.5v2.5"></path>
+                    <path d="M12 19v2.5"></path>
+                    <path d="M4.93 4.93l1.77 1.77"></path>
+                    <path d="M17.3 17.3l1.77 1.77"></path>
+                    <path d="M2.5 12H5"></path>
+                    <path d="M19 12h2.5"></path>
+                    <path d="M4.93 19.07l1.77-1.77"></path>
+                    <path d="M17.3 6.7l1.77-1.77"></path>
+                </svg>
+            </span>
         `;
 
-        document.body.appendChild(dock);
+        document.body.appendChild(btn);
 
-        const toggle = dock.querySelector('.theme-dock__toggle');
-        const panel = dock.querySelector('.theme-dock__panel');
-        const modeButtons = Array.from(dock.querySelectorAll('[data-theme-mode]'));
-        const paletteButtons = Array.from(dock.querySelectorAll('[data-theme-palette]'));
-
-        function syncThemeButtons() {
-            modeButtons.forEach((button) => {
-                const active = button.dataset.themeMode === themeState.mode;
-                button.classList.toggle('is-active', active);
-                button.setAttribute('aria-pressed', active ? 'true' : 'false');
-            });
-            paletteButtons.forEach((button) => {
-                const active = button.dataset.themePalette === themeState.palette;
-                button.classList.toggle('is-active', active);
-                button.setAttribute('aria-pressed', active ? 'true' : 'false');
-            });
+        function syncToggleState() {
+            const isLight = themeState.mode === 'light';
+            btn.classList.toggle('is-light', isLight);
+            btn.setAttribute('aria-label', isLight ? 'Switch to dark mode' : 'Switch to light mode');
         }
 
-        function openPanel() {
-            dock.classList.add('is-open');
-            panel.hidden = false;
-            toggle.setAttribute('aria-expanded', 'true');
-        }
-
-        function closePanel() {
-            dock.classList.remove('is-open');
-            panel.hidden = true;
-            toggle.setAttribute('aria-expanded', 'false');
-        }
-
-        toggle.addEventListener('click', () => {
-            if (dock.classList.contains('is-open')) {
-                closePanel();
-            } else {
-                openPanel();
-            }
+        btn.addEventListener('click', () => {
+            themeState.mode = themeState.mode === 'light' ? 'dark' : 'light';
+            persistThemeState();
+            applyThemeState();
+            syncToggleState();
         });
 
-        modeButtons.forEach((button) => {
-            button.addEventListener('click', () => {
-                themeState.mode = button.dataset.themeMode;
-                persistThemeState();
-                applyThemeState();
-                syncThemeButtons();
-            });
-        });
-
-        paletteButtons.forEach((button) => {
-            button.addEventListener('click', () => {
-                themeState.palette = button.dataset.themePalette;
-                persistThemeState();
-                applyThemeState();
-                syncThemeButtons();
-            });
-        });
-
-        document.addEventListener('click', (event) => {
-            if (!dock.classList.contains('is-open')) return;
-            if (!dock.contains(event.target)) closePanel();
-        });
-
-        document.addEventListener('keydown', (event) => {
-            if (event.key === 'Escape' && dock.classList.contains('is-open')) {
-                closePanel();
-                toggle.focus();
-            }
-        });
-
-        window.addEventListener('site-theme-change', syncThemeButtons);
-        syncThemeButtons();
+        window.addEventListener('site-theme-change', syncToggleState);
+        syncToggleState();
     }
 
     function enhanceNavbar() {
