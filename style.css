@@ -521,10 +521,12 @@ body[data-theme-mode="light"] .bg-noise {
     font-size: 0.76rem;
     font-weight: 700;
     letter-spacing: 0.1em;
+    line-height: 1;
     text-transform: uppercase;
     cursor: pointer;
     display: inline-flex;
     align-items: center;
+    justify-content: center;
     gap: 0.45rem;
     transition: transform 0.2s ease, border-color 0.2s ease, background 0.2s ease;
 }
@@ -558,6 +560,7 @@ body[data-theme-mode="light"] .bg-noise {
 .theme-dock__toggle-icon {
     width: 1.62rem;
     height: 1.62rem;
+    align-self: center;
 }
 
 .theme-dock__palette-icon {
@@ -566,7 +569,10 @@ body[data-theme-mode="light"] .bg-noise {
 }
 
 .theme-dock__toggle-label {
-    display: inline;
+    display: inline-flex;
+    align-items: center;
+    line-height: 1;
+    transform: translateY(-0.01em);
 }
 
 .theme-dock__toggle-icon svg,
