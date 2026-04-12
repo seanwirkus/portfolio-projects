@@ -64,10 +64,55 @@
     .t-btn:active, .t-btn.active {
       background: rgba(255,255,255,0.1);
     }
+
+    body.light-mode {
+      background: #f1f5f9;
+      color-scheme: light;
+    }
+    
+    body.light-mode .t-btn {
+      border-color: rgba(15, 23, 42, 0.1);
+      color: rgba(15, 23, 42, 0.4);
+    }
   </style>
     <link rel="icon" type="image/svg+xml" href="favicon.svg">
 </head>
 <body>
+<script>
+  // Theme Sync Logic
+  const syncTheme = (mode) => {
+    document.body.classList.toggle('light-mode', mode === 'light');
+    document.documentElement.style.colorScheme = mode;
+    
+    // Update game colors based on theme if playing
+    if (mode === 'light') {
+        COL_GRASS = '#ecfdf5';
+        COL_ROAD = '#e2e8f0';
+        COL_SHOULDER = '#cbd5e1';
+        COL_EDGE = '#94a3b8';
+        COL_LANE_MARK = '#cbd5e1';
+    } else {
+        COL_GRASS = '#0A0A0A';
+        COL_ROAD = '#181818';
+        COL_SHOULDER = '#222222';
+        COL_EDGE = '#333333';
+        COL_LANE_MARK = '#444444';
+    }
+  };
+
+  window.addEventListener('message', (e) => {
+    if (e.data.type === 'theme-change') {
+      syncTheme(e.data.mode);
+    }
+  });
+
+  // Initial check for parent theme if possible
+  try {
+    if (window.parent && window.parent.document.body.dataset.themeMode) {
+      setTimeout(() => syncTheme(window.parent.document.body.dataset.themeMode), 10);
+    }
+  } catch (e) {}
+</script>
 <canvas id="game"></canvas>
 
 <div id="touch-controls">
@@ -187,11 +232,11 @@ const DASH_CYCLE     = DASH_LEN + GAP_LEN;   // 70
 const MAX_DEBRIS     = 10;
 
 // ─── Colors ──────────────────────────────────────────────────────────────────
-const COL_GRASS     = '#0A0A0A';
-const COL_ROAD      = '#181818';
-const COL_SHOULDER  = '#222222';
-const COL_EDGE      = '#333333';
-const COL_LANE_MARK = '#444444';
+let COL_GRASS     = '#0A0A0A';
+let COL_ROAD      = '#181818';
+let COL_SHOULDER  = '#222222';
+let COL_EDGE      = '#333333';
+let COL_LANE_MARK = '#444444';
 const COL_CAR_WIND  = '#8ECAE6';
 const COL_HEADLIGHT = '#FFFF99';
 const COL_TAILLIGHT = '#FF0000';

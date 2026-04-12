@@ -202,9 +202,41 @@ document.addEventListener('DOMContentLoaded', () => {
         syncNavForViewport();
     }
 
+    function syncIframeThemes(mode) {
+        document.querySelectorAll('iframe').forEach(iframe => {
+            try {
+                // Method 1: Direct document manipulation (if same-origin)
+                const doc = iframe.contentDocument || iframe.contentWindow?.document;
+                if (doc) {
+                    doc.documentElement.style.colorScheme = mode;
+                    doc.body.dataset.themeMode = mode;
+                    // Trigger a custom event inside the iframe if it's listening
+                    doc.dispatchEvent(new CustomEvent('site-theme-change', { detail: { mode } }));
+                }
+            } catch (e) {
+                // Cross-origin iframes will fail here, handled by postMessage
+            }
+            
+            // Method 2: postMessage (useful for cross-origin or nested shells)
+            iframe.contentWindow?.postMessage({ type: 'theme-change', mode }, '*');
+        });
+    }
+
     applyThemeState();
     createThemeDock();
     enhanceNavbar();
+
+    // Notify iframes on initial load and theme change
+    window.addEventListener('site-theme-change', (e) => {
+        syncIframeThemes(e.detail.mode);
+    });
+
+    // Handle newly loaded iframes (e.g. from modals)
+    document.addEventListener('load', (e) => {
+        if (e.target.tagName === 'IFRAME') {
+            syncIframeThemes(themeState.mode);
+        }
+    }, true);
 
     // 1. Intersection Observer for Scroll Animations
     const observerOptions = {

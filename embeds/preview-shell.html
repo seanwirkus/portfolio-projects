@@ -153,6 +153,28 @@
         .scroll-btn:active {
             transform: scale(0.95);
         }
+        body[data-theme-mode="light"] {
+            --shell-bg: #f8fafc;
+            --shell-accent: rgba(59, 130, 246, 0.08);
+            --shell-accent-soft: rgba(37, 99, 235, 0.04);
+            color-scheme: light;
+        }
+
+        body[data-theme-mode="light"] .preview-badge {
+            background: rgba(255, 255, 255, 0.82);
+            border-color: rgba(15, 23, 42, 0.12);
+            color: #0f172a;
+        }
+
+        body[data-theme-mode="light"] .preview-badge.secondary {
+            color: #475569;
+        }
+
+        body[data-theme-mode="light"] .scroll-btn {
+            background: rgba(255, 255, 255, 0.9);
+            border-color: rgba(15, 23, 42, 0.15);
+            color: #0f172a;
+        }
     </style>
     <link rel="icon" type="image/svg+xml" href="../favicon.svg">
 </head>
@@ -174,6 +196,16 @@
         </div>
     </div>
     <script>
+        // Theme Sync Logic
+        window.addEventListener('message', (e) => {
+            if (e.data.type === 'theme-change') {
+                document.body.dataset.themeMode = e.data.mode;
+                document.documentElement.style.colorScheme = e.data.mode;
+                // Pass it down to the internal iframe too
+                previewFrame.contentWindow?.postMessage(e.data, '*');
+            }
+        });
+
         const params = new URLSearchParams(window.location.search);
         const previewFrame = document.getElementById('preview-frame');
         const previewCanvas = document.getElementById('preview-canvas');

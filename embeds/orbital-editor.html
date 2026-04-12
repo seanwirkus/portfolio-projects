@@ -290,9 +290,61 @@
                 min-height: 420px;
                 padding: 12px;
             }
+
+        body[data-theme-mode="light"] {
+            --bg: #f8fafc;
+            --panel: rgba(255, 255, 255, 0.82);
+            --border: rgba(15, 23, 42, 0.12);
+            --text: #0f172a;
+            --muted: #475569;
+            color-scheme: light;
+        }
+
+        body[data-theme-mode="light"] {
+            background:
+                radial-gradient(circle at top left, rgba(16, 185, 129, 0.1), transparent 26%),
+                radial-gradient(circle at bottom right, rgba(59, 130, 246, 0.08), transparent 28%),
+                linear-gradient(180deg, #f1f5f9 0%, var(--bg) 100%);
+        }
+
+        body[data-theme-mode="light"] button,
+        body[data-theme-mode="light"] .chip,
+        body[data-theme-mode="light"] .tool {
+            background: rgba(15, 23, 42, 0.05);
+            border-color: rgba(15, 23, 42, 0.1);
+            color: #0f172a;
+        }
+
+        body[data-theme-mode="light"] .sidebar-card {
+            background: rgba(15, 23, 42, 0.03);
+            border-color: rgba(15, 23, 42, 0.06);
+        }
+
+        body[data-theme-mode="light"] .legend-pill {
+            background: rgba(15, 23, 42, 0.05);
+            color: #475569;
         }
     </style>
-    <link rel="icon" type="image/svg+xml" href="favicon.svg">
+    <script>
+        // Theme Sync Logic
+        const syncTheme = (mode) => {
+            document.body.dataset.themeMode = mode;
+            document.documentElement.style.colorScheme = mode;
+        };
+
+        window.addEventListener('message', (e) => {
+            if (e.data.type === 'theme-change') {
+                syncTheme(e.data.mode);
+            }
+        });
+
+        // Initial check for parent theme if possible
+        try {
+            if (window.parent && window.parent.document.body.dataset.themeMode) {
+                syncTheme(window.parent.document.body.dataset.themeMode);
+            }
+        } catch (e) {}
+    </script>
 </head>
 <body>
     <div class="app">

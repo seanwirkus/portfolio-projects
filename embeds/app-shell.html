@@ -150,6 +150,26 @@
                 flex: 1 1 100%;
             }
         }
+
+        body[data-theme-mode="light"] {
+            --shell-bg: #f8fafc;
+            --shell-text: #0f172a;
+            --shell-muted: #475569;
+            --shell-accent: rgba(59, 130, 246, 0.08);
+            --shell-accent-soft: rgba(37, 99, 235, 0.04);
+            color-scheme: light;
+        }
+
+        body[data-theme-mode="light"] .shell-nav,
+        body[data-theme-mode="light"] .shell-link,
+        body[data-theme-mode="light"] .shell-frame-wrap {
+            background: rgba(255, 255, 255, 0.82);
+            border-color: rgba(15, 23, 42, 0.12);
+        }
+
+        body[data-theme-mode="light"] .shell-link.primary {
+            background: rgba(15, 23, 42, 0.05);
+        }
     </style>
     <link rel="icon" type="image/svg+xml" href="../favicon.svg">
 </head>
@@ -173,6 +193,16 @@
         </div>
     </div>
     <script>
+        // Theme Sync Logic
+        window.addEventListener('message', (e) => {
+            if (e.data.type === 'theme-change') {
+                document.body.dataset.themeMode = e.data.mode;
+                document.documentElement.style.colorScheme = e.data.mode;
+                // Pass it down to the internal iframe too
+                shellFrame.contentWindow?.postMessage(e.data, '*');
+            }
+        });
+
         const params = new URLSearchParams(window.location.search);
         const shellFrame = document.getElementById('shell-frame');
         const shellEmpty = document.getElementById('shell-empty');

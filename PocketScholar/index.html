@@ -635,9 +635,66 @@
                 height: 86px;
             }
         }
+
+        body[data-theme-mode="light"] {
+            --bg-0: #f8fafc;
+            --bg-1: #f1f5f9;
+            --bg-2: #ecfdf5;
+            --panel: rgba(255, 255, 255, 0.82);
+            --panel-border: rgba(15, 23, 42, 0.12);
+            --text-main: #0f172a;
+            --text-muted: #475569;
+            --accent-soft: rgba(16, 185, 129, 0.08);
+            color-scheme: light;
+        }
+
+        body[data-theme-mode="light"].embedded {
+            background: #f8fafc;
+        }
+
+        body[data-theme-mode="light"] #game-container {
+            background: #ffffff;
+            border-color: rgba(15, 23, 42, 0.1);
+        }
+
+        body[data-theme-mode="light"] button {
+            background: rgba(15, 23, 42, 0.05);
+            border-color: rgba(15, 23, 42, 0.1);
+            color: #0f172a;
+        }
+
+        body[data-theme-mode="light"] #menu {
+            background: rgba(255, 255, 255, 0.78);
+        }
+
+        body[data-theme-mode="light"] .menu-card {
+            background: #ffffff;
+            border-color: rgba(15, 23, 42, 0.12);
+            color: #0f172a;
+        }
     </style>
 </head>
 <body>
+    <script>
+        // Theme Sync Logic
+        const syncTheme = (mode) => {
+            document.body.dataset.themeMode = mode;
+            document.documentElement.style.colorScheme = mode;
+        };
+
+        window.addEventListener('message', (e) => {
+            if (e.data.type === 'theme-change') {
+                syncTheme(e.data.mode);
+            }
+        });
+
+        // Initial check for parent theme if possible
+        try {
+            if (window.parent && window.parent.document.body.dataset.themeMode) {
+                syncTheme(window.parent.document.body.dataset.themeMode);
+            }
+        } catch (e) {}
+    </script>
     <div class="ambient ambient-a"></div>
     <div class="ambient ambient-b"></div>
 
