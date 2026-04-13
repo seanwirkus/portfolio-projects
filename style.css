@@ -3384,80 +3384,103 @@ body[data-theme-mode="light"] .dnabases-pair {
 /* ——— DNA Replication card ——— */
 .dnarepl-bg {
     background:
-        radial-gradient(circle at 25% 30%, rgba(16, 185, 129, 0.18), transparent 34%),
-        radial-gradient(circle at 80% 70%, rgba(59, 130, 246, 0.14), transparent 30%),
-        linear-gradient(145deg, #080e18 0%, #0a1120 48%, #0c0f1a 100%);
+        radial-gradient(circle at 20% 20%, rgba(16, 185, 129, 0.15), transparent 45%),
+        radial-gradient(circle at 80% 80%, rgba(59, 130, 246, 0.15), transparent 45%),
+        linear-gradient(135deg, #090f19 0%, #111a2d 100%);
+    box-shadow: inset 0 0 100px rgba(0, 0, 0, 0.5);
 }
 
 .dnarepl-mini {
     position: relative;
-    width: 100%; height: 100%;
+    width: 100%;
+    height: 100%;
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    gap: 6px;
+    gap: 16px;
+    padding: 10px;
+    overflow: hidden;
 }
 
 .dnarepl-fork {
     position: relative;
-    width: 140px; height: 80px;
+    width: min(180px, 100%);
+    height: 100px;
+    filter: drop-shadow(0 0 8px rgba(16, 185, 129, 0.2));
 }
 
 .dnarepl-strand {
     position: absolute;
-    border-radius: 2px;
+    border-radius: 6px;
 }
 
 .dnarepl-strand--parent {
-    top: 32px; left: 0;
-    width: 50px; height: 16px;
-    border-top: 2.5px solid rgba(148, 163, 184, 0.6);
-    border-bottom: 2.5px solid rgba(148, 163, 184, 0.6);
+    top: 42px;
+    left: 0;
+    width: 60px;
+    height: 16px;
+    border-top: 4px solid rgba(148, 163, 184, 0.8);
+    border-bottom: 4px solid rgba(148, 163, 184, 0.8);
+    box-shadow: 0 0 10px rgba(148, 163, 184, 0.2);
 }
 
 .dnarepl-strand--leading {
-    top: 8px; left: 48px;
-    width: 88px; height: 0;
-    border-top: 2.5px solid #3b82f6;
-    transform: rotate(-20deg);
+    top: 20px;
+    left: 56px;
+    width: 110px;
+    height: 0;
+    border-top: 4px solid #3b82f6;
+    box-shadow: 0 0 12px rgba(59, 130, 246, 0.4);
+    transform: rotate(-25deg);
     transform-origin: left center;
 }
 
 .dnarepl-strand--lagging {
-    top: 52px; left: 48px;
-    width: 88px; height: 0;
-    transform: rotate(20deg);
+    top: 64px;
+    left: 56px;
+    width: 110px;
+    height: 0;
+    transform: rotate(25deg);
     transform-origin: left center;
-    display: flex; gap: 5px;
+    display: flex;
+    gap: 8px;
 }
 
 .dnarepl-frag {
     flex: 1;
     height: 0;
-    border-top: 2.5px solid #10b981;
-    border-radius: 1px;
+    border-top: 4px solid #10b981;
+    border-radius: 3px;
+    box-shadow: 0 0 10px rgba(16, 185, 129, 0.3);
 }
 
 .dnarepl-frag:first-child {
     border-top-color: #ec4899;
-    flex: 0.5;
+    box-shadow: 0 0 10px rgba(236, 72, 153, 0.3);
+    flex: 0.4;
 }
 
 .dnarepl-labels {
     display: flex;
-    gap: 8px;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    flex-wrap: wrap;
+    z-index: 10;
 }
 
 .dnarepl-label {
     font-family: 'JetBrains Mono', monospace;
-    font-size: 10px;
+    font-size: 11px;
     font-weight: 600;
-    padding: 2px 6px;
-    border-radius: 4px;
-    border: 1px solid rgba(148, 163, 184, 0.15);
-    background: rgba(15, 23, 42, 0.5);
-    backdrop-filter: blur(6px);
+    line-height: 1;
+    padding: 5px 10px;
+    border-radius: 6px;
+    border: 1px solid rgba(148, 163, 184, 0.2);
+    background: rgba(15, 23, 42, 0.7);
+    backdrop-filter: blur(8px);
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
 }
 
 .dnarepl-label--enz { color: #3b82f6; }
@@ -3466,9 +3489,9 @@ body[data-theme-mode="light"] .dnabases-pair {
 
 body[data-theme-mode="light"] .dnarepl-bg {
     background:
-        radial-gradient(circle at 25% 30%, rgba(16, 185, 129, 0.12), transparent 30%),
-        radial-gradient(circle at 80% 70%, rgba(59, 130, 246, 0.1), transparent 26%),
-        linear-gradient(145deg, #eefbf5, #f0f8ff 50%, #f8fbff 100%);
+    radial-gradient(circle at 22% 28%, rgba(16, 185, 129, 0.14), transparent 30%),
+    radial-gradient(circle at 82% 70%, rgba(59, 130, 246, 0.12), transparent 26%),
+    linear-gradient(145deg, #eefbf5, #eef8ff 50%, #f8fbff 100%);
 }
 
 body[data-theme-mode="light"] .dnarepl-label {
@@ -3479,6 +3502,48 @@ body[data-theme-mode="light"] .dnarepl-label {
 body[data-theme-mode="light"] .dnarepl-strand--parent {
     border-top-color: rgba(71, 85, 105, 0.5);
     border-bottom-color: rgba(71, 85, 105, 0.5);
+}
+
+@media (max-width: 480px) {
+    .dnarepl-mini {
+        padding: 8px 9px;
+        gap: 7px;
+    }
+
+    .dnarepl-fork {
+        width: min(138px, 100%);
+        height: 80px;
+    }
+
+    .dnarepl-strand--parent {
+        top: 31px;
+        width: 50px;
+        height: 13px;
+    }
+
+    .dnarepl-strand--leading,
+    .dnarepl-strand--lagging {
+        left: 48px;
+        width: 82px;
+    }
+
+    .dnarepl-strand--leading {
+        top: 16px;
+    }
+
+    .dnarepl-strand--lagging {
+        top: 50px;
+        gap: 5px;
+    }
+
+    .dnarepl-labels {
+        gap: 5px;
+    }
+
+    .dnarepl-label {
+        font-size: 9px;
+        padding: 2px 5px;
+    }
 }
 
 body[data-theme-mode="light"] .cellstudy-bg {
@@ -5806,6 +5871,7 @@ footer.site-footer {
     body[data-theme-mode="light"] .hero-desc,
     body[data-theme-mode="light"] .hero-badge {
         color: #0f172a;
+        text-shadow: none;
     }
 
     body[data-theme-mode="light"] .hero-title span {

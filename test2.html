@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html>
+<style>
+body { height: 100vh; margin: 0; }
+.main-content { height: 100%; display: flex; flex-direction: column; overflow: hidden; }
+.explore-panel {
+    display: grid;
+    grid-template-columns: 140px minmax(0, 1fr) 260px;
+    grid-template-rows: minmax(0, 1fr) auto;
+    flex: 1;
+}
+.sidebar { grid-column: 1; grid-row: 1 / 3; background: #333; }
+.canvas { grid-column: 2; grid-row: 1; background: #444; }
+.concepts { grid-column: 2; grid-row: 2; background: #555; height: 300px; }
+.info { grid-column: 3; grid-row: 1 / 3; background: #666; }
+</style>
+<div class="main-content">
+  <div class="explore-panel">
+    <div class="sidebar">Sidebar</div>
+    <div class="canvas">Canvas</div>
+    <div class="concepts">Concepts</div>
+    <div class="info">Info</div>
+  </div>
+</div>
+</html>

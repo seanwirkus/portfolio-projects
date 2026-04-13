@@ -65,14 +65,16 @@
                 </article>
             </div>
 
-            <div class="project-frame-shell project-frame-shell--preview" style="--frame-height:700px; --frame-ratio:1280 / 800;">
+            <div class="project-frame-shell auto-resize" style="--frame-height:720px;">
                 <iframe
                     class="project-frame"
                     src="dna-replication/index.html"
                     title="DNA Replication Study app"
                     loading="eager"
                     scrolling="no"
-                    style="width:100%;height:700px;border:none;border-radius:12px;"
+                    data-auto-resize
+                    data-min-height="560"
+                    data-max-height="1200"
                 ></iframe>
             </div>
             <div class="project-stage-note">

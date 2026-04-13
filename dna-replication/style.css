@@ -97,12 +97,12 @@ body.light .theme-icon.moon { display: block; }
 .mode-tab.active { background: var(--accent-1); color: #fff; }
 
 /* ——— Main Content ——— */
-.main-content { flex: 1; overflow: hidden; }
+.main-content { flex: 1; overflow: hidden; min-height: 0; }
 
 .explore-panel {
     display: grid;
-    grid-template-columns: 140px 1fr 260px;
-    grid-template-rows: 1fr auto;
+    grid-template-columns: 140px minmax(0, 1fr) 260px;
+    grid-template-rows: minmax(0, 1fr) auto;
     height: 100%;
 }
 .explore-panel.hidden, .quiz-panel.hidden { display: none; }
@@ -148,6 +148,7 @@ body.light .theme-icon.moon { display: block; }
     position: relative;
     background: var(--canvas-bg);
     min-height: 0;
+    min-width: 0;
 }
 
 #fork-canvas {
@@ -250,11 +251,11 @@ body.light .theme-icon.moon { display: block; }
 .concept-card {
     display: flex; gap: 8px; align-items: flex-start;
     min-width: 210px; max-width: 260px;
+    flex-shrink: 0;
     padding: 10px 12px;
     background: var(--surface-2);
     border: 1px solid var(--border);
     border-radius: var(--radius);
-    flex-shrink: 0;
     transition: var(--trans);
 }
 .concept-card:hover {
@@ -361,7 +362,7 @@ body.light .quiz-feedback.wrong-feedback { color: #dc2626; }
     .enzyme-btn { min-width: 80px; }
     .info-panel-wrap {
         border-left: none; border-top: 1px solid var(--border);
-        max-height: 160px; grid-row: auto;
+        max-height: 220px; grid-row: auto;
     }
     .concept-area { grid-column: auto; }
     .header { flex-wrap: wrap; gap: 8px; }

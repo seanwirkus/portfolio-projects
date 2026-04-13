@@ -1,0 +1,15 @@
+<style>
+.explore-panel {
+    display: grid;
+    grid-template-columns: 140px minmax(0, 1fr) 260px;
+    grid-template-rows: minmax(0, 1fr) auto;
+    height: 1000px;
+    border: 1px solid red;
+}
+.canvas-area { grid-column: 2; grid-row: 1; background: blue; opacity: 0.5; }
+.concept-area { grid-column: 2; grid-row: 2; background: green; opacity: 0.5; }
+</style>
+<div class="explore-panel">
+  <div class="canvas-area">Canvas</div>
+  <div class="concept-area">Concept</div>
+</div>

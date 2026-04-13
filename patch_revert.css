@@ -1,0 +1,54 @@
+--- a/dna-replication/style.css
++++ b/dna-replication/style.css
+@@ -102,11 +102,10 @@
+ 
+ .explore-panel {
+     display: grid;
+-    grid-template-columns: clamp(118px, 12vw, 140px) minmax(0, 1fr) clamp(220px, 23vw, 280px);
+-    grid-template-rows: minmax(0, 1fr) auto;
++    grid-template-columns: 180px minmax(0, 1fr) 280px;
++    grid-template-rows: 1fr auto;
+     height: 100%;
+-    min-height: 0;
+ }
+ .explore-panel.hidden, .quiz-panel.hidden { display: none; }
+ 
+@@ -148,7 +147,6 @@
+     position: relative;
+     background: var(--canvas-bg);
+-    min-height: 0;
+-    min-width: 0;
+ }
+ 
+ #fork-canvas {
+@@ -239,26 +237,23 @@
+     grid-column: 2; grid-row: 2;
+     border-top: 1px solid var(--border);
+     background: var(--surface);
+-    overflow: hidden;
++    overflow-x: auto;
+     padding: 10px 12px;
+ }
+ 
+ .concept-grid {
+-    display: grid;
+-    grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+-    gap: 8px;
+-    width: 100%;
+-    min-width: 0;
++    display: flex; gap: 8px;
++    min-width: max-content;
+ }
+ 
+ .concept-card {
+     display: flex; gap: 8px; align-items: flex-start;
+-    min-width: 0;
+-    max-width: none;
++    min-width: 210px; max-width: 260px;
+     padding: 10px 12px;
+     background: var(--surface-2);
+     border: 1px solid var(--border);
+     border-radius: var(--radius);
++    flex-shrink: 0;
+     transition: var(--trans);
+ }
