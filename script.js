@@ -283,7 +283,7 @@ document.addEventListener('DOMContentLoaded', () => {
             navbar.style.boxShadow = styles.getPropertyValue('--nav-shadow-scrolled').trim() || 'none';
         } else {
             navbar.style.background = styles.getPropertyValue('--nav-bg-rest').trim() || '';
-            navbar.style.boxShadow = 'none';
+            navbar.style.boxShadow = styles.getPropertyValue('--nav-shadow-rest').trim() || 'none';
         }
     };
     window.addEventListener('scroll', updateNavbarChrome, { passive: true });
