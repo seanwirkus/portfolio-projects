@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DNA Replication Study | Sean</title>
+    <meta name="description" content="DNA Replication Study app with interactive replication fork diagram, enzyme reference, and quiz modes for bonds, enzymes, and concepts.">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+    <link rel="icon" type="image/svg+xml" href="favicon.svg">
+</head>
+<body>
+    <div class="cursor-dot"></div>
+    <div class="cursor-outline"></div>
+    <div class="bg-gradient bg-gradient-1"></div>
+    <div class="bg-gradient bg-gradient-2"></div>
+    <div class="bg-noise"></div>
+
+    <nav class="navbar">
+        <div class="nav-content">
+            <div class="logo magnetic" onclick="window.location.href='index.html'">S.</div>
+            <ul class="nav-links">
+                <li><a href="index.html#projects" class="magnetic">Back to Portfolio</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <main class="container project-page" style="--project-accent:#10b981;--project-accent-alt:#3b82f6;">
+        <header class="project-page-header section-animate">
+            <a href="index.html#projects" class="back-link magnetic">&larr; Back to projects</a>
+            <div class="project-kicker">Interactive Study Build</div>
+            <h1 class="project-page-title">DNA Replication Study</h1>
+            <p class="project-summary">
+                An interactive study tool for DNA replication: explore the replication fork with labeled enzymes,
+                learn bond types, and test your knowledge with quiz modes covering enzymes and key concepts.
+            </p>
+            <div class="project-callout"><strong>Embedded here:</strong> an interactive runtime with a fork diagram, enzyme detail cards, concept cards, and two quiz modes.</div>
+        </header>
+
+        <section class="project-stage-card section-animate">
+            <div class="project-stage-bar">
+                <div class="project-stage-label">Interactive DNA Replication App</div>
+                <div class="project-stage-actions">
+                    <a class="project-inline-link" href="dna-replication/index.html" target="_blank" rel="noreferrer">Open direct runtime</a>
+                </div>
+            </div>
+
+            <div class="project-stage-insights">
+                <article class="project-stage-insight">
+                    <span>Core concept</span>
+                    <strong>Replication fork anatomy</strong>
+                    <p>Interactive diagram showing leading strand, lagging strand, Okazaki fragments, and all key enzymes in their positions.</p>
+                </article>
+                <article class="project-stage-insight">
+                    <span>Learning mode</span>
+                    <strong>Click-to-explore enzymes</strong>
+                    <p>Click any enzyme on the diagram or sidebar to see its function, bond type, location, and whether it's used in mismatch repair.</p>
+                </article>
+                <article class="project-stage-insight">
+                    <span>Quiz modes</span>
+                    <strong>Enzymes &amp; Concepts</strong>
+                    <p>Two quiz modes test enzyme identification and conceptual understanding of bonds, directionality, and processes.</p>
+                </article>
+            </div>
+
+            <div class="project-frame-shell project-frame-shell--preview" style="--frame-height:700px; --frame-ratio:1280 / 800;">
+                <iframe
+                    class="project-frame"
+                    src="dna-replication/index.html"
+                    title="DNA Replication Study app"
+                    loading="eager"
+                    scrolling="no"
+                    style="width:100%;height:700px;border:none;border-radius:12px;"
+                ></iframe>
+            </div>
+            <div class="project-stage-note">
+                Launch the direct runtime for the full interactive experience.
+            </div>
+        </section>
+
+        <section class="project-meta-grid section-animate">
+            <article class="project-meta-card">
+                <h3>Tech Stack</h3>
+                <div class="project-tag-list">
+                    <span class="tag">JavaScript</span>
+                    <span class="tag">Canvas</span>
+                    <span class="tag">Molecular Biology</span>
+                    <span class="tag">Education UX</span>
+                </div>
+            </article>
+            <article class="project-meta-card">
+                <h3>What It Covers</h3>
+                <p>
+                    All enzymes at the replication fork (helicase, primase, Pol III, Pol I, ligase, topoisomerase, SSB, telomerase),
+                    phosphodiester vs hydrogen bonds, leading vs lagging synthesis, Okazaki fragments, Pol III dual activities,
+                    endo vs exonucleases, 5-methylcytosine, and mismatch repair.
+                </p>
+            </article>
+            <article class="project-meta-card">
+                <h3>Why It Matters</h3>
+                <ul class="project-points">
+                    <li>Maps each enzyme to its position on the fork</li>
+                    <li>Connects enzyme function to specific bond chemistry</li>
+                    <li>Quiz modes reinforce memorization of key concepts</li>
+                </ul>
+            </article>
+        </section>
+    </main>
+
+    <script src="script.js"></script>
+</body>
+</html>

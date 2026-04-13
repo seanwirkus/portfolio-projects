@@ -3381,6 +3381,106 @@ body[data-theme-mode="light"] .dnabases-pair {
     color: rgba(71, 85, 105, 0.5);
 }
 
+/* ——— DNA Replication card ——— */
+.dnarepl-bg {
+    background:
+        radial-gradient(circle at 25% 30%, rgba(16, 185, 129, 0.18), transparent 34%),
+        radial-gradient(circle at 80% 70%, rgba(59, 130, 246, 0.14), transparent 30%),
+        linear-gradient(145deg, #080e18 0%, #0a1120 48%, #0c0f1a 100%);
+}
+
+.dnarepl-mini {
+    position: relative;
+    width: 100%; height: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+}
+
+.dnarepl-fork {
+    position: relative;
+    width: 140px; height: 80px;
+}
+
+.dnarepl-strand {
+    position: absolute;
+    border-radius: 2px;
+}
+
+.dnarepl-strand--parent {
+    top: 32px; left: 0;
+    width: 50px; height: 16px;
+    border-top: 2.5px solid rgba(148, 163, 184, 0.6);
+    border-bottom: 2.5px solid rgba(148, 163, 184, 0.6);
+}
+
+.dnarepl-strand--leading {
+    top: 8px; left: 48px;
+    width: 88px; height: 0;
+    border-top: 2.5px solid #3b82f6;
+    transform: rotate(-20deg);
+    transform-origin: left center;
+}
+
+.dnarepl-strand--lagging {
+    top: 52px; left: 48px;
+    width: 88px; height: 0;
+    transform: rotate(20deg);
+    transform-origin: left center;
+    display: flex; gap: 5px;
+}
+
+.dnarepl-frag {
+    flex: 1;
+    height: 0;
+    border-top: 2.5px solid #10b981;
+    border-radius: 1px;
+}
+
+.dnarepl-frag:first-child {
+    border-top-color: #ec4899;
+    flex: 0.5;
+}
+
+.dnarepl-labels {
+    display: flex;
+    gap: 8px;
+}
+
+.dnarepl-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    font-weight: 600;
+    padding: 2px 6px;
+    border-radius: 4px;
+    border: 1px solid rgba(148, 163, 184, 0.15);
+    background: rgba(15, 23, 42, 0.5);
+    backdrop-filter: blur(6px);
+}
+
+.dnarepl-label--enz { color: #3b82f6; }
+.dnarepl-label--enz2 { color: #f59e0b; }
+.dnarepl-label--enz3 { color: #10b981; }
+
+body[data-theme-mode="light"] .dnarepl-bg {
+    background:
+        radial-gradient(circle at 25% 30%, rgba(16, 185, 129, 0.12), transparent 30%),
+        radial-gradient(circle at 80% 70%, rgba(59, 130, 246, 0.1), transparent 26%),
+        linear-gradient(145deg, #eefbf5, #f0f8ff 50%, #f8fbff 100%);
+}
+
+body[data-theme-mode="light"] .dnarepl-label {
+    background: rgba(255, 255, 255, 0.7);
+    border-color: rgba(15, 23, 42, 0.1);
+}
+
+body[data-theme-mode="light"] .dnarepl-strand--parent {
+    border-top-color: rgba(71, 85, 105, 0.5);
+    border-bottom-color: rgba(71, 85, 105, 0.5);
+}
+
 body[data-theme-mode="light"] .cellstudy-bg {
     background:
         radial-gradient(circle at 24% 18%, rgba(52, 211, 153, 0.16), transparent 28%),
@@ -5267,8 +5367,9 @@ footer.site-footer {
         position: relative;
         flex-direction: row;
         flex-wrap: wrap;
-        padding: 0.8rem 1rem;
-        gap: 1rem;
+        padding: 0.65rem 1.1rem;
+        column-gap: 1rem;
+        row-gap: 0;
     }
 
     .logo {
@@ -5340,51 +5441,99 @@ footer.site-footer {
         padding: 0;
     }
 
-    
-    .hero-title {
-        font-size: clamp(2.2rem, 9vw, 2.8rem);
-        line-height: 1.15;
+
+    /* ── Mobile hero: full-bleed portrait background ─────────────── */
+    .hero {
+        min-height: 100svh;
+        align-items: flex-end;
+        padding-top: 0;
+        padding-bottom: 0;
+        background-color: var(--bg-color);
+        background-image: url('coverimage.webp');
+        /* auto width, 70% of viewport height → face at natural scale in upper portion */
+        background-size: auto 70%;
+        background-position: center 0%;
+        background-repeat: no-repeat;
+    }
+
+    /* Gradient scrim: dark at nav top → clear over face → solid dark text zone below image */
+    .hero::before {
+        inset: 0;
+        border-radius: 0;
+        border: none;
+        box-shadow: none;
+        background:
+            linear-gradient(
+                to bottom,
+                rgba(7, 7, 8, 0.52) 0%,
+                rgba(7, 7, 8, 0.0)  16%,
+                rgba(7, 7, 8, 0.0)  56%,
+                rgba(7, 7, 8, 0.90) 72%,
+                rgba(7, 7, 8, 1.0)  100%
+            );
+    }
+
+    /* Text anchored to the bottom */
+    .hero-layout {
+        display: flex;
+        flex-direction: column;
+        justify-content: flex-end;
+        align-items: flex-start;
+        min-height: 100svh;
+        width: 100%;
+        padding: 0 1.5rem calc(2.8rem + env(safe-area-inset-bottom, 0px));
+        gap: 0;
+    }
+
+    /* Override the 992px centered alignment → left on mobile */
+    .hero {
+        text-align: left;
     }
 
     .hero-roles {
         font-size: 1.05rem;
+        justify-content: flex-start;
     }
 
-    .hero::before {
-        inset: 5rem 0 1.25rem;
-        border-radius: 24px;
-    }
-
-    .hero-backdrop-grid {
-        inset: 5.3rem 0.25rem 1.5rem;
-        background-size: 24px 24px;
-    }
-
-    .hero-layout {
-        padding: 2rem 1rem 2.2rem;
-        gap: 2rem;
+    .hero-chips {
+        justify-content: flex-start;
+        gap: 0.4rem;
+        margin-bottom: 1.2rem;
     }
 
     .hero-actions {
         width: 100%;
         flex-direction: column;
         align-items: stretch;
+        justify-content: flex-start;
     }
 
     .hero-actions .btn {
         width: 100%;
     }
 
-    .hero-orbit-ring {
-        display: none;
+    .hero-title {
+        font-size: clamp(2.2rem, 9vw, 2.8rem);
+        line-height: 1.12;
+        margin-bottom: 0.65rem;
+        text-shadow: 0 2px 18px rgba(0, 0, 0, 0.75);
     }
 
-    .hero-particles-canvas {
-        opacity: 0.32;
+    .hero-roles {
+        margin-bottom: 0.6rem;
+        text-shadow: 0 1px 10px rgba(0, 0, 0, 0.6);
     }
 
-    .hero-chips {
-        gap: 0.4rem;
+    .hero-desc {
+        /* reset the 992px margin: 0 auto that centers it */
+        margin: 0 0 1.1rem;
+        font-size: 0.96rem;
+        line-height: 1.65;
+        text-shadow: 0 1px 10px rgba(0, 0, 0, 0.6);
+    }
+
+    .hero-badge {
+        margin-bottom: 0.85rem;
     }
 
     .hero-chip {
@@ -5392,37 +5541,22 @@ footer.site-footer {
         padding: 0.35rem 0.7rem;
     }
 
+    /* Ensure text stays white/readable on the dark scrim */
+    .hero-title,
+    .hero-roles,
+    .hero-desc,
+    .hero-badge {
+        color: #fafafa;
+    }
+
+    /* Hide elements that no longer apply in full-bleed mode */
+    .hero-visual,
+    .hero-backdrop-grid,
+    .hero-ambient,
+    .hero-particles-canvas,
+    .hero-orbit-ring,
     .hero-metrics {
-        padding: 1rem;
-        gap: 0.9rem;
-    }
-
-    .hero-metric {
-        text-align: left;
-    }
-
-    .hero-visual-shell {
-        padding: 0.85rem;
-        border-radius: 26px;
-    }
-
-    .hero-image-wrapper {
-        height: 24rem;
-        border-radius: 22px;
-    }
-
-    .hero-visual-footer {
-        gap: 0.6rem;
-        padding-top: 0.85rem;
-    }
-
-    .hero-visual-footer p {
-        font-size: 0.9rem;
-    }
-
-    .hero-visual {
-        display: grid;
-        gap: 0.9rem;
+        display: none;
     }
 
     .site-footer__inner {
@@ -5644,6 +5778,55 @@ footer.site-footer {
     }
 }
 
+/* ── Light mode: full-bleed mobile hero swap ──────────────────────── */
+@media (max-width: 768px) {
+    body[data-theme-mode="light"] .hero {
+        background-image: url('coverimage-light.webp');
+        background-size: auto 70%;
+        background-position: center 0%;
+        background-color: var(--bg-color);
+    }
+
+    /* Light-mode scrim: white-tinted fade matches the bg-color (#edf4ff) */
+    body[data-theme-mode="light"] .hero::before {
+        background:
+            linear-gradient(
+                to bottom,
+                rgba(237, 244, 255, 0.45) 0%,
+                rgba(237, 244, 255, 0.0)  16%,
+                rgba(237, 244, 255, 0.0)  56%,
+                rgba(237, 244, 255, 0.92) 72%,
+                rgba(237, 244, 255, 1.0)  100%
+            );
+    }
+
+    /* Force dark text for light mode on white image */
+    body[data-theme-mode="light"] .hero-title,
+    body[data-theme-mode="light"] .hero-roles,
+    body[data-theme-mode="light"] .hero-desc,
+    body[data-theme-mode="light"] .hero-badge {
+        color: #0f172a;
+    }
+
+    body[data-theme-mode="light"] .hero-title span {
+        background: linear-gradient(135deg, var(--accent-1), var(--accent-3));
+        -webkit-background-clip: text;
+        background-clip: text;
+        -webkit-text-fill-color: transparent;
+    }
+
+    body[data-theme-mode="light"] .hero-role-typed,
+    body[data-theme-mode="light"] .typed-cursor {
+        color: var(--accent-1);
+    }
+
+    body[data-theme-mode="light"] .hero-badge {
+        background: var(--status-pill-bg);
+        border-color: var(--status-pill-border);
+        color: var(--status-pill-text);
+    }
+}
+
 @media (max-width: 480px) {
     .container {
         padding: 0 0.7rem;
@@ -5660,22 +5843,25 @@ footer.site-footer {
     }
 
     .hero {
-        padding-top: 5.55rem;
+        /* On smaller phones, shrink face a bit more */
+        background-size: auto 62%;
+        background-position: center 0%;
     }
 
     .hero::before {
-        inset: 4.6rem 0 0.6rem;
-        border-radius: 20px;
-    }
-
-    .hero-backdrop-grid {
-        inset: 4.9rem 0.15rem 1rem;
-        background-size: 20px 20px;
+        background:
+            linear-gradient(
+                to bottom,
+                rgba(7, 7, 8, 0.55) 0%,
+                rgba(7, 7, 8, 0.0)  16%,
+                rgba(7, 7, 8, 0.0)  50%,
+                rgba(7, 7, 8, 0.92) 64%,
+                rgba(7, 7, 8, 1.0)  100%
+            );
     }
 
     .hero-layout {
-        padding: 1.35rem 0.72rem 1.55rem;
-        gap: 1.45rem;
+        padding: 0 1.1rem calc(2.2rem + env(safe-area-inset-bottom, 0px));
     }
 
     .hero-title {
@@ -5688,9 +5874,9 @@ footer.site-footer {
     }
 
     .hero-desc {
-        font-size: 0.98rem;
+        font-size: 0.95rem;
         line-height: 1.6;
-        margin-bottom: 1.5rem;
+        margin-bottom: 1rem;
     }
 
     .hero-chip {
@@ -5699,24 +5885,14 @@ footer.site-footer {
     }
 
     .hero-metrics {
-        padding: 0.82rem;
-        gap: 0.75rem;
-        border-radius: 18px;
+        display: none;
     }
 
-    .hero-metric strong {
-        font-size: 0.88rem;
-    }
-
-    .hero-visual-shell {
-        padding: 0.72rem;
-        border-radius: 22px;
-    }
-
+    .hero-visual-shell,
     .hero-image-wrapper {
-        height: 20.5rem;
-        border-radius: 18px;
+        display: none;
     }
+
     .theme-toggle-btn {
         right: 0.6rem;
         bottom: max(0.6rem, env(safe-area-inset-bottom));

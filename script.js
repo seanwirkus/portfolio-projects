@@ -517,7 +517,7 @@ document.addEventListener('DOMContentLoaded', () => {
         ];
         let roleIndex = 0;
         let charIndex = roles[0].length;
-        let deleting = false;
+        let deleting = true; // start by deleting the pre-shown first role, then cycle normally
         const typeSpeed = 65;
         const deleteSpeed = 35;
         const pauseAfterType = 2000;

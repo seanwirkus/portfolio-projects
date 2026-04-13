@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DNA Replication Study</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=Inter:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="app">
+        <!-- Header -->
+        <header class="header">
+            <div class="header-left">
+                <div class="logo-mark">&circlearrowright;</div>
+                <h1>DNA Replication Study</h1>
+            </div>
+            <div class="header-right">
+                <button class="theme-toggle" id="theme-toggle" title="Toggle light/dark mode">
+                    <svg class="theme-icon sun" width="16" height="16" viewBox="0 0 16 16" fill="none">
+                        <circle cx="8" cy="8" r="3.5" stroke="currentColor" stroke-width="1.5"/>
+                        <path d="M8 1v2M8 13v2M1 8h2M13 8h2M3.05 3.05l1.41 1.41M11.54 11.54l1.41 1.41M3.05 12.95l1.41-1.41M11.54 4.46l1.41-1.41" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                    </svg>
+                    <svg class="theme-icon moon" width="16" height="16" viewBox="0 0 16 16" fill="none">
+                        <path d="M13.5 8.5a5.5 5.5 0 0 1-6-6 5.5 5.5 0 1 0 6 6Z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/>
+                    </svg>
+                </button>
+                <div class="mode-tabs">
+                    <button class="mode-tab active" data-mode="explore">Explore</button>
+                    <button class="mode-tab" data-mode="quiz-enzymes">Quiz: Enzymes</button>
+                    <button class="mode-tab" data-mode="quiz-concepts">Quiz: Concepts</button>
+                </div>
+            </div>
+        </header>
+
+        <!-- Main Content -->
+        <div class="main-content">
+            <!-- Explore Mode -->
+            <div class="explore-panel" id="explore-panel">
+                <!-- Enzyme Sidebar -->
+                <div class="enzyme-sidebar">
+                    <h4>Enzymes</h4>
+                    <div id="enzyme-list"></div>
+                </div>
+
+                <!-- Fork Canvas -->
+                <div class="canvas-area">
+                    <canvas id="fork-canvas"></canvas>
+                </div>
+
+                <!-- Info Panel -->
+                <div class="info-panel-wrap" id="info-panel"></div>
+
+                <!-- Concept Cards -->
+                <div class="concept-area">
+                    <div class="concept-grid" id="concept-grid"></div>
+                </div>
+            </div>
+
+            <!-- Quiz Mode -->
+            <div class="quiz-panel hidden" id="quiz-panel">
+                <div class="quiz-header">
+                    <div class="quiz-score">
+                        <span class="score-label">Score</span>
+                        <span class="score-value" id="score-value">0 / 0</span>
+                    </div>
+                    <div class="quiz-streak">
+                        <span class="streak-label">Streak</span>
+                        <span class="streak-value" id="streak-value">0</span>
+                    </div>
+                    <button class="reset-btn" id="reset-quiz">Reset</button>
+                </div>
+                <div class="quiz-body">
+                    <div class="quiz-prompt" id="quiz-prompt"></div>
+                    <div class="quiz-options" id="quiz-options"></div>
+                    <div class="quiz-feedback hidden" id="quiz-feedback"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="data.js"></script>
+    <script src="renderer.js"></script>
+    <script src="app.js"></script>
+</body>
+</html>
