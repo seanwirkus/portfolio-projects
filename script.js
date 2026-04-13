@@ -11,8 +11,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const params = new URLSearchParams(window.location.search);
         const queryMode = params.get('mode');
         const queryPalette = params.get('theme');
-        const prefersLight = window.matchMedia && window.matchMedia('(prefers-color-scheme: light)').matches;
-        let mode = prefersLight ? 'light' : 'dark';
+        let mode = 'dark';
         let palette = 'ocean';
 
         try {
