@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DNA Base Memorizer | Sean</title>
+    <meta name="description" content="DNA Base Memorizer project page with an embedded interactive simulator for nucleobase structure and hydrogen-bond pairing.">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+    <link rel="icon" type="image/svg+xml" href="favicon.svg">
+</head>
+<body>
+    <div class="cursor-dot"></div>
+    <div class="cursor-outline"></div>
+    <div class="bg-gradient bg-gradient-1"></div>
+    <div class="bg-gradient bg-gradient-2"></div>
+    <div class="bg-noise"></div>
+
+    <nav class="navbar">
+        <div class="nav-content">
+            <div class="logo magnetic" onclick="window.location.href='index.html'">S.</div>
+            <ul class="nav-links">
+                <li><a href="index.html#projects" class="magnetic">Back to Portfolio</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <main class="container project-page" style="--project-accent:#3b82f6;--project-accent-alt:#10b981;">
+        <header class="project-page-header section-animate">
+            <a href="index.html#projects" class="back-link magnetic">← Back to projects</a>
+            <div class="project-kicker">Interactive Study Build</div>
+            <h1 class="project-page-title">DNA Base Memorizer</h1>
+            <p class="project-summary">
+                A study-first simulator for recognizing nucleobase structures, identifying hydrogen-bond donors and acceptors,
+                and understanding canonical base pairing through guided visual interaction.
+            </p>
+            <div class="project-callout"><strong>Embedded here:</strong> an interactive runtime with rotation, pairing animation, and quiz modes for names, pairing, and H-bond sites.</div>
+        </header>
+
+        <section class="project-stage-card section-animate">
+            <div class="project-stage-bar">
+                <div class="project-stage-label">Interactive DNA Simulator</div>
+                <div class="project-stage-actions">
+                    <a class="project-inline-link" href="embeds/app-shell.html?src=/embeds/dna-bases-app.html&amp;projectHref=/dna-bases.html&amp;title=DNA%20Base%20Memorizer&amp;accent=3b82f6" target="_blank" rel="noreferrer">Open full simulator</a>
+                    <a class="project-inline-link" href="dna-bases/index.html" target="_blank" rel="noreferrer">Open direct runtime</a>
+                </div>
+            </div>
+
+            <div class="project-stage-insights">
+                <article class="project-stage-insight">
+                    <span>Core concept</span>
+                    <strong>A-T and G-C pairing</strong>
+                    <p>Visualizes canonical hydrogen-bond pairing and why G-C forms three bonds while A-T forms two.</p>
+                </article>
+                <article class="project-stage-insight">
+                    <span>Learning mode</span>
+                    <strong>Explore + quiz loop</strong>
+                    <p>Supports discovery with overlays, then reinforces retention with focused recognition quizzes.</p>
+                </article>
+                <article class="project-stage-insight">
+                    <span>Interaction</span>
+                    <strong>Animated pair formation</strong>
+                    <p>Bases rotate, approach, and connect so pairing behavior is easier to understand at a glance.</p>
+                </article>
+            </div>
+
+            <div class="project-frame-shell project-frame-shell--preview" style="--frame-height:700px; --frame-ratio:1280 / 800;">
+                <iframe
+                    class="project-frame"
+                    src="embeds/preview-shell.html?src=/embeds/dna-bases-app.html&amp;width=1280&amp;height=800&amp;accent=3b82f6&amp;label=DNA%20base%20simulator&amp;sizeLabel=1280%20%C3%97%20800"
+                    title="DNA Base Memorizer preview"
+                    loading="eager"
+                    scrolling="no"
+                ></iframe>
+            </div>
+            <div class="project-stage-note">
+                Use the framed simulator for portfolio context, or launch the direct runtime if you want the app by itself.
+            </div>
+        </section>
+
+        <section class="project-meta-grid section-animate">
+            <article class="project-meta-card">
+                <h3>Tech Stack</h3>
+                <div class="project-tag-list">
+                    <span class="tag">JavaScript</span>
+                    <span class="tag">Canvas</span>
+                    <span class="tag">Molecular Visualization</span>
+                    <span class="tag">Education UX</span>
+                </div>
+            </article>
+            <article class="project-meta-card">
+                <h3>What The Embed Shows</h3>
+                <p>
+                    A practical study surface for structure recognition: atom labels, numbering overlays, donor/acceptor hints,
+                    and animated base pairing that reveals the final bonded state.
+                </p>
+            </article>
+            <article class="project-meta-card">
+                <h3>Why It Matters</h3>
+                <ul class="project-points">
+                    <li>Turns abstract base pairing rules into visible behavior</li>
+                    <li>Helps students connect structure with function</li>
+                    <li>Makes biochemistry review interactive instead of static</li>
+                </ul>
+            </article>
+        </section>
+    </main>
+
+    <script src="script.js"></script>
+</body>
+</html>
