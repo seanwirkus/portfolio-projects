@@ -6202,3 +6202,791 @@ footer.site-footer {
         line-height: 1.65;
     }
 }
+
+/* ═══════════════════════════════════════════════════════════════════
+   MOBILE REDESIGN v2 — native-app-style experience
+   Bottom tab bar, refined hero, category-scroll projects,
+   horizontal skill decks, story timeline.
+   ═══════════════════════════════════════════════════════════════════ */
+
+/* Hidden by default — only visible on mobile */
+.m-tabbar,
+.m-progress {
+    display: none;
+}
+
+@media (max-width: 768px) {
+
+    /* ── Scroll progress indicator at very top ─────────────────── */
+    .m-progress {
+        display: block;
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 2px;
+        z-index: 120;
+        background: transparent;
+        pointer-events: none;
+    }
+    .m-progress__fill {
+        display: block;
+        height: 100%;
+        width: 0%;
+        background: linear-gradient(90deg, var(--accent-3), var(--accent-1), var(--accent-2));
+        box-shadow: 0 0 12px rgba(59, 130, 246, 0.55);
+        transition: width 0.08s linear;
+    }
+
+    /* ── Streamline top nav: logo only + theme toggle; bottom bar takes over ── */
+    .navbar {
+        top: max(8px, env(safe-area-inset-top));
+        width: calc(100% - 16px);
+        border-radius: 22px;
+        padding: 0;
+        background: linear-gradient(180deg, rgba(8, 10, 14, 0.72), rgba(8, 10, 14, 0.52));
+        border: 1px solid rgba(255, 255, 255, 0.06);
+        backdrop-filter: blur(22px) saturate(160%);
+        -webkit-backdrop-filter: blur(22px) saturate(160%);
+    }
+    .nav-content {
+        padding: 0.55rem 0.85rem 0.55rem 1rem;
+    }
+    .logo {
+        font-size: 1.3rem;
+    }
+
+    /* Hide the hamburger + expandable menu — bottom tab bar replaces it */
+    .navbar.has-nav-toggle .nav-menu-toggle {
+        display: none !important;
+    }
+    .navbar.has-nav-toggle .nav-links,
+    .navbar .nav-links {
+        display: none !important;
+    }
+
+    body[data-theme-mode="light"] .navbar {
+        background: linear-gradient(180deg, rgba(255, 255, 255, 0.7), rgba(255, 255, 255, 0.5));
+        border: 1px solid rgba(15, 23, 42, 0.08);
+    }
+
+    /* Small circular theme toggle sits nicely in the top bar now */
+    .theme-toggle-btn {
+        position: fixed;
+        top: max(14px, calc(env(safe-area-inset-top) + 8px));
+        right: 14px;
+        bottom: auto;
+        width: 2.55rem;
+        height: 2.55rem;
+        border-radius: 50%;
+        z-index: 105;
+        background: linear-gradient(180deg, rgba(18, 22, 30, 0.92), rgba(10, 12, 16, 0.9));
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        box-shadow: 0 6px 18px rgba(0, 0, 0, 0.35);
+    }
+    body[data-theme-mode="light"] .theme-toggle-btn {
+        background: linear-gradient(180deg, rgba(255, 255, 255, 0.95), rgba(240, 244, 251, 0.9));
+        border: 1px solid rgba(15, 23, 42, 0.08);
+    }
+    .theme-toggle-icon {
+        width: 1.25rem;
+        height: 1.25rem;
+        margin-top: -0.625rem;
+        margin-left: -0.625rem;
+    }
+
+    /* Give body bottom padding so tabbar never covers content */
+    body {
+        padding-bottom: calc(86px + env(safe-area-inset-bottom, 0px));
+    }
+
+    /* ── Bottom tab bar ─────────────────────────────────────────── */
+    .m-tabbar {
+        display: flex;
+        position: fixed;
+        left: 10px;
+        right: 10px;
+        bottom: max(10px, calc(env(safe-area-inset-bottom, 0px) + 4px));
+        z-index: 110;
+        padding: 0.5rem 0.4rem;
+        border-radius: 26px;
+        background:
+            linear-gradient(180deg, rgba(255, 255, 255, 0.08), rgba(255, 255, 255, 0.02)),
+            rgba(10, 12, 18, 0.82);
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        backdrop-filter: blur(26px) saturate(180%);
+        -webkit-backdrop-filter: blur(26px) saturate(180%);
+        box-shadow:
+            0 18px 40px rgba(0, 0, 0, 0.45),
+            0 0 0 1px rgba(255, 255, 255, 0.02) inset;
+        justify-content: space-around;
+        align-items: center;
+        gap: 0.15rem;
+    }
+    body[data-theme-mode="light"] .m-tabbar {
+        background:
+            linear-gradient(180deg, rgba(255, 255, 255, 0.9), rgba(255, 255, 255, 0.75));
+        border: 1px solid rgba(15, 23, 42, 0.08);
+        box-shadow: 0 18px 40px rgba(15, 23, 42, 0.15);
+    }
+
+    .m-tab {
+        flex: 1 1 0;
+        min-width: 0;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 0.22rem;
+        padding: 0.5rem 0.2rem;
+        border-radius: 18px;
+        color: var(--text-muted);
+        text-decoration: none;
+        font-size: 0.65rem;
+        font-weight: 500;
+        letter-spacing: 0.02em;
+        min-height: 56px;
+        position: relative;
+        transition: color 0.22s ease, transform 0.22s ease;
+    }
+    .m-tab__icon {
+        width: 22px;
+        height: 22px;
+        stroke: currentColor;
+        transition: transform 0.22s ease, stroke-width 0.22s ease;
+    }
+    .m-tab__label {
+        line-height: 1;
+        opacity: 0.85;
+    }
+
+    /* Active tab */
+    .m-tab.is-active {
+        color: var(--text-main);
+    }
+    .m-tab.is-active .m-tab__icon {
+        transform: translateY(-1px) scale(1.08);
+    }
+    .m-tab.is-active::before {
+        content: '';
+        position: absolute;
+        inset: 4px;
+        border-radius: 14px;
+        background:
+            linear-gradient(180deg, rgba(59, 130, 246, 0.22), rgba(139, 92, 246, 0.18));
+        border: 1px solid rgba(96, 165, 250, 0.28);
+        box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08);
+        z-index: -1;
+    }
+    body[data-theme-mode="light"] .m-tab {
+        color: #475569;
+    }
+    body[data-theme-mode="light"] .m-tab.is-active {
+        color: #0f172a;
+    }
+    body[data-theme-mode="light"] .m-tab.is-active::before {
+        background:
+            linear-gradient(180deg, rgba(59, 130, 246, 0.14), rgba(139, 92, 246, 0.1));
+        border-color: rgba(59, 130, 246, 0.32);
+    }
+
+    /* Center "Work" tab gets a lifted pill treatment */
+    .m-tab--primary {
+        flex: 0 0 auto;
+        min-width: 56px;
+    }
+    .m-tab--primary .m-tab__orb {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 44px;
+        height: 44px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, var(--accent-1), var(--accent-2));
+        box-shadow:
+            0 10px 22px rgba(59, 130, 246, 0.45),
+            inset 0 1px 0 rgba(255, 255, 255, 0.3);
+        color: #fff;
+        margin-top: -18px;
+        margin-bottom: 2px;
+        border: 2px solid rgba(10, 12, 18, 0.9);
+        transition: transform 0.22s ease, box-shadow 0.22s ease;
+    }
+    .m-tab--primary .m-tab__icon {
+        width: 20px;
+        height: 20px;
+    }
+    .m-tab--primary.is-active .m-tab__orb {
+        transform: scale(1.08);
+        box-shadow:
+            0 14px 28px rgba(59, 130, 246, 0.55),
+            inset 0 1px 0 rgba(255, 255, 255, 0.35);
+    }
+    .m-tab--primary.is-active::before {
+        display: none;
+    }
+    body[data-theme-mode="light"] .m-tab--primary .m-tab__orb {
+        border-color: rgba(255, 255, 255, 0.95);
+    }
+
+    /* ── Hero redesign for mobile ────────────────────────────────
+       Strategy: photo lives ONLY in the top portion of the hero so
+       the face is clean and unobstructed; text sits on a solid
+       background below the photo — never over the face. */
+    .hero {
+        min-height: 100svh;
+        background-color: var(--bg-color);
+        background-image: url('coverimage.webp');
+        background-size: auto 54vh;
+        background-position: center calc(var(--navbar-clearance) - 24px);
+        background-repeat: no-repeat;
+    }
+    body[data-theme-mode="light"] .hero {
+        background-image: url('coverimage-light.webp');
+        background-size: auto 54vh;
+        background-position: center calc(var(--navbar-clearance) - 24px);
+    }
+
+    /* Gentle scrim blends the photo's bottom edge into the solid content zone */
+    .hero::before {
+        inset: 0;
+        border: none;
+        border-radius: 0;
+        box-shadow: none;
+        background:
+            linear-gradient(
+                to bottom,
+                rgba(7, 7, 8, 0.35) 0%,
+                rgba(7, 7, 8, 0.0)  14%,
+                rgba(7, 7, 8, 0.0)  38%,
+                rgba(7, 7, 8, 0.65) 48%,
+                var(--bg-color) 58%,
+                var(--bg-color) 100%
+            );
+    }
+    body[data-theme-mode="light"] .hero::before {
+        background:
+            linear-gradient(
+                to bottom,
+                rgba(237, 244, 255, 0.25) 0%,
+                rgba(237, 244, 255, 0.0)  14%,
+                rgba(237, 244, 255, 0.0)  38%,
+                rgba(237, 244, 255, 0.7)  48%,
+                var(--bg-color) 58%,
+                var(--bg-color) 100%
+            );
+    }
+
+    /* Content starts below the photo zone — clean solid area */
+    .hero-layout {
+        min-height: 100svh;
+        padding: 58vh 1.25rem calc(1rem + env(safe-area-inset-bottom, 0px) + 86px);
+        gap: 0;
+        justify-content: flex-start;
+    }
+
+    /* No backdrop needed — content lives on solid bg now */
+    .hero-content {
+        position: relative;
+        padding: 0;
+    }
+    .hero-content::before { display: none; }
+
+    .hero-badge {
+        align-self: flex-start;
+        background: rgba(16, 185, 129, 0.18);
+        border: 1px solid rgba(52, 211, 153, 0.42);
+        backdrop-filter: blur(18px);
+        -webkit-backdrop-filter: blur(18px);
+        padding: 0.42rem 0.9rem;
+        border-radius: 999px;
+        font-size: 0.72rem;
+        margin-bottom: 0.7rem;
+        box-shadow: 0 8px 22px rgba(16, 185, 129, 0.15);
+    }
+
+    .hero-title {
+        font-size: clamp(1.95rem, 8.6vw, 2.55rem);
+        line-height: 1.05;
+        letter-spacing: -0.02em;
+        margin-bottom: 0.55rem;
+        text-shadow: none;
+        color: var(--text-main);
+    }
+    .hero-title br { display: none; }
+    .hero-title span {
+        background: linear-gradient(135deg, #60a5fa, #a78bfa, #34d399);
+        -webkit-background-clip: text;
+        background-clip: text;
+        -webkit-text-fill-color: transparent;
+    }
+
+    .hero-roles {
+        font-size: 0.95rem;
+        margin-bottom: 0.55rem;
+        display: block;
+        white-space: normal;
+    }
+    .hero-role-static,
+    .hero-role-typed,
+    .typed-cursor {
+        display: inline;
+    }
+    .hero-desc {
+        font-size: 0.9rem;
+        line-height: 1.55;
+        margin-bottom: 0.85rem;
+        max-width: 42ch;
+        text-shadow: none;
+        color: var(--text-muted);
+    }
+
+    .hero-chips {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.35rem;
+        margin-bottom: 0.9rem;
+    }
+    .hero-chip {
+        padding: 0.3rem 0.58rem;
+        font-size: 0.68rem;
+        background: rgba(15, 20, 30, 0.55);
+        border: 1px solid rgba(255, 255, 255, 0.12);
+        backdrop-filter: blur(10px);
+        -webkit-backdrop-filter: blur(10px);
+        border-radius: 999px;
+        white-space: nowrap;
+    }
+    .hero-chip .chip-dot {
+        width: 5px;
+        height: 5px;
+    }
+    body[data-theme-mode="light"] .hero-chip {
+        background: rgba(255, 255, 255, 0.68);
+        border-color: rgba(15, 23, 42, 0.12);
+        color: #0f172a;
+    }
+
+    .hero-actions {
+        width: 100%;
+        display: grid;
+        grid-template-columns: 1.4fr 1fr;
+        gap: 0.55rem;
+        flex-direction: row;
+        margin-top: 0.4rem;
+    }
+    .hero-actions .btn {
+        width: 100%;
+        min-height: 54px;
+        padding: 0.8rem 0.95rem;
+        border-radius: 16px;
+    }
+    .hero-actions .btn-primary {
+        background: linear-gradient(135deg, var(--accent-1), var(--accent-2));
+        border: none;
+        box-shadow: 0 12px 26px rgba(59, 130, 246, 0.35);
+    }
+    .hero-actions .btn-secondary {
+        background: rgba(255, 255, 255, 0.06);
+        border: 1px solid rgba(255, 255, 255, 0.16);
+        backdrop-filter: blur(14px);
+        -webkit-backdrop-filter: blur(14px);
+    }
+    .hero-cta-kicker {
+        font-size: 0.62rem;
+        letter-spacing: 0.14em;
+        opacity: 0.75;
+    }
+    .hero-cta-label {
+        font-size: 0.92rem;
+    }
+
+    .hero-metrics { display: none; }
+
+    /* Remove heroPulse scroll hint on mobile to keep the frame clean */
+
+    /* ── Section titles: animated gradient underline ─────────────── */
+    .section-title {
+        font-size: 1.78rem;
+        font-weight: 700;
+        letter-spacing: -0.015em;
+        margin-bottom: 1.4rem;
+        padding-bottom: 0.7rem;
+        position: relative;
+        text-align: left;
+    }
+    .section-title::after {
+        content: '';
+        position: absolute;
+        left: 0;
+        bottom: 0;
+        width: 44px;
+        height: 3px;
+        border-radius: 999px;
+        background: linear-gradient(90deg, var(--accent-3), var(--accent-1), var(--accent-2));
+    }
+
+    /* ── Skills: horizontal snap-scroll deck ─────────────────────── */
+    .skills-section {
+        padding: 3.2rem 0 3.4rem;
+    }
+    .skills-section .section-title {
+        padding-left: 1rem;
+        padding-right: 1rem;
+    }
+    .skills-grid {
+        display: grid;
+        grid-auto-flow: column;
+        grid-auto-columns: 78%;
+        gap: 0.85rem;
+        overflow-x: auto;
+        scroll-snap-type: x mandatory;
+        padding: 0.3rem 1rem 1rem;
+        margin: 0 -0.7rem;
+        scrollbar-width: none;
+        -webkit-overflow-scrolling: touch;
+    }
+    .skills-grid::-webkit-scrollbar { display: none; }
+    .skill-category {
+        scroll-snap-align: start;
+        padding: 1.35rem 1.25rem;
+        border-radius: 22px;
+        min-height: 210px;
+        display: flex;
+        flex-direction: column;
+        gap: 0.9rem;
+        background:
+            linear-gradient(160deg, rgba(59, 130, 246, 0.08), rgba(139, 92, 246, 0.05) 55%, transparent),
+            var(--glass-card-bg);
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        position: relative;
+        overflow: hidden;
+    }
+    .skill-category:nth-child(2n) {
+        background:
+            linear-gradient(160deg, rgba(16, 185, 129, 0.08), rgba(59, 130, 246, 0.05) 55%, transparent),
+            var(--glass-card-bg);
+    }
+    .skill-category:nth-child(3n) {
+        background:
+            linear-gradient(160deg, rgba(245, 158, 11, 0.08), rgba(236, 72, 153, 0.05) 55%, transparent),
+            var(--glass-card-bg);
+    }
+    .skill-category::before {
+        content: '';
+        position: absolute;
+        top: -30px;
+        right: -30px;
+        width: 110px;
+        height: 110px;
+        border-radius: 50%;
+        background: radial-gradient(circle, rgba(59, 130, 246, 0.18), transparent 70%);
+        pointer-events: none;
+    }
+    .skill-category h3 {
+        font-size: 1.05rem;
+        font-weight: 600;
+        margin: 0;
+        letter-spacing: -0.01em;
+    }
+    .skill-tags {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.36rem;
+    }
+    .skill-category .tag {
+        font-size: 0.73rem;
+        padding: 0.32rem 0.62rem;
+        border-radius: 10px;
+        background: rgba(255, 255, 255, 0.06);
+        border: 1px solid rgba(255, 255, 255, 0.08);
+    }
+
+    /* ── Projects: hero pick + 2-column compact grid ─────────────── */
+    .projects-section {
+        padding: 3rem 0 2.8rem;
+    }
+    .projects-section .section-title {
+        padding-left: 1rem;
+        padding-right: 1rem;
+    }
+    .projects-grid {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 0.75rem;
+        padding: 0 0.9rem;
+    }
+    /* Featured first card full-width */
+    .projects-grid .project-card:first-child {
+        grid-column: 1 / -1;
+    }
+    .projects-grid .project-card:first-child .project-image-placeholder {
+        height: 220px;
+    }
+    .projects-grid .project-card:first-child .project-title {
+        font-size: 1.45rem;
+    }
+
+    .project-card {
+        border-radius: 20px;
+        overflow: hidden;
+        background: var(--project-card-bg);
+        border: 1px solid var(--project-card-border);
+        box-shadow: 0 10px 24px rgba(0, 0, 0, 0.28);
+        transition: transform 0.22s ease, box-shadow 0.22s ease;
+    }
+    .project-card:active {
+        transform: scale(0.98);
+        box-shadow: 0 6px 16px rgba(0, 0, 0, 0.4);
+    }
+    .project-image-placeholder {
+        height: 130px;
+    }
+    .project-info {
+        padding: 0.78rem 0.82rem 0.88rem;
+    }
+    .project-role {
+        font-size: 0.62rem;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+        opacity: 0.8;
+    }
+    .project-title {
+        font-size: 0.98rem;
+        line-height: 1.2;
+        margin: 0.2rem 0 0.28rem;
+        letter-spacing: -0.01em;
+    }
+    .project-desc {
+        font-size: 0.78rem;
+        line-height: 1.4;
+        opacity: 0.82;
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+        margin-bottom: 0.5rem;
+    }
+    .project-tags {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.25rem;
+    }
+    .project-tags .ptag {
+        font-size: 0.6rem;
+        padding: 0.22rem 0.45rem;
+        border-radius: 8px;
+    }
+    /* Hide extra tags to prevent overflow on tiny cards */
+    .projects-grid .project-card:not(:first-child) .project-tags .ptag:nth-child(n+3) {
+        display: none;
+    }
+    .projects-grid .project-card:not(:first-child) .project-desc {
+        -webkit-line-clamp: 1;
+    }
+
+    /* ── Timeline: story-card style ─────────────────────────────── */
+    .experience-section {
+        padding: 3rem 0 2.4rem;
+    }
+    .experience-section .section-title {
+        padding-left: 1rem;
+        padding-right: 1rem;
+    }
+    .timeline {
+        padding: 0 1rem;
+        position: relative;
+    }
+    .timeline::before {
+        left: 14px;
+        top: 6px;
+        bottom: 6px;
+        width: 2px;
+        background: linear-gradient(
+            180deg,
+            var(--accent-3) 0%,
+            var(--accent-1) 50%,
+            var(--accent-2) 100%
+        );
+        opacity: 0.45;
+    }
+    .timeline-item {
+        padding-left: 40px;
+        margin-bottom: 1.1rem;
+        position: relative;
+    }
+    .timeline-dot {
+        left: 6px;
+        top: 1.2rem;
+        width: 18px;
+        height: 18px;
+        border-radius: 50%;
+        background:
+            radial-gradient(circle, #fff 0 2px, transparent 3px),
+            linear-gradient(135deg, var(--accent-1), var(--accent-2));
+        box-shadow: 0 0 0 4px rgba(10, 12, 18, 0.9), 0 0 18px rgba(59, 130, 246, 0.45);
+        border: none;
+    }
+    body[data-theme-mode="light"] .timeline-dot {
+        box-shadow: 0 0 0 4px rgba(237, 244, 255, 0.9), 0 0 18px rgba(59, 130, 246, 0.35);
+    }
+    .timeline-content {
+        background:
+            linear-gradient(180deg, rgba(255, 255, 255, 0.04), rgba(255, 255, 255, 0)),
+            rgba(12, 16, 24, 0.62);
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        border-radius: 18px;
+        padding: 1rem 1.05rem 1.05rem;
+        backdrop-filter: blur(12px);
+        -webkit-backdrop-filter: blur(12px);
+    }
+    body[data-theme-mode="light"] .timeline-content {
+        background:
+            linear-gradient(180deg, rgba(255, 255, 255, 0.95), rgba(255, 255, 255, 0.82));
+        border-color: rgba(15, 23, 42, 0.08);
+    }
+    .timeline-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.45rem;
+        margin-bottom: 0.55rem;
+    }
+    .timeline-header h3 {
+        font-size: 1.02rem;
+        margin: 0;
+        letter-spacing: -0.01em;
+    }
+    .timeline-header h4 {
+        font-size: 0.85rem;
+        margin: 0.15rem 0 0;
+        opacity: 0.85;
+    }
+    .timeline-date {
+        order: 2;
+        font-size: 0.72rem;
+        padding: 0.3rem 0.6rem;
+        border-radius: 999px;
+        background: rgba(255, 255, 255, 0.05);
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        align-self: flex-start;
+        white-space: nowrap;
+        line-height: 1.2;
+    }
+    .timeline-date small {
+        opacity: 0.7;
+        font-size: 0.65rem;
+    }
+    .timeline-content p {
+        font-size: 0.86rem;
+        line-height: 1.55;
+        margin: 0;
+        opacity: 0.88;
+    }
+
+    /* ── Education: refined cards ────────────────────────────────── */
+    .education-section {
+        padding: 2.8rem 0 3rem;
+    }
+    .education-section .section-title {
+        padding-left: 1rem;
+        padding-right: 1rem;
+    }
+    .education-grid {
+        padding: 0 1rem;
+        gap: 0.85rem;
+    }
+    .education-card {
+        padding: 1.3rem 1.2rem;
+        border-radius: 20px;
+        background:
+            linear-gradient(160deg, rgba(59, 130, 246, 0.08), transparent 55%),
+            var(--glass-card-bg);
+        border: 1px solid rgba(255, 255, 255, 0.08);
+    }
+    .edu-icon {
+        font-size: 1.75rem;
+        margin-bottom: 0.5rem;
+    }
+    .education-card h3 {
+        font-size: 1.05rem;
+        letter-spacing: -0.01em;
+        margin-bottom: 0.25rem;
+    }
+    .edu-degree {
+        font-size: 0.88rem;
+        margin-bottom: 0.2rem;
+    }
+    .edu-details {
+        font-size: 0.78rem;
+        opacity: 0.78;
+        margin-bottom: 0.65rem;
+    }
+    .edu-courses {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.32rem;
+    }
+    .edu-courses .tag-small {
+        font-size: 0.7rem;
+        padding: 0.28rem 0.55rem;
+    }
+
+    /* ── Footer compact ──────────────────────────────────────────── */
+    .site-footer {
+        padding: 2.6rem 0 3.5rem;
+    }
+    .site-footer__lead h2 {
+        font-size: clamp(1.6rem, 7.5vw, 2rem);
+        line-height: 1.15;
+        letter-spacing: -0.015em;
+    }
+    .site-footer__lead p {
+        font-size: 0.88rem;
+        line-height: 1.55;
+    }
+    .site-footer__actions {
+        gap: 0.5rem;
+    }
+    .site-footer__link {
+        min-height: 48px;
+        border-radius: 14px;
+        font-size: 0.88rem;
+    }
+    .site-footer__meta {
+        gap: 0.6rem;
+    }
+    .site-footer__card {
+        padding: 0.9rem 1rem;
+        border-radius: 16px;
+    }
+    .site-footer__bottom {
+        gap: 0.5rem;
+        font-size: 0.78rem;
+    }
+}
+
+/* ── Extra-small phones (≤ 400px) ─────────────────────────────────── */
+@media (max-width: 400px) {
+    .m-tab__label {
+        font-size: 0.6rem;
+    }
+    .m-tab__icon {
+        width: 20px;
+        height: 20px;
+    }
+    .hero-actions {
+        grid-template-columns: 1fr;
+    }
+    .hero-title {
+        font-size: clamp(1.85rem, 8vw, 2.3rem);
+    }
+    .project-title {
+        font-size: 0.9rem;
+    }
+    .projects-grid .project-card:first-child .project-title {
+        font-size: 1.3rem;
+    }
+    .section-title {
+        font-size: 1.55rem;
+    }
+}

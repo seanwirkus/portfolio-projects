@@ -811,6 +811,36 @@
 
     </main>
 
+    <!-- Mobile scroll progress bar -->
+    <div class="m-progress" aria-hidden="true"><span class="m-progress__fill"></span></div>
+
+    <!-- Mobile bottom tab navigation -->
+    <nav class="m-tabbar" aria-label="Mobile navigation">
+        <a href="#about" class="m-tab" data-target="about" aria-label="Intro">
+            <svg class="m-tab__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 10.5L12 4l9 6.5"/><path d="M5 9.5V20h14V9.5"/></svg>
+            <span class="m-tab__label">Home</span>
+        </a>
+        <a href="#skills" class="m-tab" data-target="skills" aria-label="Skills">
+            <svg class="m-tab__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h16"/><path d="M4 12h10"/><path d="M4 17h16"/><circle cx="18" cy="12" r="1.8"/></svg>
+            <span class="m-tab__label">Skills</span>
+        </a>
+        <a href="#projects" class="m-tab m-tab--primary" data-target="projects" aria-label="Projects">
+            <span class="m-tab__orb" aria-hidden="true">
+                <svg class="m-tab__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l9 5-9 5-9-5 9-5z"/><path d="M3 13l9 5 9-5"/></svg>
+            </span>
+            <span class="m-tab__label">Work</span>
+        </a>
+        <a href="#experience" class="m-tab" data-target="experience" aria-label="Experience">
+            <svg class="m-tab__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>
+            <span class="m-tab__label">Story</span>
+        </a>
+        <a href="#education" class="m-tab" data-target="education" aria-label="Education">
+            <svg class="m-tab__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-4 9 4-9 4-9-4z"/><path d="M7 11v5c0 1.5 2.2 3 5 3s5-1.5 5-3v-5"/></svg>
+            <span class="m-tab__label">Edu</span>
+        </a>
+        <span class="m-tab__indicator" aria-hidden="true"></span>
+    </nav>
+
     <script src="script.js"></script>
 </body>
 </html>

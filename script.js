@@ -721,4 +721,67 @@ document.addEventListener('DOMContentLoaded', () => {
             heroVisualEl.style.transform = `translateY(${scrollY * 0.04}px)`;
         }, { passive: true });
     }
+
+    // ═══════════════════════════════════════
+    // 13. Mobile bottom tab bar — active state + scroll progress
+    // ═══════════════════════════════════════
+    (function initMobileTabs() {
+        const tabs = Array.from(document.querySelectorAll('.m-tabbar .m-tab'));
+        const progressFill = document.querySelector('.m-progress__fill');
+        if (!tabs.length && !progressFill) return;
+
+        // Smooth-scroll tab clicks with offset for the floating top nav
+        tabs.forEach((tab) => {
+            tab.addEventListener('click', (e) => {
+                const targetId = tab.dataset.target;
+                const el = targetId && document.getElementById(targetId);
+                if (!el) return;
+                e.preventDefault();
+                const y = el.getBoundingClientRect().top + window.scrollY - 8;
+                window.scrollTo({ top: y, behavior: 'smooth' });
+
+                // Haptic tick for supported devices
+                if (navigator.vibrate) { try { navigator.vibrate(6); } catch (_) {} }
+            });
+        });
+
+        // Active-state tracking via scroll position
+        const sections = tabs
+            .map((t) => document.getElementById(t.dataset.target))
+            .filter(Boolean);
+
+        function updateActiveTab() {
+            if (!sections.length) return;
+            const probe = window.scrollY + window.innerHeight * 0.35;
+            let activeIdx = 0;
+            sections.forEach((s, i) => {
+                if (s.offsetTop <= probe) activeIdx = i;
+            });
+            tabs.forEach((t, i) => t.classList.toggle('is-active', i === activeIdx));
+        }
+
+        function updateProgress() {
+            if (!progressFill) return;
+            const doc = document.documentElement;
+            const scrollable = (doc.scrollHeight - window.innerHeight);
+            const pct = scrollable > 0 ? (window.scrollY / scrollable) * 100 : 0;
+            progressFill.style.width = Math.max(0, Math.min(100, pct)) + '%';
+        }
+
+        let ticking = false;
+        function onScroll() {
+            if (ticking) return;
+            ticking = true;
+            requestAnimationFrame(() => {
+                updateActiveTab();
+                updateProgress();
+                ticking = false;
+            });
+        }
+
+        window.addEventListener('scroll', onScroll, { passive: true });
+        window.addEventListener('resize', onScroll, { passive: true });
+        updateActiveTab();
+        updateProgress();
+    })();
 });
