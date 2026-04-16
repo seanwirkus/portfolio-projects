@@ -80,8 +80,8 @@
                     <div class="info-detail">Click an enzyme on the diagram or sidebar to see details.</div>
                     <div class="info-detail" style="margin-top:8px">
                         <strong>Key bonds:</strong><br>
-                        \u2022 <span style="color:#3b82f6">Phosphodiester</span> \u2014 backbone bonds (formed by polymerase, ligase)<br>
-                        \u2022 <span style="color:#f59e0b">Hydrogen</span> \u2014 base pair bonds (broken by helicase)
+                        \u2022 <span class="info-bond-term--phosphodiester">Phosphodiester</span> \u2014 backbone bonds (formed by polymerase, ligase)<br>
+                        \u2022 <span class="info-bond-term--hydrogen">Hydrogen</span> \u2014 base pair bonds (broken by helicase)
                     </div>
                 </div>
                 <div class="legend-card">

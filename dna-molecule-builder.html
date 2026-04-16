@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Phosphodiester Lab | Sean</title>
+    <meta name="description" content="Interactive DNA molecule builder for learning sugar-phosphate linkage, nucleotide connection, and phosphodiester bond formation.">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+    <link rel="icon" type="image/svg+xml" href="favicon.svg">
+</head>
+<body>
+    <div class="cursor-dot"></div>
+    <div class="cursor-outline"></div>
+    <div class="bg-gradient bg-gradient-1"></div>
+    <div class="bg-gradient bg-gradient-2"></div>
+    <div class="bg-noise"></div>
+
+    <nav class="navbar">
+        <div class="nav-content">
+            <div class="logo magnetic" onclick="window.location.href='index.html'">S.</div>
+            <ul class="nav-links">
+                <li><a href="index.html#projects" class="magnetic">Back to Portfolio</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <main class="container project-page" style="--project-accent:#14b8a6;--project-accent-alt:#0b78c4;">
+        <header class="project-page-header section-animate">
+            <a href="index.html#projects" class="back-link magnetic">← Back to projects</a>
+            <div class="project-kicker">Interactive Study Build</div>
+            <h1 class="project-page-title">Phosphodiester Lab</h1>
+            <p class="project-summary">
+                A DNA assembly simulator for learning how nucleotides actually connect: base to sugar, sugar to phosphate,
+                and then sugar-to-phosphate coupling to build a 5'→3' backbone through phosphodiester bonds.
+            </p>
+            <div class="project-callout">
+                <strong>Embedded here:</strong> a guided builder that lets you load deoxynucleotides, connect them at the 3' hydroxyl and 5' phosphate,
+                and watch a DNA strand grow with its complement preview.
+            </div>
+        </header>
+
+        <section class="project-stage-card section-animate">
+            <div class="project-stage-bar">
+                <div class="project-stage-label">Interactive DNA Molecule Builder</div>
+                <div class="project-stage-actions">
+                    <a class="project-inline-link" href="embeds/app-shell.html?src=/embeds/dna-molecule-builder-app.html&amp;projectHref=/dna-molecule-builder.html&amp;title=Phosphodiester%20Lab&amp;accent=14b8a6" target="_blank" rel="noreferrer">Open full simulator</a>
+                    <a class="project-inline-link" href="dna-molecule-builder/index.html" target="_blank" rel="noreferrer">Open direct runtime</a>
+                </div>
+            </div>
+
+            <div class="project-stage-insights">
+                <article class="project-stage-insight">
+                    <span>Backbone focus</span>
+                    <strong>Sugar + phosphate coupling</strong>
+                    <p>Shows how each new nucleotide extends the chain through a 3'→5' phosphodiester bond.</p>
+                </article>
+                <article class="project-stage-insight">
+                    <span>Structure</span>
+                    <strong>Deoxyribose connection points</strong>
+                    <p>Highlights where the base sits on C1' and where the backbone chemistry happens at 3' and 5'.</p>
+                </article>
+                <article class="project-stage-insight">
+                    <span>Build mode</span>
+                    <strong>Growing strand preview</strong>
+                    <p>Lets you extend the polymer one nucleotide at a time or append a sequence and inspect the complement.</p>
+                </article>
+            </div>
+
+            <div class="project-frame-shell project-frame-shell--preview" style="--frame-height:760px; --frame-ratio:1440 / 900;">
+                <iframe
+                    class="project-frame"
+                    src="embeds/preview-shell.html?src=/embeds/dna-molecule-builder-app.html&amp;width=1440&amp;height=900&amp;accent=14b8a6&amp;label=DNA%20molecule%20builder&amp;sizeLabel=1440%20%C3%97%20900"
+                    title="Phosphodiester Lab preview"
+                    loading="eager"
+                    scrolling="no"
+                ></iframe>
+            </div>
+            <div class="project-stage-note">
+                Use the framed simulator for context inside the portfolio, or open the direct runtime for a full-screen builder.
+            </div>
+        </section>
+
+        <section class="project-meta-grid section-animate">
+            <article class="project-meta-card">
+                <h3>Tech Stack</h3>
+                <div class="project-tag-list">
+                    <span class="tag">React</span>
+                    <span class="tag">SVG</span>
+                    <span class="tag">Education UX</span>
+                    <span class="tag">Biochemistry</span>
+                </div>
+            </article>
+            <article class="project-meta-card">
+                <h3>What The Embed Shows</h3>
+                <p>
+                    A workspace centered on the chemistry students usually have to imagine: deoxyribose geometry,
+                    the 3' hydroxyl, the incoming 5' phosphate, and the bond that turns separate nucleotides into one polymer.
+                </p>
+            </article>
+            <article class="project-meta-card">
+                <h3>Why It Matters</h3>
+                <ul class="project-points">
+                    <li>Bridges the gap between base pairing and full DNA backbone construction</li>
+                    <li>Turns phosphodiester bond language into an interactive build sequence</li>
+                    <li>Connects strand directionality, backbone chemistry, and complement logic in one view</li>
+                </ul>
+            </article>
+        </section>
+    </main>
+
+    <script src="script.js"></script>
+</body>
+</html>

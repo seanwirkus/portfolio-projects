@@ -41,6 +41,7 @@
                 <li><a href="#skills" class="magnetic">Skills</a></li>
                 <li><a href="#experience" class="magnetic">Experience</a></li>
                 <li><a href="#projects" class="magnetic">Projects</a></li>
+                <li><a href="#ideas" class="magnetic">Ideas</a></li>
                 <li><a href="#education" class="magnetic">Education</a></li>
             </ul>
         </div>
@@ -71,6 +72,7 @@
                         <span class="hero-chip"><span class="chip-dot" style="--dot-color: var(--accent-3)"></span>Clinical UX + Data</span>
                         <span class="hero-chip"><span class="chip-dot" style="--dot-color: var(--accent-1)"></span>Embedded Systems</span>
                         <span class="hero-chip"><span class="chip-dot" style="--dot-color: #f59e0b"></span>Interactive Simulators</span>
+                        <span class="hero-chip"><span class="chip-dot" style="--dot-color: var(--accent-2)"></span>Product Story + Brand Systems</span>
                     </div>
                     <div class="hero-actions">
                         <a href="#projects" class="btn btn-primary magnetic">
@@ -80,10 +82,10 @@
                             </span>
                             <span class="hero-cta-icon" aria-hidden="true">↗</span>
                         </a>
-                        <a href="#experience" class="btn btn-secondary magnetic">
+                        <a href="#ideas" class="btn btn-secondary magnetic">
                             <span class="hero-cta-copy">
-                                <span class="hero-cta-kicker">Journey</span>
-                                <span class="hero-cta-label">My Experience</span>
+                                <span class="hero-cta-kicker">Strategy</span>
+                                <span class="hero-cta-label">Ideas / Vision</span>
                             </span>
                             <span class="hero-cta-icon" aria-hidden="true">→</span>
                         </a>
@@ -129,7 +131,7 @@
         <!-- Skills Section -->
         <section id="skills" class="skills-section section-animate">
             <h2 class="section-title">Technical Expertise</h2>
-            <div class="skills-grid">
+            <div class="skills-grid" tabindex="0" aria-label="Technical expertise categories">
                 <div class="skill-category slide-up tilt-elem" style="--delay: 1;">
                     <h3>Languages</h3>
                     <div class="skill-tags">
@@ -632,7 +634,31 @@
                     </div>
                 </article>
 
-                <article class="project-card slide-up tilt-elem" style="--delay: 19; cursor: pointer;" onclick="window.location.href='dna-replication.html'">
+                <article class="project-card slide-up tilt-elem" style="--delay: 19; cursor: pointer;" onclick="window.location.href='dna-molecule-builder.html'">
+                    <div class="project-image-placeholder dnamol-bg">
+                        <div class="dnamol-mini" aria-hidden="true">
+                            <div class="dnamol-backbone">
+                                <span class="dnamol-phosphate dnamol-phosphate--one"></span>
+                                <span class="dnamol-sugar dnamol-sugar--one"></span>
+                                <span class="dnamol-phosphate dnamol-phosphate--two"></span>
+                                <span class="dnamol-sugar dnamol-sugar--two"></span>
+                                <span class="dnamol-phosphate dnamol-phosphate--three"></span>
+                            </div>
+                            <span class="dnamol-base dnamol-base--a">A</span>
+                            <span class="dnamol-base dnamol-base--g">G</span>
+                            <span class="dnamol-base dnamol-base--t">T</span>
+                            <span class="dnamol-caption">3'→5' phosphodiester</span>
+                        </div>
+                    </div>
+                    <div class="project-info">
+                        <span class="project-role">Interactive Study Build</span>
+                        <h3 class="project-title">Phosphodiester Lab</h3>
+                        <p class="project-desc">Sugar-Phosphate Backbone & DNA Polymer Builder</p>
+                        <div class="project-tags"><span class="ptag">React</span><span class="ptag">Biochemistry</span><span class="ptag">Education</span></div>
+                    </div>
+                </article>
+
+                <article class="project-card slide-up tilt-elem" style="--delay: 20; cursor: pointer;" onclick="window.location.href='dna-replication.html'">
                     <div class="project-image-placeholder dnarepl-bg">
                         <div class="dnarepl-mini" aria-hidden="true">
                             <div class="dnarepl-fork">
@@ -659,6 +685,150 @@
                     </div>
                 </article>
 
+            </div>
+        </section>
+
+        <section id="ideas" class="ideas-section section-animate">
+            <div class="ideas-shell">
+                <div class="ideas-header">
+                    <div class="ideas-copy slide-up" style="--delay: 1;">
+                        <span class="ideas-eyebrow">PR, marketing, product, and brand direction</span>
+                        <h2 class="section-title">Ideas / Vision</h2>
+                        <p class="ideas-intro">
+                            I like building the thing around the interface too: the hook, the launch angle, the before-and-after story, and the visual world that makes the bet feel real before it ships.
+                        </p>
+                    </div>
+                    <aside class="ideas-summary slide-up" style="--delay: 2;">
+                        <span class="ideas-summary__label">What I bring to creative teams</span>
+                        <ul class="ideas-summary__list">
+                            <li>Translate dense products into crisp hooks, launch angles, and creator-ready narratives.</li>
+                            <li>Bridge concept, prototype, and messaging so teams can pitch something visible instead of abstract.</li>
+                            <li>Bring taste, systems thinking, and product instinct to PR, marketing, and brand work.</li>
+                        </ul>
+                        <div class="ideas-role-pills" aria-label="Target roles">
+                            <span>PR Storytelling</span>
+                            <span>Product Marketing</span>
+                            <span>Brand Design</span>
+                            <span>Creative Vision</span>
+                        </div>
+                    </aside>
+                </div>
+
+                <div class="ideas-lanes slide-up" style="--delay: 2.4;">
+                    <article class="ideas-lane">
+                        <span class="ideas-lane__index">01</span>
+                        <h3>PR + Community</h3>
+                        <p>Ambassador kits, creator prompts, and launch stories people can repost without sounding scripted.</p>
+                    </article>
+                    <article class="ideas-lane">
+                        <span class="ideas-lane__index">02</span>
+                        <h3>Product Marketing</h3>
+                        <p>Before-and-after narratives, proof points, and demo scripting that make the value land fast.</p>
+                    </article>
+                    <article class="ideas-lane">
+                        <span class="ideas-lane__index">03</span>
+                        <h3>Brand Design</h3>
+                        <p>Visual systems, motion cues, and campaign direction that give the product an actual point of view.</p>
+                    </article>
+                    <article class="ideas-lane">
+                        <span class="ideas-lane__index">04</span>
+                        <h3>Vision + Product</h3>
+                        <p>Concept prototypes and future-state stories that help teams align around something concrete.</p>
+                    </article>
+                </div>
+
+                <div class="ideas-feed">
+                    <div class="ideas-feed__intro slide-up" style="--delay: 2.8;">
+                        <span class="ideas-feed__eyebrow">Scroll through the signal feed</span>
+                        <p>Same job, four beats: shape the hook, show the shift, build the world, then package the rollout.</p>
+                    </div>
+
+                    <div class="ideas-feed__layout">
+                        <div class="ideas-feed__visual">
+                            <div class="ideas-feed__screen" data-ideas-feed-screen data-ideas-theme="hook">
+                                <div class="ideas-byte-rain" data-byte-rain aria-hidden="true"></div>
+                                <div class="ideas-feed__screen-noise" aria-hidden="true"></div>
+
+                                <div class="ideas-feed__hud">
+                                    <div class="ideas-feed__hud-main">
+                                        <span class="ideas-feed__kicker" data-ideas-panel-kicker>01 Launch hook</span>
+                                        <h3 class="ideas-feed__title" data-ideas-panel-title>Give the idea a line people can repeat.</h3>
+                                        <p class="ideas-feed__summary" data-ideas-panel-summary>Turn the concept into a crisp angle before anyone argues about features.</p>
+                                    </div>
+
+                                    <ul class="ideas-feed__line-list" aria-label="Signal log">
+                                        <li data-ideas-panel-line>ANGLE//one sentence &gt; clear value</li>
+                                        <li data-ideas-panel-line>HOOK//before -&gt; after</li>
+                                        <li data-ideas-panel-line>RECALL//creator-safe wording</li>
+                                    </ul>
+
+                                    <div class="ideas-feed__footer">
+                                        <span data-ideas-panel-theme>Signal: Hook</span>
+                                        <span data-ideas-panel-status>Active beat 1 / 4</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="ideas-feed__steps">
+                            <article class="ideas-step is-active" data-ideas-step data-ideas-theme="hook" data-panel-kicker="01 Launch hook" data-panel-title="Give the idea a line people can repeat." data-panel-summary="Turn the concept into a crisp angle before anyone argues about features." data-panel-lines="ANGLE//one sentence > clear value|HOOK//before -> after|RECALL//creator-safe wording" data-panel-theme="Signal: Hook" data-panel-status="Active beat 1 / 4">
+                                <span class="ideas-step__index">01</span>
+                                <div class="ideas-step__copy">
+                                    <span class="ideas-step__eyebrow">Hook architecture</span>
+                                    <h3>Distill the bet before the deck gets noisy.</h3>
+                                    <p>Write the line, the launch angle, and the simple shift people should remember after one pass.</p>
+                                    <div class="ideas-step__tags">
+                                        <span>Hook writing</span>
+                                        <span>Launch angle</span>
+                                        <span>Recall</span>
+                                    </div>
+                                </div>
+                            </article>
+
+                            <article class="ideas-step" data-ideas-step data-ideas-theme="demo" data-panel-kicker="02 Show the shift" data-panel-title="Make the abstract feel visible." data-panel-summary="Build a prototype, scene, or walkthrough so the story has proof instead of adjectives." data-panel-lines="PROOF//show the state change|FLOW//walkthrough > feature dump|SCENE//demo beats > vague promise" data-panel-theme="Signal: Demo" data-panel-status="Active beat 2 / 4">
+                                <span class="ideas-step__index">02</span>
+                                <div class="ideas-step__copy">
+                                    <span class="ideas-step__eyebrow">Demo logic</span>
+                                    <h3>Give the story something real to point at.</h3>
+                                    <p>Make the idea visible through interaction, sequence, and before-and-after contrast instead of abstract positioning alone.</p>
+                                    <div class="ideas-step__tags">
+                                        <span>Prototype</span>
+                                        <span>Demo scripting</span>
+                                        <span>Reveal</span>
+                                    </div>
+                                </div>
+                            </article>
+
+                            <article class="ideas-step" data-ideas-step data-ideas-theme="world" data-panel-kicker="03 Build the world" data-panel-title="Give the product a visual atmosphere." data-panel-summary="Shape the motion, tone, and campaign direction so the thing feels like it belongs to a specific world." data-panel-lines="WORLD//specific > generic|TONE//motion cues > mood board|SYSTEM//campaign surfaces stay coherent" data-panel-theme="Signal: World" data-panel-status="Active beat 3 / 4">
+                                <span class="ideas-step__index">03</span>
+                                <div class="ideas-step__copy">
+                                    <span class="ideas-step__eyebrow">Worldbuilding</span>
+                                    <h3>Make it feel like more than just a feature drop.</h3>
+                                    <p>Use visual systems, motion, and campaign framing to give the product a setting, a mood, and a recognizable identity.</p>
+                                    <div class="ideas-step__tags">
+                                        <span>Art direction</span>
+                                        <span>Motion</span>
+                                        <span>Campaign system</span>
+                                    </div>
+                                </div>
+                            </article>
+
+                            <article class="ideas-step" data-ideas-step data-ideas-theme="rollout" data-panel-kicker="04 Package the rollout" data-panel-title="Turn the concept into a launch kit." data-panel-summary="Package the story so internal teams, PR, and creators can all share the same bet without rewriting it." data-panel-lines="KIT//talking points + assets|DROP//internal + public alignment|SPREAD//shareable beats > one monologue" data-panel-theme="Signal: Rollout" data-panel-status="Active beat 4 / 4">
+                                <span class="ideas-step__index">04</span>
+                                <div class="ideas-step__copy">
+                                    <span class="ideas-step__eyebrow">Rollout system</span>
+                                    <h3>Package the bet for launch, not just presentation.</h3>
+                                    <p>Build the shareable kit: talking points, creator prompts, launch copy, and the version of the story that travels across teams.</p>
+                                    <div class="ideas-step__tags">
+                                        <span>Launch kit</span>
+                                        <span>PR</span>
+                                        <span>Creator prompts</span>
+                                    </div>
+                                </div>
+                            </article>
+                        </div>
+                    </div>
+                </div>
             </div>
         </section>
 
@@ -784,6 +954,7 @@
                 </div>
                 <div class="site-footer__actions">
                     <a href="#projects" class="site-footer__link">Featured Work</a>
+                    <a href="#ideas" class="site-footer__link">Ideas / Vision</a>
                     <a href="#experience" class="site-footer__link">Experience</a>
                     <a href="the-cell.html" class="site-footer__link">The Cell Study Hub</a>
                     <a href="https://github.com/seanwirkus" target="_blank" rel="noreferrer" class="site-footer__link">GitHub</a>

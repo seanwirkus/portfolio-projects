@@ -93,25 +93,64 @@
             </div>
         </section>
 
-        <section class="project-copy-grid section-animate">
-            <article class="project-copy-card">
-                <h3>Original Hardware Mockup</h3>
-                <p>
-                    This is the actual game mockup with joystick controls and full embedded layout, captured from the project build process.
-                </p>
+        <section class="project-stage-card ff-hardware-stage section-animate">
+            <div class="project-stage-bar">
+                <div class="project-stage-label">Original Hardware Mockup</div>
+                <div class="project-stage-actions">
+                    <a class="project-inline-link" href="freeway-frenzy-app/cover1.png" target="_blank" rel="noreferrer">Open original photo</a>
+                </div>
+            </div>
+
+            <div class="ff-hardware-copy">
+                <div class="ff-hardware-heading">
+                    <span class="ff-hardware-eyebrow">Physical build context</span>
+                    <h2>Bench-top prototype with joystick steering, buzzer feedback, and the full controller-to-display layout.</h2>
+                </div>
+                <div class="ff-hardware-body">
+                    <p>
+                        This is the actual FreewayFrenzy hardware mockup captured during the build process. The browser port shows the game loop clearly, but this prototype is what explains the real object: a screen-first enclosure, physical joystick input, breadboard routing, and the dual-controller setup that shaped how input and rendering were separated.
+                    </p>
+                    <div class="ff-hardware-chip-row">
+                        <span class="ff-hardware-chip">Joystick control</span>
+                        <span class="ff-hardware-chip">Display enclosure</span>
+                        <span class="ff-hardware-chip">Breadboard prototype</span>
+                        <span class="ff-hardware-chip">Dual ESP32 build</span>
+                    </div>
+                </div>
+            </div>
+
+            <figure class="ff-hardware-media">
                 <img
-                    src="freeway-frenzy-app/cover1.png"
-                    alt="FreewayFrenzy hardware mockup with joystick and game display"
+                    src="freeway-frenzy-app/cover.png"
+                    alt="FreewayFrenzy hardware prototype with joystick controller, display enclosure, buzzer, and ESP32 wiring"
                     loading="lazy"
-                    style="display:block; width:100%; margin-top:1rem; border-radius:14px; border:1px solid rgba(148,163,184,0.24);"
                 >
-            </article>
-            <article class="project-copy-card">
-                <h3>Why It’s Included</h3>
-                <p>
-                    The runtime iframe shows gameplay logic, but this mockup captures the intended physical product experience and controller context that shaped the project’s architecture.
-                </p>
-            </article>
+                <figcaption>
+                    Tighter crop of the real hardware prototype, showing the joystick module, buzzer, display stage, and the controller wiring that drove the embedded architecture.
+                </figcaption>
+            </figure>
+
+            <div class="project-stage-insights ff-hardware-insights">
+                <article class="project-stage-insight">
+                    <span>Control surface</span>
+                    <strong>Physical steering changed the feel of the loop</strong>
+                    <p>The game was designed around decisive lane changes and immediate feedback from a real joystick, not generic browser-only controls.</p>
+                </article>
+                <article class="project-stage-insight">
+                    <span>System split</span>
+                    <strong>The mockup makes the distributed build legible</strong>
+                    <p>Seeing the controller hardware beside the display helps explain why UART messaging and clear state handoff mattered in the final architecture.</p>
+                </article>
+                <article class="project-stage-insight">
+                    <span>Prototype intent</span>
+                    <strong>It validated the object, not just the code</strong>
+                    <p>The enclosure, wiring layout, and screen framing were part of the project goal because the game was meant to feel like a physical device.</p>
+                </article>
+            </div>
+
+            <div class="project-stage-note">
+                The simulator shows the pacing and difficulty loop. This mockup shows the intended product form factor that the software was actually built around.
+            </div>
         </section>
 
         <section class="project-meta-grid section-animate">

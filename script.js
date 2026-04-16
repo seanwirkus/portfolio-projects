@@ -273,6 +273,20 @@ document.addEventListener('DOMContentLoaded', () => {
         observer.observe(item);
     });
 
+    const refreshAnimatedVisibility = () => {
+        sections.forEach(revealIfInView);
+        slideUpItems.forEach(revealIfInView);
+    };
+
+    window.addEventListener('load', () => {
+        window.requestAnimationFrame(refreshAnimatedVisibility);
+        window.setTimeout(refreshAnimatedVisibility, 160);
+    });
+
+    window.addEventListener('hashchange', () => {
+        window.requestAnimationFrame(refreshAnimatedVisibility);
+    });
+
     // 2. Navbar Background Blur on Scroll
     const navbar = document.querySelector('.navbar');
     const updateNavbarChrome = () => {
@@ -723,7 +737,105 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // ═══════════════════════════════════════
-    // 13. Mobile bottom tab bar — active state + scroll progress
+    // 13. Ideas – Signal Feed Scroll Sync
+    // ═══════════════════════════════════════
+    (function initIdeasFeed() {
+        const screen = document.querySelector('[data-ideas-feed-screen]');
+        const steps = Array.from(document.querySelectorAll('[data-ideas-step]'));
+        if (!screen || steps.length === 0) return;
+
+        const byteRain = screen.querySelector('[data-byte-rain]');
+        const panelKicker = screen.querySelector('[data-ideas-panel-kicker]');
+        const panelTitle = screen.querySelector('[data-ideas-panel-title]');
+        const panelSummary = screen.querySelector('[data-ideas-panel-summary]');
+        const panelTheme = screen.querySelector('[data-ideas-panel-theme]');
+        const panelStatus = screen.querySelector('[data-ideas-panel-status]');
+        const panelLines = Array.from(screen.querySelectorAll('[data-ideas-panel-line]'));
+        let resizeTimer = null;
+
+        const byteAlphabet = '01ATCG[]{}<>/=+';
+
+        const makeByteChunk = () => {
+            const length = 8 + Math.floor(Math.random() * 7);
+            let line = '';
+            for (let index = 0; index < length; index += 1) {
+                line += byteAlphabet[Math.floor(Math.random() * byteAlphabet.length)];
+            }
+            return line;
+        };
+
+        const buildByteRain = () => {
+            if (!byteRain) return;
+
+            const columnCount = window.matchMedia('(max-width: 820px)').matches ? 8 : 11;
+            byteRain.innerHTML = '';
+
+            for (let index = 0; index < columnCount; index += 1) {
+                const column = document.createElement('div');
+                const lines = Array.from({ length: 22 }, makeByteChunk).join('\n');
+
+                column.className = 'ideas-byte-column';
+                column.textContent = lines;
+                column.style.setProperty('--ideas-column-left', `${4 + index * (90 / Math.max(columnCount - 1, 1))}%`);
+                column.style.setProperty('--ideas-column-delay', `${(Math.random() * -14).toFixed(2)}s`);
+                column.style.setProperty('--ideas-column-duration', `${(15 + Math.random() * 10).toFixed(2)}s`);
+                column.style.setProperty('--ideas-column-opacity', `${(0.14 + Math.random() * 0.22).toFixed(2)}`);
+                column.style.setProperty('--ideas-column-width', `${(3.4 + Math.random() * 1.8).toFixed(2)}rem`);
+                byteRain.appendChild(column);
+            }
+        };
+
+        const applyStep = (step) => {
+            if (!step) return;
+
+            steps.forEach((item) => item.classList.toggle('is-active', item === step));
+            screen.dataset.ideasTheme = step.dataset.ideasTheme || 'hook';
+
+            if (panelKicker) panelKicker.textContent = step.dataset.panelKicker || '';
+            if (panelTitle) panelTitle.textContent = step.dataset.panelTitle || '';
+            if (panelSummary) panelSummary.textContent = step.dataset.panelSummary || '';
+            if (panelTheme) panelTheme.textContent = step.dataset.panelTheme || '';
+            if (panelStatus) panelStatus.textContent = step.dataset.panelStatus || '';
+
+            const nextLines = (step.dataset.panelLines || '').split('|').filter(Boolean);
+            panelLines.forEach((lineNode, index) => {
+                const nextLine = nextLines[index];
+                lineNode.hidden = !nextLine;
+                lineNode.textContent = nextLine || '';
+            });
+        };
+
+        buildByteRain();
+        applyStep(steps[0]);
+
+        const stepObserver = new IntersectionObserver((entries) => {
+            const visibleEntries = entries
+                .filter((entry) => entry.isIntersecting)
+                .sort((a, b) => b.intersectionRatio - a.intersectionRatio);
+
+            if (visibleEntries[0]) {
+                applyStep(visibleEntries[0].target);
+            }
+        }, {
+            root: null,
+            rootMargin: '-22% 0px -46% 0px',
+            threshold: [0.2, 0.45, 0.7]
+        });
+
+        steps.forEach((step) => {
+            stepObserver.observe(step);
+            step.addEventListener('mouseenter', () => applyStep(step));
+            step.addEventListener('focusin', () => applyStep(step));
+        });
+
+        window.addEventListener('resize', () => {
+            window.clearTimeout(resizeTimer);
+            resizeTimer = window.setTimeout(buildByteRain, 180);
+        }, { passive: true });
+    })();
+
+    // ═══════════════════════════════════════
+    // 14. Mobile bottom tab bar — active state + scroll progress
     // ═══════════════════════════════════════
     (function initMobileTabs() {
         const tabs = Array.from(document.querySelectorAll('.m-tabbar .m-tab'));

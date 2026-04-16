@@ -10,6 +10,7 @@
     <style>
         :root {
             color-scheme: dark;
+            --app-height: 100vh;
             --bg-0: #030712;
             --bg-1: #07151d;
             --bg-2: #09221d;
@@ -40,6 +41,8 @@
 
         body {
             overflow: hidden;
+            min-height: var(--app-height);
+            padding: 12px;
             display: grid;
             place-items: center;
             font-family: 'Inter', sans-serif;
@@ -86,8 +89,9 @@
 
         #game-container {
             position: relative;
-            width: min(96vw, 1040px, calc(84vh * 16 / 9));
+            width: min(96vw, 1040px, calc((var(--app-height) - 24px) * 16 / 9));
             aspect-ratio: 16 / 9;
+            max-height: calc(var(--app-height) - 24px);
             border-radius: 30px;
             overflow: hidden;
             border: 1px solid rgba(255, 255, 255, 0.1);
@@ -102,7 +106,7 @@
         body.embedded #game-container {
             width: 100%;
             height: 100%;
-            aspect-ratio: auto;
+            max-height: none;
             border-radius: 0;
             border: 0;
             box-shadow: none;
@@ -126,8 +130,13 @@
             height: 100%;
             display: block;
             touch-action: none;
+            -webkit-tap-highlight-color: transparent;
             cursor: crosshair;
             z-index: 1;
+        }
+
+        body[data-touch-mode="coarse"] canvas {
+            cursor: default;
         }
 
         #ui-overlay {
@@ -239,7 +248,54 @@
         .power-widget {
             min-width: 280px;
             display: grid;
-            gap: 8px;
+            gap: 10px;
+        }
+
+        .shot-mode-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            font-size: 0.76rem;
+            text-transform: uppercase;
+            letter-spacing: 0.12em;
+            color: var(--text-muted);
+        }
+
+        .shot-mode-toggle {
+            display: inline-grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 6px;
+            padding: 4px;
+            border-radius: 999px;
+            background: rgba(255, 255, 255, 0.06);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+        }
+
+        .shot-mode-btn {
+            min-height: 34px;
+            padding: 0.4rem 0.9rem;
+            border-radius: 999px;
+            border: 0;
+            background: transparent;
+            color: var(--text-muted);
+            font-size: 0.72rem;
+            font-weight: 800;
+            letter-spacing: 0.12em;
+            text-transform: uppercase;
+            box-shadow: none;
+        }
+
+        .shot-mode-btn:hover {
+            transform: none;
+            background: rgba(255, 255, 255, 0.08);
+            border-color: transparent;
+        }
+
+        .shot-mode-btn.is-active {
+            background: linear-gradient(135deg, rgba(16, 185, 129, 0.24), rgba(56, 189, 248, 0.18));
+            color: var(--text-main);
+            box-shadow: 0 10px 22px rgba(16, 185, 129, 0.12);
         }
 
         .spin-widget {
@@ -472,6 +528,11 @@
             border-color: rgba(255, 255, 255, 0.18);
         }
 
+        button:focus-visible {
+            outline: 2px solid rgba(56, 189, 248, 0.9);
+            outline-offset: 2px;
+        }
+
         .primary-btn {
             background: rgba(16, 185, 129, 0.18);
             border-color: rgba(16, 185, 129, 0.32);
@@ -493,6 +554,8 @@
 
         .menu-card {
             width: min(100%, 520px);
+            max-height: min(100%, calc(var(--app-height) - 48px));
+            overflow-y: auto;
             padding: 28px;
             border-radius: 28px;
             border: 1px solid rgba(255, 255, 255, 0.12);
@@ -587,8 +650,13 @@
         }
 
         @media (max-width: 760px) {
+            body {
+                padding: 0;
+            }
+
             #game-container {
-                width: min(100vw, calc(100vh * 16 / 9));
+                width: 100%;
+                max-height: var(--app-height);
                 border-radius: 0;
             }
 
@@ -634,6 +702,89 @@
                 width: 86px;
                 height: 86px;
             }
+
+            .power-shoot-row,
+            .shot-mode-row {
+                flex-wrap: wrap;
+            }
+
+            .power-help {
+                width: 100%;
+            }
+
+            .controls button,
+            .shoot-btn,
+            .shot-mode-btn {
+                min-height: 44px;
+            }
+        }
+
+        @media (max-width: 760px) and (orientation: portrait) {
+            #game-container {
+                aspect-ratio: 9 / 16;
+                width: min(100vw, calc(var(--app-height) * 9 / 16));
+            }
+            #menu {
+                position: fixed;
+                inset: 0;
+                padding: 18px 14px;
+                display: flex;
+                align-items: flex-start;
+                justify-content: center;
+                overflow-y: auto;
+            }
+        }
+
+        body[data-touch-mode="coarse"][data-device-orientation="portrait"] #ui-overlay {
+            padding: 10px;
+        }
+
+        body[data-touch-mode="coarse"][data-device-orientation="portrait"] #menu {
+            position: fixed;
+            inset: 0;
+            padding: 18px 14px;
+            display: flex;
+            align-items: flex-start;
+            justify-content: center;
+            overflow-y: auto;
+        }
+
+        body[data-touch-mode="coarse"][data-device-orientation="portrait"] .header-bar,
+        body[data-touch-mode="coarse"][data-device-orientation="portrait"] .footer-bar {
+            gap: 10px;
+        }
+
+        body[data-touch-mode="coarse"][data-device-orientation="portrait"] .brand-lockup,
+        body[data-touch-mode="coarse"][data-device-orientation="portrait"] .status-cluster,
+        body[data-touch-mode="coarse"][data-device-orientation="portrait"] .power-widget,
+        body[data-touch-mode="coarse"][data-device-orientation="portrait"] .spin-widget {
+            padding: 11px 12px;
+            border-radius: 18px;
+        }
+
+        body[data-touch-mode="coarse"][data-device-orientation="portrait"] .brand-lockup strong {
+            font-size: 1rem;
+        }
+
+        body[data-touch-mode="coarse"][data-device-orientation="portrait"] .assignments {
+            gap: 8px;
+        }
+
+        body[data-touch-mode="coarse"][data-device-orientation="portrait"] .assignment-pill {
+            min-height: 30px;
+            padding: 0.38rem 0.65rem;
+            font-size: 0.74rem;
+        }
+
+        body[data-touch-mode="coarse"][data-device-orientation="portrait"] .controls {
+            width: 100%;
+            margin-left: 0;
+            justify-content: stretch;
+        }
+
+        body[data-touch-mode="coarse"][data-device-orientation="portrait"] .controls button,
+        body[data-touch-mode="coarse"][data-device-orientation="portrait"] .shoot-btn {
+            flex: 1 1 0;
         }
 
         body[data-theme-mode="light"] {
@@ -721,6 +872,13 @@
 
             <div class="footer-bar">
                 <div class="power-widget">
+                    <div class="shot-mode-row">
+                        <span>Shot mode</span>
+                        <div class="shot-mode-toggle" role="group" aria-label="Shot control mode">
+                            <button class="shot-mode-btn is-active" id="shot-mode-angle" type="button" aria-pressed="true">Aim</button>
+                            <button class="shot-mode-btn" id="shot-mode-power" type="button" aria-pressed="false">Power</button>
+                        </div>
+                    </div>
                     <div class="power-label-row">
                         <span>Shot power</span>
                         <span id="power-value">0%</span>
@@ -730,7 +888,7 @@
                         <div class="power-slider-thumb" id="power-thumb"></div>
                     </div>
                     <div class="power-shoot-row">
-                        <div class="power-help" id="power-help">Click-drag on cloth to aim. Drag slider for power.</div>
+                        <div class="power-help" id="power-help">Aim first, switch to power, then press Shoot.</div>
                         <button class="shoot-btn" id="shoot-btn" type="button">Shoot</button>
                     </div>
                 </div>
@@ -795,6 +953,13 @@
         const CONTACT_FRICTION = 0.018;
         const STOP_SPEED = 0.05;
         const RAIL_OFFSET = 24;
+        const SIDE_POCKET_MOUTH_HALF = 58;
+        const CORNER_POCKET_MOUTH = 66;
+        const POCKET_CAPTURE_RADIUS = 34;
+        const POCKET_SINK_RADIUS = 17;
+        const POCKET_PULL = 0.42;
+        const SHOT_MODE_ANGLE = 'angle';
+        const SHOT_MODE_POWER = 'power';
 
         const canvas = document.getElementById('poolCanvas');
         const ctx = canvas.getContext('2d');
@@ -810,20 +975,20 @@
         let mode = '1p';
         let cueBall = null;
         let turn = 1;
-        let dragging = false;
-        let dragStart = { x: 0, y: 0 };
-        let dragCurrent = { x: 0, y: 0 };
         let pointerPoint = { x: TABLE_WIDTH * 0.78, y: TABLE_HEIGHT / 2 };
         const MIN_SHOT_POWER = 1.4;
         const MAX_POWER = 30;
         const MAX_PULL_DISTANCE = 180;
         let shotPower = 0;
+        let shotControlMode = SHOT_MODE_ANGLE;
         let powerSliderDragging = false;
         let isAiming = false;
+        let angleDragActive = false;
         let shotPullStart = null;
         let shotPullDirection = null;
         let shotLockedAimPoint = null;
         let shotPullDistance = 0;
+        let shotPullBaseDistance = 0;
         let ripples = [];
         let spin = { x: 0, y: 0 };
         let spinDragging = false;
@@ -834,19 +999,166 @@
         const powerFill = document.getElementById('power-fill');
         const powerValue = document.getElementById('power-value');
         const powerHelp = document.getElementById('power-help');
+        const shotModeAngleBtn = document.getElementById('shot-mode-angle');
+        const shotModePowerBtn = document.getElementById('shot-mode-power');
         const menuEl = document.getElementById('menu');
         const spinPad = document.getElementById('spin-pad');
         const spinMarker = document.getElementById('spin-marker');
         const spinCaption = document.getElementById('spin-caption');
 
         const pockets = [
-            { x: 20, y: 20 },
-            { x: TABLE_WIDTH / 2, y: 15 },
-            { x: TABLE_WIDTH - 20, y: 20 },
-            { x: 20, y: TABLE_HEIGHT - 20 },
-            { x: TABLE_WIDTH / 2, y: TABLE_HEIGHT - 15 },
-            { x: TABLE_WIDTH - 20, y: TABLE_HEIGHT - 20 }
+            { x: 20, y: 20, type: 'corner', opens: ['left', 'top'] },
+            { x: TABLE_WIDTH / 2, y: 15, type: 'side', opens: ['top'] },
+            { x: TABLE_WIDTH - 20, y: 20, type: 'corner', opens: ['right', 'top'] },
+            { x: 20, y: TABLE_HEIGHT - 20, type: 'corner', opens: ['left', 'bottom'] },
+            { x: TABLE_WIDTH / 2, y: TABLE_HEIGHT - 15, type: 'side', opens: ['bottom'] },
+            { x: TABLE_WIDTH - 20, y: TABLE_HEIGHT - 20, type: 'corner', opens: ['right', 'bottom'] }
         ];
+
+        function syncViewportSizing() {
+            const viewportHeight = window.visualViewport?.height || window.innerHeight;
+            const orientation = viewportHeight >= window.innerWidth ? 'portrait' : 'landscape';
+            document.documentElement.style.setProperty('--app-height', `${viewportHeight}px`);
+            document.body.dataset.touchMode = window.matchMedia('(pointer: coarse)').matches ? 'coarse' : 'fine';
+            document.body.dataset.deviceOrientation = orientation;
+
+            if (orientation === 'portrait' && window.innerWidth <= 760) {
+                if (canvas.width !== TABLE_HEIGHT) {
+                    canvas.width = TABLE_HEIGHT;
+                    canvas.height = TABLE_WIDTH;
+                }
+            } else {
+                if (canvas.width !== TABLE_WIDTH) {
+                    canvas.width = TABLE_WIDTH;
+                    canvas.height = TABLE_HEIGHT;
+                }
+            }
+        }
+        
+        window.addEventListener('resize', syncViewportSizing);
+        syncViewportSizing();
+
+        function getPullDistanceForPower(power) {
+            if (power <= 0) return 0;
+            const normalizedPower = Math.max(0, Math.min(1, (power - MIN_SHOT_POWER) / (MAX_POWER - MIN_SHOT_POWER)));
+            if (normalizedPower === 0) return 0;
+            return MAX_PULL_DISTANCE * Math.pow(normalizedPower, 1 / 1.12);
+        }
+
+        function clampShotPower(nextPower) {
+            shotPower = Math.max(0, Math.min(MAX_POWER, nextPower));
+            shotPullDistance = getPullDistanceForPower(shotPower);
+        }
+
+        function setShotControlMode(nextMode) {
+            shotControlMode = nextMode === SHOT_MODE_POWER ? SHOT_MODE_POWER : SHOT_MODE_ANGLE;
+            shotModeAngleBtn.classList.toggle('is-active', shotControlMode === SHOT_MODE_ANGLE);
+            shotModePowerBtn.classList.toggle('is-active', shotControlMode === SHOT_MODE_POWER);
+            shotModeAngleBtn.setAttribute('aria-pressed', String(shotControlMode === SHOT_MODE_ANGLE));
+            shotModePowerBtn.setAttribute('aria-pressed', String(shotControlMode === SHOT_MODE_POWER));
+            updatePowerUI();
+        }
+
+        function toggleShotControlMode() {
+            setShotControlMode(shotControlMode === SHOT_MODE_ANGLE ? SHOT_MODE_POWER : SHOT_MODE_ANGLE);
+        }
+
+        function rotateAim(deltaAngle) {
+            if (!cueBall || !cueBall.active) return;
+
+            const aim = getAimData();
+            const currentAngle = aim ? aim.angle : 0;
+            const nextAngle = currentAngle + deltaAngle;
+            const distance = Math.max(96, Math.hypot(pointerPoint.x - cueBall.x, pointerPoint.y - cueBall.y));
+            pointerPoint = {
+                x: cueBall.x + Math.cos(nextAngle) * distance,
+                y: cueBall.y + Math.sin(nextAngle) * distance
+            };
+        }
+
+        function nudgeShotPower(deltaPower) {
+            clampShotPower(shotPower + deltaPower);
+            updatePowerUI();
+        }
+
+        function isBallNearPocketOpening(ball, side) {
+            return pockets.some((pocket) => {
+                if (!pocket.opens.includes(side)) return false;
+
+                if (pocket.type === 'side') {
+                    return Math.abs(ball.x - pocket.x) <= SIDE_POCKET_MOUTH_HALF
+                        && Math.abs(ball.y - pocket.y) <= POCKET_CAPTURE_RADIUS + BALL_RADIUS;
+                }
+
+                const withinX = Math.abs(ball.x - pocket.x) <= CORNER_POCKET_MOUTH;
+                const withinY = Math.abs(ball.y - pocket.y) <= CORNER_POCKET_MOUTH;
+                return withinX && withinY;
+            });
+        }
+
+        function getPocketCapture(ball) {
+            let bestPocket = null;
+
+            for (const pocket of pockets) {
+                const dx = pocket.x - ball.x;
+                const dy = pocket.y - ball.y;
+                const distance = Math.hypot(dx, dy);
+                const captureRadius = pocket.type === 'corner' ? POCKET_CAPTURE_RADIUS + 4 : POCKET_CAPTURE_RADIUS;
+                if (distance > captureRadius) continue;
+
+                if (!bestPocket || distance < bestPocket.distance) {
+                    bestPocket = { pocket, dx, dy, distance, captureRadius };
+                }
+            }
+
+            return bestPocket;
+        }
+
+        function respotCueBall(ball) {
+            ball.active = true;
+            ball.x = 200;
+            ball.y = TABLE_HEIGHT / 2;
+            ball.vx = 0;
+            ball.vy = 0;
+            ball.trail = [];
+            ball.spinX = 0;
+            ball.spinY = 0;
+            ball.spinEnergy = 0;
+            pointerPoint = { x: TABLE_WIDTH * 0.78, y: TABLE_HEIGHT / 2 };
+            setShotControlMode(SHOT_MODE_ANGLE);
+        }
+
+        function pocketBall(ball, pocket) {
+            ball.active = false;
+            ball.vx = 0;
+            ball.vy = 0;
+            ball.trail = [];
+            spawnRipple(pocket.x, pocket.y, 8);
+
+            if (ball.type === 'cue') {
+                window.setTimeout(() => respotCueBall(ball), 700);
+            }
+        }
+
+        function applyPocketInfluence(ball) {
+            const capture = getPocketCapture(ball);
+            if (!capture) return false;
+
+            const { pocket, dx, dy, distance, captureRadius } = capture;
+            const directionLength = distance || 1;
+            const pullStrength = 0.1 + (1 - Math.min(1, distance / captureRadius)) * POCKET_PULL;
+            ball.vx += (dx / directionLength) * pullStrength;
+            ball.vy += (dy / directionLength) * pullStrength;
+            ball.vx *= 0.992;
+            ball.vy *= 0.992;
+
+            if (distance <= POCKET_SINK_RADIUS) {
+                pocketBall(ball, pocket);
+                return true;
+            }
+
+            return false;
+        }
 
         class Ball {
             constructor(x, y, type, color, num) {
@@ -1598,12 +1910,14 @@
             shootBtn.disabled = (state !== 'aim' || shotPower < MIN_SHOT_POWER);
             if (mode === '1p' && turn === 2) {
                 powerHelp.textContent = 'Computer is lining up.';
-            } else if (isAiming && shotPower > 0) {
-                powerHelp.textContent = 'Release to fire, or fine-tune with the slider.';
+            } else if (shotControlMode === SHOT_MODE_ANGLE) {
+                powerHelp.textContent = document.body.dataset.touchMode === 'coarse'
+                    ? 'Drag on the table to line up the shot. Tap Power when the angle looks right.'
+                    : 'Move or drag to aim. Press Tab or Q to switch to power.';
             } else {
                 powerHelp.textContent = shotPower > 0
-                    ? 'Press Shoot, or release slider at high power to auto-fire.'
-                    : 'Move pointer to aim. Hold and pull back to shoot, or use the slider.';
+                    ? 'Drag back on the cloth or use the slider, then press Shoot.'
+                    : 'Power mode: drag back from anywhere on the table or use the slider.';
             }
         }
 
@@ -1639,17 +1953,20 @@
             }
 
             pointerPoint = { x: TABLE_WIDTH * 0.78, y: TABLE_HEIGHT / 2 };
-            dragging = false;
             shotPower = 0;
+            shotControlMode = SHOT_MODE_ANGLE;
             isAiming = false;
+            angleDragActive = false;
             shotPullStart = null;
             shotPullDirection = null;
             shotLockedAimPoint = null;
             shotPullDistance = 0;
+            shotPullBaseDistance = 0;
             cueBall.spinX = 0;
             cueBall.spinY = 0;
             cueBall.spinEnergy = 0;
             state = 'aim';
+            setShotControlMode(SHOT_MODE_ANGLE);
             updateUI();
             updatePowerUI();
         }
@@ -1666,7 +1983,16 @@
                     ball.x += ball.vx / STEPS;
                     ball.y += ball.vy / STEPS;
 
-                    if (ball.x < BALL_RADIUS + RAIL_OFFSET) {
+                    if (applyPocketInfluence(ball)) {
+                        continue;
+                    }
+
+                    const leftRailOpen = isBallNearPocketOpening(ball, 'left');
+                    const rightRailOpen = isBallNearPocketOpening(ball, 'right');
+                    const topRailOpen = isBallNearPocketOpening(ball, 'top');
+                    const bottomRailOpen = isBallNearPocketOpening(ball, 'bottom');
+
+                    if (!leftRailOpen && ball.x < BALL_RADIUS + RAIL_OFFSET) {
                         ball.x = BALL_RADIUS + RAIL_OFFSET;
                         if (ball.vx < 0) ball.vx *= -RAIL_RESTITUTION;
                         ball.vy *= RAIL_TANGENT_DAMPING;
@@ -1677,7 +2003,7 @@
                         }
                         spawnRipple(ball.x, ball.y, Math.abs(ball.vx));
                     }
-                    if (ball.x > TABLE_WIDTH - BALL_RADIUS - RAIL_OFFSET) {
+                    if (!rightRailOpen && ball.x > TABLE_WIDTH - BALL_RADIUS - RAIL_OFFSET) {
                         ball.x = TABLE_WIDTH - BALL_RADIUS - RAIL_OFFSET;
                         if (ball.vx > 0) ball.vx *= -RAIL_RESTITUTION;
                         ball.vy *= RAIL_TANGENT_DAMPING;
@@ -1688,7 +2014,7 @@
                         }
                         spawnRipple(ball.x, ball.y, Math.abs(ball.vx));
                     }
-                    if (ball.y < BALL_RADIUS + RAIL_OFFSET) {
+                    if (!topRailOpen && ball.y < BALL_RADIUS + RAIL_OFFSET) {
                         ball.y = BALL_RADIUS + RAIL_OFFSET;
                         if (ball.vy < 0) ball.vy *= -RAIL_RESTITUTION;
                         ball.vx *= RAIL_TANGENT_DAMPING;
@@ -1699,7 +2025,7 @@
                         }
                         spawnRipple(ball.x, ball.y, Math.abs(ball.vy));
                     }
-                    if (ball.y > TABLE_HEIGHT - BALL_RADIUS - RAIL_OFFSET) {
+                    if (!bottomRailOpen && ball.y > TABLE_HEIGHT - BALL_RADIUS - RAIL_OFFSET) {
                         ball.y = TABLE_HEIGHT - BALL_RADIUS - RAIL_OFFSET;
                         if (ball.vy > 0) ball.vy *= -RAIL_RESTITUTION;
                         ball.vx *= RAIL_TANGENT_DAMPING;
@@ -1709,29 +2035,6 @@
                             ball.spinEnergy *= 0.9;
                         }
                         spawnRipple(ball.x, ball.y, Math.abs(ball.vy));
-                    }
-
-                    for (const pocket of pockets) {
-                        const dx = ball.x - pocket.x;
-                        const dy = ball.y - pocket.y;
-                        if (Math.hypot(dx, dy) < POCKET_RADIUS) {
-                            ball.active = false;
-                            spawnRipple(pocket.x, pocket.y, 8);
-                            if (ball.type === 'cue') {
-                                setTimeout(() => {
-                                    ball.active = true;
-                                    ball.x = 200;
-                                    ball.y = TABLE_HEIGHT / 2;
-                                    ball.vx = 0;
-                                    ball.vy = 0;
-                                    ball.trail = [];
-                                    ball.spinX = 0;
-                                    ball.spinY = 0;
-                                    ball.spinEnergy = 0;
-                                    pointerPoint = { x: TABLE_WIDTH * 0.78, y: TABLE_HEIGHT / 2 };
-                                }, 900);
-                            }
-                        }
                     }
                 }
 
@@ -1845,6 +2148,7 @@
 
             if (!isMoving && state === 'moving') {
                 state = 'aim';
+                setShotControlMode(SHOT_MODE_ANGLE);
                 turn = turn === 1 ? 2 : 1;
                 updateUI();
                 if (mode === '1p' && turn === 2) {
@@ -1884,10 +2188,16 @@
 
         function draw() {
             ctx.clearRect(0, 0, canvas.width, canvas.height);
+            ctx.save();
+            if (canvas.width === TABLE_HEIGHT) {
+                ctx.translate(canvas.width, 0);
+                ctx.rotate(Math.PI / 2);
+            }
             drawTable();
 
             balls.forEach((ball) => ball.draw(ctx));
             drawCueGuide();
+            ctx.restore();
 
             if (state === 'moving' || state === 'aim') {
                 collisionSystem();
@@ -1905,9 +2215,14 @@
             const clientY = event.touches ? event.touches[0].clientY : event.clientY;
             const scaleX = canvas.width / rect.width;
             const scaleY = canvas.height / rect.height;
+            const cx = (clientX - rect.left) * scaleX;
+            const cy = (clientY - rect.top) * scaleY;
+            if (canvas.width === TABLE_HEIGHT) {
+                return { x: cy, y: canvas.width - cx };
+            }
             return {
-                x: (clientX - rect.left) * scaleX,
-                y: (clientY - rect.top) * scaleY
+                x: cx,
+                y: cy
             };
         }
 
@@ -1918,10 +2233,16 @@
         function beginCanvasShot(event) {
             if (state !== 'aim' || !cueBall || !cueBall.active) return;
 
-            updatePointer(event);
+            if (shotControlMode === SHOT_MODE_ANGLE) {
+                angleDragActive = true;
+                updatePointer(event);
+                updatePowerUI();
+                if (event.cancelable) event.preventDefault();
+                return;
+            }
+
             const aim = getAimData();
             if (!aim) return;
-
             isAiming = true;
             shotPullStart = getMousePos(event);
             shotLockedAimPoint = { x: pointerPoint.x, y: pointerPoint.y };
@@ -1929,8 +2250,8 @@
                 x: -Math.cos(aim.angle),
                 y: -Math.sin(aim.angle)
             };
-            shotPullDistance = 0;
-            shotPower = 0;
+            shotPullBaseDistance = getPullDistanceForPower(shotPower);
+            shotPullDistance = shotPullBaseDistance;
             updatePowerUI();
             if (event.cancelable) event.preventDefault();
         }
@@ -1938,42 +2259,47 @@
         function updateCanvasShot(event) {
             if (state !== 'aim') return;
 
-            if (!isAiming || !shotPullStart || !shotPullDirection || !shotLockedAimPoint) {
+            if (shotControlMode === SHOT_MODE_ANGLE) {
                 updatePointer(event);
+                if (angleDragActive && event.cancelable) event.preventDefault();
+                return;
+            }
+
+            if (!isAiming || !shotPullStart || !shotPullDirection || !shotLockedAimPoint) {
                 return;
             }
 
             const pos = getMousePos(event);
             const dx = pos.x - shotPullStart.x;
             const dy = pos.y - shotPullStart.y;
-            const projectedPull = Math.max(0, (dx * shotPullDirection.x) + (dy * shotPullDirection.y));
+            const projectedPull = (dx * shotPullDirection.x) + (dy * shotPullDirection.y);
+            const nextPullDistance = Math.max(0, Math.min(MAX_PULL_DISTANCE, shotPullBaseDistance + projectedPull));
 
             pointerPoint = shotLockedAimPoint;
-            shotPullDistance = projectedPull;
-            shotPower = projectedPull > 4 ? getPullPower(projectedPull) : 0;
+            shotPullDistance = nextPullDistance;
+            shotPower = nextPullDistance > 4 ? getPullPower(nextPullDistance) : 0;
             updatePowerUI();
             if (event.cancelable) event.preventDefault();
         }
 
         function endCanvasShot(event) {
-            if (state !== 'aim' || !isAiming) return;
+            if (state !== 'aim') return;
 
-            const shouldFire = shotPower >= MIN_SHOT_POWER && shotPullDistance > 8;
+            if (shotControlMode === SHOT_MODE_ANGLE) {
+                angleDragActive = false;
+                if (event && event.cancelable) event.preventDefault();
+                return;
+            }
+
+            if (!isAiming) return;
+
             isAiming = false;
             shotPullStart = null;
             shotPullDirection = null;
             shotLockedAimPoint = null;
-            shotPullDistance = 0;
-
-            if (shouldFire) {
-                fireShot();
-            } else {
-                shotPower = 0;
-                if (event && state === 'aim') {
-                    updatePointer(event);
-                }
-                updatePowerUI();
-            }
+            shotPullBaseDistance = shotPullDistance;
+            updatePowerUI();
+            if (event && event.cancelable) event.preventDefault();
         }
 
         function fireShot() {
@@ -1984,6 +2310,8 @@
                 strikeCueBall(shotPower, aim.angle);
                 shotPower = 0;
                 shotPullDistance = 0;
+                shotPullBaseDistance = 0;
+                setShotControlMode(SHOT_MODE_ANGLE);
                 updatePowerUI();
             }
         }
@@ -1996,12 +2324,13 @@
         function setPowerFromPointer(clientX) {
             const rect = powerMeter.getBoundingClientRect();
             const pct = Math.max(0, Math.min(1, (clientX - rect.left) / rect.width));
-            shotPower = pct * MAX_POWER;
+            clampShotPower(pct * MAX_POWER);
             updatePowerUI();
         }
 
         powerMeter.addEventListener('pointerdown', (e) => {
             if (state !== 'aim') return;
+            setShotControlMode(SHOT_MODE_POWER);
             powerSliderDragging = true;
             powerMeter.setPointerCapture(e.pointerId);
             setPowerFromPointer(e.clientX);
@@ -2011,13 +2340,10 @@
             if (!powerSliderDragging) return;
             setPowerFromPointer(e.clientX);
         });
-        powerMeter.addEventListener('pointerup', (e) => {
+        powerMeter.addEventListener('pointerup', () => {
             if (!powerSliderDragging) return;
             powerSliderDragging = false;
-            // Auto-fire only on high-power release.
-            if (shotPower >= MAX_POWER * 0.68) {
-                fireShot();
-            }
+            shotPullBaseDistance = shotPullDistance;
         });
         powerMeter.addEventListener('pointercancel', () => {
             powerSliderDragging = false;
@@ -2025,6 +2351,53 @@
 
         shootBtn.addEventListener('click', () => {
             fireShot();
+        });
+
+        shotModeAngleBtn.addEventListener('click', () => {
+            if (state !== 'aim') return;
+            setShotControlMode(SHOT_MODE_ANGLE);
+        });
+
+        shotModePowerBtn.addEventListener('click', () => {
+            if (state !== 'aim') return;
+            setShotControlMode(SHOT_MODE_POWER);
+        });
+
+        window.addEventListener('keydown', (event) => {
+            if (event.repeat || state !== 'aim' || !cueBall || !cueBall.active) return;
+
+            if (event.code === 'Tab' || event.code === 'KeyQ') {
+                toggleShotControlMode();
+                event.preventDefault();
+                return;
+            }
+
+            if (event.code === 'Enter' || event.code === 'Space') {
+                fireShot();
+                event.preventDefault();
+                return;
+            }
+
+            if (shotControlMode === SHOT_MODE_ANGLE) {
+                if (event.code === 'ArrowLeft') {
+                    rotateAim(-(event.shiftKey ? 0.14 : 0.08));
+                    updatePowerUI();
+                    event.preventDefault();
+                } else if (event.code === 'ArrowRight') {
+                    rotateAim(event.shiftKey ? 0.14 : 0.08);
+                    updatePowerUI();
+                    event.preventDefault();
+                }
+                return;
+            }
+
+            if (event.code === 'ArrowDown') {
+                nudgeShotPower(event.shiftKey ? 4 : 2);
+                event.preventDefault();
+            } else if (event.code === 'ArrowUp') {
+                nudgeShotPower(-(event.shiftKey ? 4 : 2));
+                event.preventDefault();
+            }
         });
 
         function updateUI() {
@@ -2083,8 +2456,14 @@
         document.getElementById('menu-btn').onclick = () => {
             menuEl.classList.remove('hidden');
             state = 'menu';
+            setShotControlMode(SHOT_MODE_ANGLE);
             updatePowerUI();
         };
+
+        syncViewportSizing();
+        window.addEventListener('resize', syncViewportSizing);
+        window.addEventListener('orientationchange', syncViewportSizing);
+        window.visualViewport?.addEventListener('resize', syncViewportSizing);
 
         initTable();
         resetSpin();
