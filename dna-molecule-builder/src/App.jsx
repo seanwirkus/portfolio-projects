@@ -638,6 +638,19 @@ export function App() {
         return () => query.removeEventListener("change", update);
     }, []);
 
+    useEffect(() => {
+        const handleMessage = (event) => {
+            if (event.data?.type === "theme-change") {
+                const mode = event.data.mode;
+                if (mode === "light" || mode === "dark") {
+                    dispatch({ type: "SET_THEME", theme: mode });
+                }
+            }
+        };
+        window.addEventListener("message", handleMessage);
+        return () => window.removeEventListener("message", handleMessage);
+    }, []);
+
     const handleAppendSequence = () => {
         const parsed = parseSequenceInput(state.sequenceInput);
         startTransition(() => {

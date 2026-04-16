@@ -5657,9 +5657,10 @@ body.modal-open {
 
 .ff-hardware-stage {
     position: relative;
-    left: 50%;
-    width: min(1520px, calc(100vw - 2rem));
-    transform: translateX(-50%);
+    width: 100%;
+    max-width: none;
+    margin: 0;
+    align-self: stretch;
     overflow: hidden;
 }
 
@@ -5685,9 +5686,10 @@ body.modal-open {
 
 .ff-hardware-copy {
     display: grid;
-    grid-template-columns: minmax(0, 1.05fr) minmax(320px, 0.95fr);
-    gap: 1.8rem;
-    padding: 1.4rem 1.35rem 0;
+    grid-template-columns: minmax(0, 1.1fr) minmax(320px, 0.9fr);
+    gap: 2rem;
+    padding: 1.5rem 1.4rem 0;
+    align-items: start;
 }
 
 .ff-hardware-heading {
@@ -5717,10 +5719,10 @@ body.modal-open {
 
 .ff-hardware-heading h2 {
     font-size: clamp(1.85rem, 2.6vw, 2.85rem);
-    line-height: 1.02;
+    line-height: 1.04;
     letter-spacing: -0.045em;
     text-wrap: balance;
-    max-width: 13ch;
+    max-width: 14ch;
 }
 
 .ff-hardware-body {
@@ -5732,7 +5734,7 @@ body.modal-open {
 .ff-hardware-body p {
     color: var(--text-muted);
     line-height: 1.78;
-    max-width: 60ch;
+    max-width: 58ch;
 }
 
 .ff-hardware-chip-row {
@@ -5755,9 +5757,9 @@ body.modal-open {
 }
 
 .ff-hardware-media {
-    margin: 1.2rem 1.3rem 0;
-    padding: clamp(0.85rem, 1.4vw, 1.25rem);
-    border-radius: 26px;
+    margin: 1.25rem 1.4rem 0;
+    padding: clamp(0.95rem, 1.5vw, 1.35rem);
+    border-radius: 28px;
     border: 1px solid rgba(148, 163, 184, 0.22);
     background:
         radial-gradient(circle at top, rgba(239, 68, 68, 0.08), transparent 30%),
@@ -5769,7 +5771,7 @@ body.modal-open {
     display: block;
     width: 100%;
     height: auto;
-    border-radius: 20px;
+    border-radius: 22px;
     border: 1px solid rgba(148, 163, 184, 0.14);
     background: #0f172a;
 }
@@ -6541,6 +6543,7 @@ footer.site-footer {
 
     .ff-hardware-copy {
         grid-template-columns: 1fr;
+        gap: 1.3rem;
     }
 
     .ff-hardware-heading h2 {
@@ -6904,10 +6907,6 @@ footer.site-footer {
     .project-stage-insights {
         grid-template-columns: 1fr;
         padding: 0.9rem 0.9rem 0;
-    }
-
-    .ff-hardware-stage {
-        width: calc(100vw - 1rem);
     }
 
     .ff-hardware-copy {
