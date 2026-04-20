@@ -1,0 +1,19 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(xargs ls:*)",
+      "Bash(grep -E \"\\\\.\\(html|css|js\\)$\")",
+      "mcp__Claude_Preview__preview_start",
+      "Bash(cat .github/workflows/*.yml)",
+      "Bash(git add:*)",
+      "Bash(git rm:*)",
+      "Bash(git commit -m ':*)",
+      "Bash(git push:*)",
+      "Bash(grep -r \"canvas\\\\|ctx\\\\|drawOrbital\\\\|renderOrbital\" /Users/sean/Documents/ProjectsPage/Orbital --include=\"*.js\" ! -path \"*/node_modules/*\")",
+      "Bash(brew install:*)",
+      "Bash(pdftoppm -v)",
+      "Bash(pdftotext \"/Users/sean/Downloads/S26-Problem Set 2.pdf\" -)",
+      "Bash(pdftotext \"/Users/sean/Downloads/S26-Problem Set 1.pdf\" -)"
+    ]
+  }
+}

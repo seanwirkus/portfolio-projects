@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Project Preview Shell</title>
+    <style>
+        :root {
+            color-scheme: dark;
+            --shell-bg: #020617;
+            --shell-accent: rgba(99, 102, 241, 0.22);
+            --shell-accent-soft: rgba(59, 130, 246, 0.14);
+            --frame-width: 1280px;
+            --frame-height: 720px;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        html,
+        body {
+            width: 100%;
+            height: 100%;
+            margin: 0;
+            overflow: hidden;
+            font-family: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+            background:
+                radial-gradient(circle at top left, var(--shell-accent), transparent 40%),
+                radial-gradient(circle at bottom right, var(--shell-accent-soft), transparent 38%),
+                linear-gradient(180deg, #020617 0%, #06101f 100%);
+        }
+
+        .preview-root {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+        }
+
+        .preview-badges {
+            position: absolute;
+            top: 16px;
+            left: 16px;
+            z-index: 2;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            max-width: calc(100% - 32px);
+        }
+
+        .preview-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.4rem;
+            min-height: 36px;
+            padding: 0.55rem 0.8rem;
+            border-radius: 999px;
+            color: #f8fafc;
+            font-size: 0.8rem;
+            letter-spacing: 0.04em;
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            background: rgba(2, 6, 23, 0.62);
+            backdrop-filter: blur(16px);
+        }
+
+        .preview-badge.secondary {
+            color: rgba(226, 232, 240, 0.78);
+        }
+
+        .preview-canvas {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: var(--frame-width);
+            height: var(--frame-height);
+            overflow: hidden;
+            border-radius: 24px;
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            box-shadow:
+                0 32px 80px rgba(2, 6, 23, 0.45),
+                inset 0 0 0 1px rgba(255, 255, 255, 0.04);
+            transform: translate(-50%, -50%) scale(1);
+            transform-origin: center center;
+            background: var(--shell-bg);
+        }
+
+        .preview-frame {
+            width: 100%;
+            height: 100%;
+            border: 0;
+            display: block;
+            background: var(--shell-bg);
+        }
+
+        .preview-empty {
+            width: 100%;
+            height: 100%;
+            display: grid;
+            place-items: center;
+            padding: 24px;
+            color: rgba(226, 232, 240, 0.78);
+            text-align: center;
+            line-height: 1.6;
+        }
+
+        @media (max-width: 640px) {
+            .preview-badges {
+                top: 12px;
+                left: 12px;
+                gap: 6px;
+            }
+
+            .preview-badge {
+                min-height: 32px;
+                padding: 0.45rem 0.65rem;
+                font-size: 0.74rem;
+            }
+        }
+
+        .scroll-controls {
+            position: absolute;
+            right: 24px;
+            bottom: 24px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            z-index: 10;
+        }
+
+        .scroll-btn {
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            background: rgba(2, 6, 23, 0.8);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            color: #fff;
+            font-size: 1.2rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            backdrop-filter: blur(10px);
+            transition: all 0.2s ease;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+        }
+
+        .scroll-btn:hover {
+            background: rgba(255, 255, 255, 0.2);
+            transform: scale(1.05);
+        }
+        
+        .scroll-btn:active {
+            transform: scale(0.95);
+        }
+        body[data-theme-mode="light"] {
+            --shell-bg: #f8fafc;
+            --shell-accent: rgba(59, 130, 246, 0.08);
+            --shell-accent-soft: rgba(37, 99, 235, 0.04);
+            color-scheme: light;
+        }
+
+        body[data-theme-mode="light"] .preview-badge {
+            background: rgba(255, 255, 255, 0.82);
+            border-color: rgba(15, 23, 42, 0.12);
+            color: #0f172a;
+        }
+
+        body[data-theme-mode="light"] .preview-badge.secondary {
+            color: #475569;
+        }
+
+        body[data-theme-mode="light"] .scroll-btn {
+            background: rgba(255, 255, 255, 0.9);
+            border-color: rgba(15, 23, 42, 0.15);
+            color: #0f172a;
+        }
+    </style>
+    <link rel="icon" type="image/svg+xml" href="../favicon.svg">
+</head>
+<body>
+    <div class="preview-root">
+        <div class="preview-badges">
+            <div class="preview-badge" id="preview-label">Scaled preview</div>
+            <div class="preview-badge secondary" id="preview-size">1280 × 720</div>
+        </div>
+        <div class="preview-canvas" id="preview-canvas">
+            <iframe class="preview-frame" id="preview-frame" title="Project preview frame" scrolling="no"></iframe>
+        </div>
+        <div class="scroll-controls" id="scroll-controls" hidden>
+            <button class="scroll-btn" id="scroll-up" aria-label="Scroll Up">&#9650;</button>
+            <button class="scroll-btn" id="scroll-down" aria-label="Scroll Down">&#9660;</button>
+        </div>
+        <div class="preview-empty" id="preview-empty" hidden>
+            This preview could not load because no source was provided.
+        </div>
+    </div>
+    <script>
+        // Theme Sync Logic
+        window.addEventListener('message', (e) => {
+            if (e.data.type === 'theme-change') {
+                document.body.dataset.themeMode = e.data.mode;
+                document.documentElement.style.colorScheme = e.data.mode;
+                // Pass it down to the internal iframe too
+                previewFrame.contentWindow?.postMessage(e.data, '*');
+            }
+        });
+
+        const params = new URLSearchParams(window.location.search);
+        const previewFrame = document.getElementById('preview-frame');
+        const previewCanvas = document.getElementById('preview-canvas');
+        const previewRoot = document.querySelector('.preview-root');
+        const previewEmpty = document.getElementById('preview-empty');
+        const previewLabel = document.getElementById('preview-label');
+        const previewSize = document.getElementById('preview-size');
+        const scrollControls = document.getElementById('scroll-controls');
+        const scrollUp = document.getElementById('scroll-up');
+        const scrollDown = document.getElementById('scroll-down');
+
+        const clamp = (value, min, max) => Math.min(Math.max(value, min), max);
+
+        const toRgba = (hex, alpha) => {
+            const cleaned = (hex || '').replace('#', '').trim();
+            if (!/^[0-9a-fA-F]{6}$/.test(cleaned)) return null;
+            const red = Number.parseInt(cleaned.slice(0, 2), 16);
+            const green = Number.parseInt(cleaned.slice(2, 4), 16);
+            const blue = Number.parseInt(cleaned.slice(4, 6), 16);
+            return `rgba(${red}, ${green}, ${blue}, ${alpha})`;
+        };
+
+        const src = params.get('src');
+        const frameWidth = clamp(Number(params.get('width') || 1280), 320, 2400);
+        const frameHeight = clamp(Number(params.get('height') || 720), 240, 1800);
+        const padding = clamp(Number(params.get('padding') || 28), 16, 64);
+        const label = params.get('label') || 'Scaled preview';
+        const sizeLabel = params.get('sizeLabel') || `${frameWidth} × ${frameHeight}`;
+        const accent = params.get('accent');
+        const allow = params.get('allow');
+
+        document.documentElement.style.setProperty('--frame-width', `${frameWidth}px`);
+        document.documentElement.style.setProperty('--frame-height', `${frameHeight}px`);
+        previewLabel.textContent = label;
+        previewSize.textContent = sizeLabel;
+
+        if (accent) {
+            const strongAccent = toRgba(accent, 0.22);
+            const softAccent = toRgba(accent, 0.12);
+            if (strongAccent) document.documentElement.style.setProperty('--shell-accent', strongAccent);
+            if (softAccent) document.documentElement.style.setProperty('--shell-accent-soft', softAccent);
+        }
+
+        if (!src) {
+            previewCanvas.hidden = true;
+            previewLabel.hidden = true;
+            previewSize.hidden = true;
+            scrollControls.hidden = true;
+            previewEmpty.hidden = false;
+        } else {
+            previewFrame.src = src;
+            scrollControls.hidden = false;
+            if (allow) previewFrame.setAttribute('allow', allow);
+        }
+
+        const scrollIframe = (amount) => {
+            if (previewFrame.contentWindow) {
+                previewFrame.contentWindow.scrollBy({ top: amount, behavior: 'smooth' });
+            }
+        };
+
+        scrollUp.addEventListener('click', () => scrollIframe(-400));
+        scrollDown.addEventListener('click', () => scrollIframe(400));
+
+        const fitPreview = () => {
+            const availableWidth = Math.max(previewRoot.clientWidth - padding, 0);
+            
+            // Let the preview app handle its own mobile responsiveness natively instead of shrinking it
+            if (window.innerWidth <= 768) {
+                document.documentElement.style.setProperty('--frame-width', `100%`);
+                document.documentElement.style.setProperty('--frame-height', `100%`);
+                previewCanvas.style.transform = `translate(-50%, -50%) scale(1)`;
+                return;
+            }
+            
+            // Restore desktop frame dimensions if window resizing
+            document.documentElement.style.setProperty('--frame-width', `${frameWidth}px`);
+            document.documentElement.style.setProperty('--frame-height', `${frameHeight}px`);
+
+            const availableHeight = Math.max(previewRoot.clientHeight - padding, 0);
+            const scale = Math.max(
+                Math.min(availableWidth / frameWidth, availableHeight / frameHeight),
+                0.1
+            );
+
+            previewCanvas.style.transform = `translate(-50%, -50%) scale(${scale})`;
+        };
+
+        window.addEventListener('resize', fitPreview);
+        window.addEventListener('load', fitPreview);
+        fitPreview();
+    </script>
+</body>
+</html>
