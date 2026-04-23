@@ -3,15 +3,71 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>DNA Strand Lab</title>
-    <meta name="description" content="Interactive DNA base explorer, canonical pairing visualizer, and strand builder.">
+    <title>DNA Learning Suite</title>
+    <meta name="description" content="Unified DNA learning suite for base pairing, phosphodiester bonding, and DNA replication.">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Exo:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="bundle.css">
+    <link rel="stylesheet" href="suite.css">
 </head>
 <body>
-    <div id="root"></div>
-    <script src="bundle.js"></script>
+    <div class="suite-app" data-theme="dark">
+        <div class="suite-reveal-zone" id="suite-reveal-zone" aria-hidden="true"></div>
+
+        <header class="suite-header" id="suite-header">
+            <div class="suite-header__brand">
+                <div class="suite-mark" aria-hidden="true">
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                </div>
+                <div>
+                    <span class="suite-kicker">Integrated Learning Surface</span>
+                    <h1>DNA Learning Suite</h1>
+                    <p>One runtime for base geometry, backbone chemistry, and replication mechanics.</p>
+                </div>
+            </div>
+
+            <div class="suite-header__controls">
+                <div class="suite-tabs" role="tablist" aria-label="DNA labs">
+                    <button class="suite-tab is-active" type="button" data-lab="strand" role="tab" aria-selected="true">Strand Lab</button>
+                    <button class="suite-tab" type="button" data-lab="phosphodiester" role="tab" aria-selected="false">Phosphodiester</button>
+                    <button class="suite-tab" type="button" data-lab="replication" role="tab" aria-selected="false">Replication</button>
+                </div>
+
+                <div class="suite-actions">
+                    <a class="suite-link" id="suite-direct-link" href="./strand-lab.html" target="_blank" rel="noreferrer">Open Current Lab</a>
+                    <button class="suite-theme-toggle" id="suite-theme-toggle" type="button" aria-label="Toggle suite theme">Light</button>
+                </div>
+            </div>
+        </header>
+
+        <main class="suite-main">
+            <section class="suite-stage">
+                <div class="suite-stage__bar">
+                    <div class="suite-stage__copy">
+                        <span class="suite-kicker" id="suite-stage-kicker">Base Geometry</span>
+                        <h2 id="suite-stage-title">DNA Strand Lab</h2>
+                        <p id="suite-stage-summary">Explore base structure, hydrogen-bond pairing, and complementary strand assembly in one interactive surface.</p>
+                    </div>
+
+                    <div class="suite-stage__meta">
+                        <div class="suite-pill-row" id="suite-pill-row" aria-label="Current lab highlights"></div>
+                        <div class="suite-path" id="suite-path" aria-label="Learning path"></div>
+                    </div>
+                </div>
+
+                <div class="suite-frame-shell">
+                    <div class="suite-frame-stack" id="suite-frame-stack">
+                        <iframe class="suite-frame is-active" id="frame-strand" title="DNA Strand Lab" loading="eager"></iframe>
+                        <iframe class="suite-frame" id="frame-phosphodiester" title="Phosphodiester Lab" loading="eager"></iframe>
+                        <iframe class="suite-frame" id="frame-replication" title="DNA Replication Lab" loading="eager"></iframe>
+                    </div>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <script src="suite.js"></script>
 </body>
 </html>

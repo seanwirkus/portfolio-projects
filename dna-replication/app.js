@@ -1,6 +1,14 @@
 // DNA Replication Study App — App Logic
 
 (function () {
+    const params = new URLSearchParams(window.location.search);
+    const embedded = params.get('embedded') === '1';
+    const requestedTheme = params.get('theme');
+
+    if (embedded) {
+        document.body.classList.add('embedded');
+    }
+
     // State
     let currentMode = 'explore';
     let currentTheme = 'dark';
@@ -34,8 +42,17 @@
         renderExplore();
     }
     themeToggle.addEventListener('click', () => setTheme(currentTheme === 'dark' ? 'light' : 'dark'));
+    window.addEventListener('message', (event) => {
+        if (event.data?.type !== 'theme-change') return;
+        const nextTheme = event.data.mode;
+        if (nextTheme === 'light' || nextTheme === 'dark') {
+            setTheme(nextTheme);
+        }
+    });
     const saved = localStorage.getItem('dna-repl-theme');
-    if (saved) setTheme(saved);
+    if (requestedTheme === 'light' || requestedTheme === 'dark') setTheme(requestedTheme);
+    else if (saved) setTheme(saved);
+    else setTheme('dark');
 
     // ——— Explore Mode ———
     function renderExplore() {

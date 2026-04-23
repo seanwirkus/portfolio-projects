@@ -1,0 +1,996 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PreCalc Lab | Sean</title>
+    <meta name="description" content="Interactive pre-calculus learning tool covering functions, trigonometry, limits, and more — built for Sean and Luca.">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+    <link rel="icon" type="image/svg+xml" href="favicon.svg">
+    <style>
+        /* ── PreCalc App Styles ── */
+        .pc-app {
+            background:
+                linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0)),
+                var(--bg-surface);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-xl);
+            overflow: hidden;
+            margin-top: 2rem;
+            box-shadow: 0 30px 80px rgba(2, 6, 23, 0.28);
+        }
+        .pc-nav {
+            display: flex;
+            gap: 0;
+            border-bottom: 1px solid var(--border-color);
+            overflow-x: auto;
+            scrollbar-width: none;
+        }
+        .pc-nav::-webkit-scrollbar { display: none; }
+        .pc-nav-btn {
+            flex: 1;
+            min-width: 120px;
+            padding: 14px 18px;
+            background: none;
+            border: none;
+            color: var(--text-muted);
+            font-family: 'Outfit', sans-serif;
+            font-size: 0.85rem;
+            font-weight: 500;
+            cursor: pointer;
+            border-bottom: 2px solid transparent;
+            transition: all 0.25s ease;
+            white-space: nowrap;
+        }
+        .pc-nav-btn:hover { color: var(--text-main); background: rgba(255,255,255,0.03); }
+        .pc-nav-btn.active {
+            color: var(--accent-1);
+            border-bottom-color: var(--accent-1);
+            background: rgba(59, 130, 246, 0.06);
+        }
+        .pc-panel { display: none; padding: clamp(1.2rem, 2.5vw, 2rem); }
+        .pc-panel.active {
+            display: block;
+            animation: pcPanelFade 0.28s ease;
+        }
+
+        /* Canvas + controls */
+        .pc-canvas-wrap {
+            background: #0a0a0c;
+            border-radius: var(--radius-lg);
+            border: 1px solid var(--border-color);
+            overflow: hidden;
+            position: relative;
+        }
+        .pc-canvas-wrap canvas {
+            display: block;
+            width: 100%;
+            height: clamp(320px, 42vw, 420px);
+        }
+        .pc-controls {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-top: 1rem;
+            align-items: center;
+        }
+        .pc-controls label {
+            color: var(--text-muted);
+            font-size: 0.82rem;
+            font-family: 'Inter', sans-serif;
+        }
+        .pc-controls input[type="range"] {
+            accent-color: var(--accent-1);
+            width: 130px;
+        }
+        .pc-controls select, .pc-controls button {
+            background: var(--bg-card);
+            color: var(--text-main);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-md);
+            padding: 6px 14px;
+            font-family: 'Inter', sans-serif;
+            font-size: 0.82rem;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        .pc-controls button:hover { background: var(--bg-surface-hover); }
+        .pc-controls select:focus, .pc-controls button:focus { outline: 1px solid var(--accent-1); }
+
+        /* Explanation card */
+        .pc-explain {
+            margin-top: 1.5rem;
+            padding: 1.2rem 1.5rem;
+            background: rgba(59, 130, 246, 0.06);
+            border: 1px solid rgba(59, 130, 246, 0.15);
+            border-radius: var(--radius-lg);
+            color: var(--text-main);
+            font-family: 'Inter', sans-serif;
+            font-size: 0.88rem;
+            line-height: 1.65;
+        }
+        .pc-explain h4 {
+            margin: 0 0 0.5rem;
+            font-family: 'Outfit', sans-serif;
+            font-weight: 600;
+            color: var(--accent-1);
+            font-size: 1rem;
+        }
+        .pc-explain code {
+            background: rgba(255,255,255,0.08);
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-size: 0.83rem;
+        }
+
+        /* Quiz */
+        .pc-quiz { margin-top: 1.5rem; }
+        .pc-question {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-lg);
+            padding: 1.5rem;
+            margin-bottom: 1rem;
+        }
+        .pc-question p {
+            color: var(--text-main);
+            font-family: 'Inter', sans-serif;
+            margin: 0 0 1rem;
+            font-size: 0.92rem;
+        }
+        .pc-opts { display: flex; flex-direction: column; gap: 8px; }
+        .pc-opt {
+            display: block;
+            padding: 10px 16px;
+            background: var(--bg-surface);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-md);
+            color: var(--text-main);
+            font-family: 'Inter', sans-serif;
+            font-size: 0.85rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            text-align: left;
+        }
+        .pc-opt:hover { border-color: var(--accent-1); background: rgba(59,130,246,0.06); }
+        .pc-opt.correct { border-color: #10b981; background: rgba(16,185,129,0.1); color: #10b981; }
+        .pc-opt.wrong { border-color: #ef4444; background: rgba(239,68,68,0.08); color: #ef4444; }
+        .pc-opt.disabled { pointer-events: none; opacity: 0.6; }
+        .pc-score {
+            text-align: center;
+            padding: 1.5rem;
+            color: var(--text-main);
+            font-family: 'Outfit', sans-serif;
+        }
+        .pc-score .big { font-size: 2.5rem; font-weight: 700; color: var(--accent-1); }
+
+        /* Luca shoutout */
+        .pc-collab {
+            margin-top: 2rem;
+            padding: 1rem 1.5rem;
+            background: rgba(139, 92, 246, 0.06);
+            border: 1px solid rgba(139, 92, 246, 0.15);
+            border-radius: var(--radius-lg);
+            color: var(--text-muted);
+            font-family: 'Inter', sans-serif;
+            font-size: 0.85rem;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .pc-collab strong { color: var(--text-main); }
+
+        .pc-intro-grid {
+            margin-top: 1.5rem;
+            display: grid;
+            grid-template-columns: minmax(0, 1.3fr) minmax(280px, 0.95fr);
+            gap: 1rem;
+            align-items: stretch;
+        }
+        .pc-focus,
+        .pc-track-list {
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-xl);
+            background:
+                linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0)),
+                var(--bg-surface);
+        }
+        .pc-focus {
+            padding: 1.4rem 1.5rem 1.5rem;
+        }
+        .pc-surface-label {
+            display: inline-block;
+            margin-bottom: 0.8rem;
+            color: var(--text-muted);
+            font-family: 'Outfit', sans-serif;
+            font-size: 0.74rem;
+            font-weight: 500;
+            letter-spacing: 0.22em;
+            text-transform: uppercase;
+        }
+        .pc-focus h2 {
+            margin: 0;
+            max-width: 12ch;
+            color: var(--text-main);
+            font-family: 'Outfit', sans-serif;
+            font-size: clamp(1.8rem, 3.2vw, 2.8rem);
+            line-height: 0.95;
+        }
+        .pc-focus p {
+            max-width: 54ch;
+            margin: 1rem 0 0;
+            color: var(--text-muted);
+            font-family: 'Inter', sans-serif;
+            font-size: 0.95rem;
+            line-height: 1.75;
+        }
+        .pc-topic-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.6rem;
+            margin-top: 1.2rem;
+        }
+        .pc-topic-pill {
+            padding: 0.55rem 0.85rem;
+            border-radius: 999px;
+            border: 1px solid rgba(59, 130, 246, 0.16);
+            background: rgba(59, 130, 246, 0.08);
+            color: var(--text-main);
+            font-family: 'Inter', sans-serif;
+            font-size: 0.82rem;
+        }
+        .pc-track-list {
+            padding: 0.45rem 0;
+        }
+        .pc-track {
+            display: grid;
+            grid-template-columns: auto 1fr;
+            gap: 0.9rem;
+            padding: 0.95rem 1.2rem;
+            border-top: 1px solid rgba(148, 163, 184, 0.12);
+        }
+        .pc-track:first-child {
+            border-top: none;
+        }
+        .pc-track-index {
+            color: var(--accent-1);
+            font-family: 'Outfit', sans-serif;
+            font-size: 0.92rem;
+            font-weight: 700;
+            letter-spacing: 0.14em;
+        }
+        .pc-track strong {
+            display: block;
+            color: var(--text-main);
+            font-family: 'Outfit', sans-serif;
+            font-size: 1rem;
+            font-weight: 600;
+        }
+        .pc-track p {
+            margin: 0.32rem 0 0;
+            color: var(--text-muted);
+            font-family: 'Inter', sans-serif;
+            font-size: 0.85rem;
+            line-height: 1.6;
+        }
+
+        /* Unit circle interactive */
+        .pc-unit-wrap {
+            display: flex;
+            gap: 2rem;
+            align-items: flex-start;
+            flex-wrap: wrap;
+        }
+        .pc-unit-info {
+            flex: 1;
+            min-width: 220px;
+        }
+        .pc-unit-info table {
+            width: 100%;
+            border-collapse: collapse;
+            font-family: 'Inter', sans-serif;
+            font-size: 0.82rem;
+        }
+        .pc-unit-info th, .pc-unit-info td {
+            padding: 8px 12px;
+            border-bottom: 1px solid var(--border-color);
+            color: var(--text-main);
+            text-align: left;
+        }
+        .pc-unit-info th { color: var(--text-muted); font-weight: 500; }
+        .pc-unit-info .highlight-row { background: rgba(59,130,246,0.08); }
+
+        @keyframes pcPanelFade {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @media (max-width: 860px) {
+            .pc-intro-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media (max-width: 640px) {
+            .pc-collab {
+                align-items: flex-start;
+            }
+            .pc-track {
+                padding-inline: 1rem;
+            }
+            .pc-focus {
+                padding: 1.15rem;
+            }
+        }
+
+        /* Card mini-vis for index */
+        .precalc-bg {
+            background: linear-gradient(135deg, #0f172a 0%, #1e1b4b 50%, #0f172a 100%);
+            position: relative;
+            overflow: hidden;
+        }
+        .pc-mini-scene {
+            width: 100%;
+            height: 100%;
+            position: relative;
+        }
+    </style>
+</head>
+<body>
+    <div class="cursor-dot"></div>
+    <div class="cursor-outline"></div>
+    <div class="bg-gradient bg-gradient-1"></div>
+    <div class="bg-gradient bg-gradient-2"></div>
+    <div class="bg-noise"></div>
+
+    <nav class="navbar">
+        <div class="nav-content">
+            <div class="logo magnetic" onclick="window.location.href='index.html'">S.</div>
+            <ul class="nav-links">
+                <li><a href="index.html#projects" class="magnetic">Back to Portfolio</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <main class="container project-page" style="--project-accent:#3b82f6;--project-accent-alt:#8b5cf6;">
+        <header class="project-page-header section-animate">
+            <a href="index.html#projects" class="back-link magnetic">&larr; Back to projects</a>
+            <div class="project-kicker">Math & Interactive Learning</div>
+            <h1 class="project-page-title">PreCalc Lab</h1>
+            <p class="project-summary">
+                An interactive pre-calculus study tool with live graphing, a unit circle explorer, and practice quizzes.
+                Built to help Sean and Luca lock down the fundamentals before calculus.
+            </p>
+            <div class="project-callout"><strong>Study tool:</strong> Graph functions, explore the unit circle, and test yourself — all running live in the browser.</div>
+        </header>
+
+        <div class="pc-collab section-animate">
+            <span style="font-size:1.3rem;">&#129309;</span>
+            <span>Built as a study companion for <strong>Sean</strong> &amp; <strong>Luca</strong> — two friends grinding through pre-calc together. Good luck Luca!</span>
+        </div>
+
+        <section class="pc-intro-grid section-animate" aria-label="Pre-calculus study map">
+            <article class="pc-focus">
+                <span class="pc-surface-label">Study Map</span>
+                <h2>See the shape before you memorize the rule.</h2>
+                <p>
+                    This app is organized the way Luca should study it: graph the parent function, connect the angle to the unit circle,
+                    watch the transformation happen, then check recall with a short quiz.
+                </p>
+                <div class="pc-topic-row">
+                    <span class="pc-topic-pill">Functions</span>
+                    <span class="pc-topic-pill">Trig</span>
+                    <span class="pc-topic-pill">Transformations</span>
+                    <span class="pc-topic-pill">Limits Intro</span>
+                </div>
+            </article>
+
+            <div class="pc-track-list">
+                <div class="pc-track">
+                    <span class="pc-track-index">01</span>
+                    <div>
+                        <strong>Graph it live</strong>
+                        <p>Move the coefficients and watch slope, intercepts, curvature, and asymptotes change in real time.</p>
+                    </div>
+                </div>
+                <div class="pc-track">
+                    <span class="pc-track-index">02</span>
+                    <div>
+                        <strong>Lock in the unit circle</strong>
+                        <p>Match the angle to coordinates, then read off cosine, sine, and tangent without guessing.</p>
+                    </div>
+                </div>
+                <div class="pc-track">
+                    <span class="pc-track-index">03</span>
+                    <div>
+                        <strong>Practice transformations</strong>
+                        <p>Use shifts, stretches, and reflections until the notation starts feeling obvious instead of arbitrary.</p>
+                    </div>
+                </div>
+                <div class="pc-track">
+                    <span class="pc-track-index">04</span>
+                    <div>
+                        <strong>Check recall fast</strong>
+                        <p>Finish with short topic-based drills so Sean and Luca can see what still needs another pass.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ── The App ── -->
+        <div class="pc-app section-animate">
+            <div class="pc-nav" id="pcNav">
+                <button class="pc-nav-btn active" data-tab="grapher">Function Grapher</button>
+                <button class="pc-nav-btn" data-tab="unit-circle">Unit Circle</button>
+                <button class="pc-nav-btn" data-tab="transformations">Transformations</button>
+                <button class="pc-nav-btn" data-tab="quiz">Practice Quiz</button>
+            </div>
+
+            <!-- ─── TAB 1: Function Grapher ─── -->
+            <div class="pc-panel active" id="tab-grapher">
+                <div class="pc-canvas-wrap">
+                    <canvas id="graphCanvas"></canvas>
+                </div>
+                <div class="pc-controls">
+                    <label>Function:</label>
+                    <select id="fnSelect">
+                        <option value="linear">Linear: y = mx + b</option>
+                        <option value="quadratic">Quadratic: y = ax&sup2; + bx + c</option>
+                        <option value="cubic">Cubic: y = x&sup3;</option>
+                        <option value="abs">Absolute Value: y = |x|</option>
+                        <option value="sqrt">Square Root: y = &radic;x</option>
+                        <option value="sin">Sine: y = sin(x)</option>
+                        <option value="cos">Cosine: y = cos(x)</option>
+                        <option value="tan">Tangent: y = tan(x)</option>
+                        <option value="log">Logarithm: y = ln(x)</option>
+                        <option value="exp">Exponential: y = e^x</option>
+                        <option value="rational">Rational: y = 1/x</option>
+                    </select>
+                    <label>a: <span id="aVal">1</span></label>
+                    <input type="range" id="aSlider" min="-5" max="5" step="0.1" value="1">
+                    <label>b: <span id="bVal">0</span></label>
+                    <input type="range" id="bSlider" min="-5" max="5" step="0.1" value="0">
+                    <label>c: <span id="cVal">0</span></label>
+                    <input type="range" id="cSlider" min="-5" max="5" step="0.1" value="0">
+                </div>
+                <div class="pc-explain" id="graphExplain"></div>
+            </div>
+
+            <!-- ─── TAB 2: Unit Circle ─── -->
+            <div class="pc-panel" id="tab-unit-circle">
+                <div class="pc-unit-wrap">
+                    <div class="pc-canvas-wrap" style="flex:1;min-width:300px;">
+                        <canvas id="unitCanvas"></canvas>
+                    </div>
+                    <div class="pc-unit-info">
+                        <div class="pc-explain">
+                            <h4>Current Angle</h4>
+                            <p><strong>Degrees:</strong> <span id="ucDeg">0</span>&deg;</p>
+                            <p><strong>Radians:</strong> <span id="ucRad">0</span></p>
+                            <p><strong>cos(&theta;):</strong> <span id="ucCos">1</span></p>
+                            <p><strong>sin(&theta;):</strong> <span id="ucSin">0</span></p>
+                            <p><strong>tan(&theta;):</strong> <span id="ucTan">0</span></p>
+                        </div>
+                        <div class="pc-controls" style="margin-top:1rem;">
+                            <label>Angle: <span id="angleDisp">0</span>&deg;</label>
+                            <input type="range" id="angleSlider" min="0" max="360" step="1" value="0">
+                            <button id="animateBtn">Animate</button>
+                        </div>
+                        <table style="margin-top:1rem;">
+                            <tr><th>Angle</th><th>sin</th><th>cos</th><th>tan</th></tr>
+                            <tr><td>0&deg;</td><td>0</td><td>1</td><td>0</td></tr>
+                            <tr><td>30&deg;</td><td>&frac12;</td><td>&radic;3/2</td><td>&radic;3/3</td></tr>
+                            <tr><td>45&deg;</td><td>&radic;2/2</td><td>&radic;2/2</td><td>1</td></tr>
+                            <tr><td>60&deg;</td><td>&radic;3/2</td><td>&frac12;</td><td>&radic;3</td></tr>
+                            <tr><td>90&deg;</td><td>1</td><td>0</td><td>undef</td></tr>
+                            <tr><td>180&deg;</td><td>0</td><td>&minus;1</td><td>0</td></tr>
+                            <tr><td>270&deg;</td><td>&minus;1</td><td>0</td><td>undef</td></tr>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ─── TAB 3: Transformations ─── -->
+            <div class="pc-panel" id="tab-transformations">
+                <div class="pc-canvas-wrap">
+                    <canvas id="transCanvas"></canvas>
+                </div>
+                <div class="pc-controls">
+                    <label>Base:</label>
+                    <select id="transBase">
+                        <option value="x2">y = x&sup2;</option>
+                        <option value="abs">y = |x|</option>
+                        <option value="sqrt">y = &radic;x</option>
+                        <option value="sin">y = sin(x)</option>
+                    </select>
+                    <label>H-shift: <span id="hVal">0</span></label>
+                    <input type="range" id="hSlider" min="-5" max="5" step="0.5" value="0">
+                    <label>V-shift: <span id="vVal">0</span></label>
+                    <input type="range" id="vSlider" min="-5" max="5" step="0.5" value="0">
+                    <label>V-stretch: <span id="sVal">1</span></label>
+                    <input type="range" id="sSlider" min="-3" max="3" step="0.1" value="1">
+                    <button id="reflectX">Reflect x-axis</button>
+                </div>
+                <div class="pc-explain" id="transExplain"></div>
+            </div>
+
+            <!-- ─── TAB 4: Practice Quiz ─── -->
+            <div class="pc-panel" id="tab-quiz">
+                <div class="pc-controls" style="margin-bottom:1rem;">
+                    <label>Topic:</label>
+                    <select id="quizTopic">
+                        <option value="all">All Topics</option>
+                        <option value="functions">Functions</option>
+                        <option value="trig">Trigonometry</option>
+                        <option value="transforms">Transformations</option>
+                        <option value="limits">Limits Intro</option>
+                    </select>
+                    <button id="newQuiz">New Quiz (10 Qs)</button>
+                </div>
+                <div id="quizArea" class="pc-quiz"></div>
+            </div>
+        </div>
+
+        <!-- Key concepts section -->
+        <section class="project-stage-card section-animate" style="margin-top:3rem;">
+            <div class="project-stage-bar">
+                <div class="project-stage-label">Topics Covered</div>
+            </div>
+            <div class="project-stage-insights">
+                <article class="project-stage-insight">
+                    <span>Algebra Foundations</span>
+                    <strong>Functions & Graphs</strong>
+                    <p>Linear, quadratic, polynomial, rational, exponential, and logarithmic functions with adjustable parameters to build intuition.</p>
+                </article>
+                <article class="project-stage-insight">
+                    <span>Trigonometry</span>
+                    <strong>Unit Circle & Identities</strong>
+                    <p>Interactive unit circle with angle-dragging, reference values, and live sin/cos/tan readouts for all four quadrants.</p>
+                </article>
+                <article class="project-stage-insight">
+                    <span>Graph Transformations</span>
+                    <strong>Shifts, Stretches & Reflections</strong>
+                    <p>See in real time how a, h, k, and reflections reshape parent functions — no more guessing on exams.</p>
+                </article>
+            </div>
+        </section>
+    </main>
+
+    <script src="script.js"></script>
+    <script>
+    /* ================================================================
+       PreCalc Lab – Interactive Learning App
+       ================================================================ */
+    (function(){
+        // ─── Tab switching ───
+        const nav = document.getElementById('pcNav');
+        nav.addEventListener('click', e => {
+            const btn = e.target.closest('.pc-nav-btn');
+            if (!btn) return;
+            nav.querySelectorAll('.pc-nav-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            document.querySelectorAll('.pc-panel').forEach(p => p.classList.remove('active'));
+            document.getElementById('tab-' + btn.dataset.tab).classList.add('active');
+            if (btn.dataset.tab === 'unit-circle') drawUnit();
+            if (btn.dataset.tab === 'grapher') drawGraph();
+            if (btn.dataset.tab === 'transformations') drawTrans();
+        });
+
+        // ─── Helpers ───
+        function setupCanvas(canvas) {
+            const dpr = window.devicePixelRatio || 1;
+            const rect = canvas.getBoundingClientRect();
+            canvas.width = rect.width * dpr;
+            canvas.height = rect.height * dpr;
+            const ctx = canvas.getContext('2d');
+            ctx.scale(dpr, dpr);
+            return { ctx, w: rect.width, h: rect.height };
+        }
+
+        function drawGrid(ctx, w, h, scale) {
+            const cx = w / 2, cy = h / 2;
+            ctx.strokeStyle = 'rgba(255,255,255,0.06)';
+            ctx.lineWidth = 1;
+            for (let i = -20; i <= 20; i++) {
+                const x = cx + i * scale;
+                ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, h); ctx.stroke();
+                const y = cy + i * scale;
+                ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(w, y); ctx.stroke();
+            }
+            // axes
+            ctx.strokeStyle = 'rgba(255,255,255,0.25)';
+            ctx.lineWidth = 1.5;
+            ctx.beginPath(); ctx.moveTo(0, cy); ctx.lineTo(w, cy); ctx.stroke();
+            ctx.beginPath(); ctx.moveTo(cx, 0); ctx.lineTo(cx, h); ctx.stroke();
+            // labels
+            ctx.fillStyle = 'rgba(255,255,255,0.35)';
+            ctx.font = '11px Inter, sans-serif';
+            for (let i = -10; i <= 10; i++) {
+                if (i === 0) continue;
+                ctx.fillText(i, cx + i * scale - 4, cy + 14);
+                ctx.fillText((-i).toString(), cx + 5, cy + i * scale + 4);
+            }
+        }
+
+        // ─── 1. Function Grapher ───
+        const graphCanvas = document.getElementById('graphCanvas');
+        const fnSelect = document.getElementById('fnSelect');
+        const aSlider = document.getElementById('aSlider');
+        const bSlider = document.getElementById('bSlider');
+        const cSlider = document.getElementById('cSlider');
+        const aVal = document.getElementById('aVal');
+        const bVal = document.getElementById('bVal');
+        const cVal = document.getElementById('cVal');
+        const graphExplain = document.getElementById('graphExplain');
+
+        const explanations = {
+            linear: (a,b) => `<h4>Linear Function: y = ${a}x + ${b}</h4><p>A straight line with <strong>slope ${a}</strong> (rise/run) and <strong>y-intercept ${b}</strong>. Slope tells you the rate of change: positive slopes go up-right, negative slopes go down-right. The y-intercept is where the line crosses the y-axis.</p>`,
+            quadratic: (a,b,c) => `<h4>Quadratic: y = ${a}x&sup2; + ${b}x + ${c}</h4><p>A parabola. When <code>a > 0</code> it opens upward; when <code>a < 0</code> it opens downward. The vertex (turning point) is at <code>x = -b/(2a) = ${(-b/(2*a)).toFixed(2)}</code>. The axis of symmetry runs vertically through the vertex.</p>`,
+            cubic: (a) => `<h4>Cubic: y = ${a}x&sup3;</h4><p>Cubic functions have an S-shape. When <code>a > 0</code>, the curve goes from lower-left to upper-right. The inflection point (where curvature changes direction) is at the origin for the parent function.</p>`,
+            abs: (a,b) => `<h4>Absolute Value: y = ${a}|x| + ${b}</h4><p>A V-shape centered at the vertex. The absolute value makes all outputs non-negative before scaling by <code>a</code>. When <code>a</code> is negative, the V flips upside down.</p>`,
+            sqrt: (a) => `<h4>Square Root: y = ${a}&radic;x</h4><p>Only defined for x &ge; 0 (no square root of negatives in real numbers). Starts at the origin and increases, but the rate of increase slows down. This is the inverse of y = x&sup2; restricted to x &ge; 0.</p>`,
+            sin: (a,b) => `<h4>Sine: y = ${a} sin(x) + ${b}</h4><p>A wave with <strong>amplitude ${Math.abs(a).toFixed(1)}</strong> and <strong>period 2&pi; &approx; 6.28</strong>. The sine function starts at 0, peaks at &pi;/2, returns to 0 at &pi;, troughs at 3&pi;/2, and completes a full cycle at 2&pi;.</p>`,
+            cos: (a,b) => `<h4>Cosine: y = ${a} cos(x) + ${b}</h4><p>Like sine, but shifted left by &pi;/2. Cosine starts at its peak (1), drops to 0 at &pi;/2, troughs at &pi;, and returns to peak at 2&pi;. Same amplitude and period as sine.</p>`,
+            tan: (a) => `<h4>Tangent: y = ${a} tan(x)</h4><p>Tangent = sin/cos, so it has vertical asymptotes wherever cos(x) = 0 (at &pi;/2, 3&pi;/2, etc.). The period is &pi; (not 2&pi;). It passes through the origin and has no max or min value.</p>`,
+            log: (a) => `<h4>Logarithm: y = ${a} ln(x)</h4><p>The natural log is the inverse of e^x. Only defined for x > 0. It passes through (1, 0) because ln(1) = 0. Grows very slowly — doubling x only adds ln(2) &approx; 0.69 to the output.</p>`,
+            exp: (a) => `<h4>Exponential: y = e^(${a}x)</h4><p>Exponential growth (a>0) or decay (a<0). Always positive, passes through (0, 1). Doubles approximately every 0.69/a units. This is the most important function in calculus.</p>`,
+            rational: (a) => `<h4>Rational: y = ${a}/x</h4><p>A hyperbola with vertical asymptote at x = 0 and horizontal asymptote at y = 0. The function is undefined at x = 0. In quadrants I & III when a > 0; in II & IV when a < 0.</p>`
+        };
+
+        function evalFn(fn, x, a, b, c) {
+            switch(fn) {
+                case 'linear': return a * x + b;
+                case 'quadratic': return a * x * x + b * x + c;
+                case 'cubic': return a * x * x * x;
+                case 'abs': return a * Math.abs(x) + b;
+                case 'sqrt': return x >= 0 ? a * Math.sqrt(x) : NaN;
+                case 'sin': return a * Math.sin(x) + b;
+                case 'cos': return a * Math.cos(x) + b;
+                case 'tan': { const v = a * Math.tan(x); return Math.abs(v) > 50 ? NaN : v; }
+                case 'log': return x > 0 ? a * Math.log(x) : NaN;
+                case 'exp': return Math.exp(a * x);
+                case 'rational': return x !== 0 ? a / x : NaN;
+            }
+        }
+
+        function drawGraph() {
+            const { ctx, w, h } = setupCanvas(graphCanvas);
+            const scale = 40;
+            ctx.clearRect(0, 0, w, h);
+            drawGrid(ctx, w, h, scale);
+            const cx = w / 2, cy = h / 2;
+            const fn = fnSelect.value;
+            const a = parseFloat(aSlider.value);
+            const b = parseFloat(bSlider.value);
+            const c = parseFloat(cSlider.value);
+            aVal.textContent = a; bVal.textContent = b; cVal.textContent = c;
+
+            ctx.strokeStyle = '#3b82f6';
+            ctx.lineWidth = 2.5;
+            ctx.beginPath();
+            let started = false;
+            for (let px = 0; px < w; px++) {
+                const x = (px - cx) / scale;
+                const y = evalFn(fn, x, a, b, c);
+                if (isNaN(y) || !isFinite(y)) { started = false; continue; }
+                const py = cy - y * scale;
+                if (py < -200 || py > h + 200) { started = false; continue; }
+                if (!started) { ctx.moveTo(px, py); started = true; }
+                else ctx.lineTo(px, py);
+            }
+            ctx.stroke();
+
+            // explanation
+            if (explanations[fn]) {
+                graphExplain.innerHTML = explanations[fn](a, b, c);
+            }
+        }
+
+        fnSelect.addEventListener('change', drawGraph);
+        aSlider.addEventListener('input', drawGraph);
+        bSlider.addEventListener('input', drawGraph);
+        cSlider.addEventListener('input', drawGraph);
+        drawGraph();
+
+        // ─── 2. Unit Circle ───
+        const unitCanvas = document.getElementById('unitCanvas');
+        const angleSlider = document.getElementById('angleSlider');
+        const angleDisp = document.getElementById('angleDisp');
+
+        function drawUnit() {
+            const { ctx, w, h } = setupCanvas(unitCanvas);
+            const cx = w / 2, cy = h / 2;
+            const r = Math.min(w, h) * 0.35;
+            ctx.clearRect(0, 0, w, h);
+
+            // grid
+            ctx.strokeStyle = 'rgba(255,255,255,0.06)';
+            ctx.lineWidth = 1;
+            ctx.beginPath(); ctx.moveTo(0, cy); ctx.lineTo(w, cy); ctx.stroke();
+            ctx.beginPath(); ctx.moveTo(cx, 0); ctx.lineTo(cx, h); ctx.stroke();
+
+            // circle
+            ctx.strokeStyle = 'rgba(255,255,255,0.2)';
+            ctx.lineWidth = 1.5;
+            ctx.beginPath(); ctx.arc(cx, cy, r, 0, Math.PI * 2); ctx.stroke();
+
+            // special angle dots
+            const specials = [0,30,45,60,90,120,135,150,180,210,225,240,270,300,315,330];
+            specials.forEach(deg => {
+                const rad = deg * Math.PI / 180;
+                const sx = cx + r * Math.cos(rad);
+                const sy = cy - r * Math.sin(rad);
+                ctx.fillStyle = 'rgba(139,92,246,0.5)';
+                ctx.beginPath(); ctx.arc(sx, sy, 3, 0, Math.PI * 2); ctx.fill();
+            });
+
+            const deg = parseFloat(angleSlider.value);
+            const rad = deg * Math.PI / 180;
+            const px = cx + r * Math.cos(rad);
+            const py = cy - r * Math.sin(rad);
+            const cosV = Math.cos(rad);
+            const sinV = Math.sin(rad);
+            const tanV = Math.abs(Math.cos(rad)) < 0.001 ? 'undefined' : Math.tan(rad).toFixed(4);
+
+            // angle arc
+            ctx.strokeStyle = 'rgba(59,130,246,0.4)';
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.arc(cx, cy, r * 0.2, 0, -rad, rad > 0);
+            ctx.stroke();
+
+            // cos line (horizontal)
+            ctx.strokeStyle = '#3b82f6';
+            ctx.lineWidth = 2.5;
+            ctx.beginPath(); ctx.moveTo(cx, cy); ctx.lineTo(px, cy); ctx.stroke();
+            ctx.fillStyle = '#3b82f6';
+            ctx.font = 'bold 12px Inter';
+            ctx.fillText('cos', (cx + px) / 2 - 10, cy + 18);
+
+            // sin line (vertical)
+            ctx.strokeStyle = '#10b981';
+            ctx.beginPath(); ctx.moveTo(px, cy); ctx.lineTo(px, py); ctx.stroke();
+            ctx.fillStyle = '#10b981';
+            ctx.fillText('sin', px + 8, (cy + py) / 2 + 4);
+
+            // radius
+            ctx.strokeStyle = 'rgba(255,255,255,0.6)';
+            ctx.lineWidth = 1.5;
+            ctx.beginPath(); ctx.moveTo(cx, cy); ctx.lineTo(px, py); ctx.stroke();
+
+            // point
+            ctx.fillStyle = '#f59e0b';
+            ctx.beginPath(); ctx.arc(px, py, 6, 0, Math.PI * 2); ctx.fill();
+            ctx.fillStyle = '#fff';
+            ctx.font = '11px Inter';
+            ctx.fillText(`(${cosV.toFixed(2)}, ${sinV.toFixed(2)})`, px + 12, py - 10);
+
+            // axis labels
+            ctx.fillStyle = 'rgba(255,255,255,0.35)';
+            ctx.font = '11px Inter';
+            ctx.fillText('0', cx + r + 8, cy + 4);
+            ctx.fillText('\u03C0', cx - r - 14, cy + 4);
+            ctx.fillText('\u03C0/2', cx - 8, cy - r - 8);
+            ctx.fillText('3\u03C0/2', cx - 12, cy + r + 16);
+
+            // update readout
+            angleDisp.textContent = deg;
+            document.getElementById('ucDeg').textContent = deg;
+            document.getElementById('ucRad').textContent = (rad).toFixed(4) + ' (' + fracPi(deg) + ')';
+            document.getElementById('ucCos').textContent = cosV.toFixed(4);
+            document.getElementById('ucSin').textContent = sinV.toFixed(4);
+            document.getElementById('ucTan').textContent = tanV;
+        }
+
+        function fracPi(deg) {
+            const fracs = {0:'0',30:'\u03C0/6',45:'\u03C0/4',60:'\u03C0/3',90:'\u03C0/2',120:'2\u03C0/3',135:'3\u03C0/4',150:'5\u03C0/6',180:'\u03C0',210:'7\u03C0/6',225:'5\u03C0/4',240:'4\u03C0/3',270:'3\u03C0/2',300:'5\u03C0/3',315:'7\u03C0/4',330:'11\u03C0/6',360:'2\u03C0'};
+            return fracs[deg] || (deg/180).toFixed(2) + '\u03C0';
+        }
+
+        angleSlider.addEventListener('input', drawUnit);
+
+        let animating = false;
+        document.getElementById('animateBtn').addEventListener('click', function() {
+            if (animating) { animating = false; this.textContent = 'Animate'; return; }
+            animating = true; this.textContent = 'Stop';
+            let angle = 0;
+            function step() {
+                if (!animating) return;
+                angle = (angle + 1) % 361;
+                angleSlider.value = angle;
+                drawUnit();
+                requestAnimationFrame(step);
+            }
+            step();
+        });
+        drawUnit();
+
+        // ─── 3. Transformations ───
+        const transCanvas = document.getElementById('transCanvas');
+        const transBase = document.getElementById('transBase');
+        const hSlider = document.getElementById('hSlider');
+        const vSlider = document.getElementById('vSlider');
+        const sSlider = document.getElementById('sSlider');
+        const hVal = document.getElementById('hVal');
+        const vVal = document.getElementById('vVal');
+        const sVal = document.getElementById('sVal');
+        const transExplain = document.getElementById('transExplain');
+        let reflectX = false;
+
+        document.getElementById('reflectX').addEventListener('click', () => {
+            reflectX = !reflectX;
+            document.getElementById('reflectX').textContent = reflectX ? 'Undo Reflect' : 'Reflect x-axis';
+            drawTrans();
+        });
+
+        function baseFn(type, x) {
+            switch(type) {
+                case 'x2': return x * x;
+                case 'abs': return Math.abs(x);
+                case 'sqrt': return x >= 0 ? Math.sqrt(x) : NaN;
+                case 'sin': return Math.sin(x);
+            }
+        }
+
+        function drawTrans() {
+            const { ctx, w, h } = setupCanvas(transCanvas);
+            const scale = 40;
+            ctx.clearRect(0, 0, w, h);
+            drawGrid(ctx, w, h, scale);
+            const cx = w / 2, cy = h / 2;
+            const base = transBase.value;
+            const hs = parseFloat(hSlider.value);
+            const vs = parseFloat(vSlider.value);
+            const s = parseFloat(sSlider.value);
+            hVal.textContent = hs; vVal.textContent = vs; sVal.textContent = s;
+            const r = reflectX ? -1 : 1;
+
+            // parent function (ghost)
+            ctx.strokeStyle = 'rgba(255,255,255,0.15)';
+            ctx.lineWidth = 1.5;
+            ctx.setLineDash([4, 4]);
+            ctx.beginPath();
+            let started = false;
+            for (let px = 0; px < w; px++) {
+                const x = (px - cx) / scale;
+                const y = baseFn(base, x);
+                if (isNaN(y)) { started = false; continue; }
+                const py = cy - y * scale;
+                if (!started) { ctx.moveTo(px, py); started = true; } else ctx.lineTo(px, py);
+            }
+            ctx.stroke();
+            ctx.setLineDash([]);
+
+            // transformed
+            ctx.strokeStyle = '#8b5cf6';
+            ctx.lineWidth = 2.5;
+            ctx.beginPath();
+            started = false;
+            for (let px = 0; px < w; px++) {
+                const x = (px - cx) / scale;
+                const inp = x - hs;
+                let y = baseFn(base, inp);
+                if (isNaN(y)) { started = false; continue; }
+                y = r * s * y + vs;
+                const py = cy - y * scale;
+                if (py < -200 || py > h + 200) { started = false; continue; }
+                if (!started) { ctx.moveTo(px, py); started = true; } else ctx.lineTo(px, py);
+            }
+            ctx.stroke();
+
+            // explanation
+            const baseNames = {x2:'x\u00B2', abs:'|x|', sqrt:'\u221Ax', sin:'sin(x)'};
+            const parts = [];
+            if (r === -1) parts.push('Reflected across the x-axis (multiplied by -1).');
+            if (Math.abs(s) !== 1) parts.push(`Vertical stretch/compress by factor ${Math.abs(s).toFixed(1)}.`);
+            if (hs !== 0) parts.push(`Shifted ${hs > 0 ? 'right' : 'left'} by ${Math.abs(hs)} units (replace x with x${hs>0?'-':'+'}${Math.abs(hs)}).`);
+            if (vs !== 0) parts.push(`Shifted ${vs > 0 ? 'up' : 'down'} by ${Math.abs(vs)} units.`);
+            if (parts.length === 0) parts.push('No transformation applied — this is the parent function.');
+
+            transExplain.innerHTML = `<h4>Transformed: y = ${r===-1?'-':''}${Math.abs(s)!==1?Math.abs(s).toFixed(1):''}${baseNames[base].replace('x', `(x${hs?((hs>0?'-':'+')+Math.abs(hs)):''})`)}${vs?((vs>0?' + ':' - ')+Math.abs(vs)):''}</h4><p>${parts.join(' ')}</p><p style="margin-top:0.5rem;color:rgba(255,255,255,0.5);">Dashed line = parent function. Solid purple = transformed.</p>`;
+        }
+
+        transBase.addEventListener('change', drawTrans);
+        hSlider.addEventListener('input', drawTrans);
+        vSlider.addEventListener('input', drawTrans);
+        sSlider.addEventListener('input', drawTrans);
+        drawTrans();
+
+        // ─── 4. Quiz ───
+        const quizBank = [
+            // Functions
+            {t:'functions', q:'What is the domain of f(x) = \u221Ax?', o:['x \u2265 0','All real numbers','x > 0','x \u2264 0'], a:0},
+            {t:'functions', q:'If f(x) = 2x + 3, what is f(4)?', o:['11','8','14','5'], a:0},
+            {t:'functions', q:'Which function has a horizontal asymptote at y = 0?', o:['y = 1/x','y = x\u00B2','y = \u221Ax','y = |x|'], a:0},
+            {t:'functions', q:'What is the range of f(x) = x\u00B2?', o:['y \u2265 0','All real numbers','y > 0','y \u2264 0'], a:0},
+            {t:'functions', q:'An even function satisfies which property?', o:['f(-x) = f(x)','f(-x) = -f(x)','f(x) = f(x+1)','f(0) = 0'], a:0},
+            {t:'functions', q:'What is the inverse of f(x) = 2x + 6?', o:['f\u207B\u00B9(x) = (x-6)/2','f\u207B\u00B9(x) = 2x - 6','f\u207B\u00B9(x) = x/2 + 6','f\u207B\u00B9(x) = (x+6)/2'], a:0},
+            {t:'functions', q:'Which represents a one-to-one function?', o:['y = 3x + 1','y = x\u00B2','y = |x|','y = cos(x)'], a:0},
+            {t:'functions', q:'What is the y-intercept of f(x) = 3x\u00B2 - 2x + 5?', o:['5','3','-2','0'], a:0},
+
+            // Trig
+            {t:'trig', q:'What is sin(30\u00B0)?', o:['\u00BD','\u221A3/2','\u221A2/2','1'], a:0},
+            {t:'trig', q:'What is cos(\u03C0)?', o:['-1','0','1','\u00BD'], a:0},
+            {t:'trig', q:'The period of y = sin(x) is:', o:['2\u03C0','\u03C0','\u03C0/2','4\u03C0'], a:0},
+            {t:'trig', q:'tan(45\u00B0) equals:', o:['1','0','\u221A3','undefined'], a:0},
+            {t:'trig', q:'In which quadrant is sin positive and cos negative?', o:['Quadrant II','Quadrant I','Quadrant III','Quadrant IV'], a:0},
+            {t:'trig', q:'sin\u00B2(\u03B8) + cos\u00B2(\u03B8) = ?', o:['1','0','sin(2\u03B8)','2'], a:0},
+            {t:'trig', q:'What is the amplitude of y = 3sin(2x)?', o:['3','2','6','1'], a:0},
+            {t:'trig', q:'cos(0) = ?', o:['1','0','-1','\u00BD'], a:0},
+
+            // Transforms
+            {t:'transforms', q:'y = f(x - 3) shifts the graph:', o:['Right 3','Left 3','Up 3','Down 3'], a:0},
+            {t:'transforms', q:'y = -f(x) does what to the graph?', o:['Reflects over x-axis','Reflects over y-axis','Shifts down','Compresses vertically'], a:0},
+            {t:'transforms', q:'y = f(x) + 5 shifts the graph:', o:['Up 5','Right 5','Left 5','Down 5'], a:0},
+            {t:'transforms', q:'y = 2f(x) does what?', o:['Vertical stretch by 2','Horizontal stretch by 2','Shift up 2','Shift right 2'], a:0},
+            {t:'transforms', q:'y = f(-x) does what?', o:['Reflects over y-axis','Reflects over x-axis','Shifts left','Shifts right'], a:0},
+            {t:'transforms', q:'y = f(2x) does what?', o:['Horizontal compress by \u00BD','Horizontal stretch by 2','Vertical stretch by 2','Shift right 2'], a:0},
+
+            // Limits intro
+            {t:'limits', q:'lim(x\u2192\u221E) 1/x = ?', o:['0','1','\u221E','undefined'], a:0},
+            {t:'limits', q:'lim(x\u21922) (x\u00B2 - 4)/(x - 2) = ?', o:['4','0','2','undefined'], a:0},
+            {t:'limits', q:'A function is continuous at x=a if:', o:['lim f(x) = f(a)','f(a) exists','The limit exists','f is differentiable'], a:0},
+            {t:'limits', q:'lim(x\u21920) sin(x)/x = ?', o:['1','0','\u221E','undefined'], a:0},
+            {t:'limits', q:'If lim(x\u2192a\u207B) f(x) \u2260 lim(x\u2192a\u207A) f(x), the limit:', o:['Does not exist','Equals 0','Equals f(a)','Is infinite'], a:0},
+            {t:'limits', q:'lim(x\u2192\u221E) (3x+1)/(x+2) = ?', o:['3','1','0','\u221E'], a:0},
+        ];
+
+        function generateQuiz() {
+            const topic = document.getElementById('quizTopic').value;
+            const pool = topic === 'all' ? [...quizBank] : quizBank.filter(q => q.t === topic);
+            // shuffle
+            for (let i = pool.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [pool[i], pool[j]] = [pool[j], pool[i]];
+            }
+            const selected = pool.slice(0, 10);
+            const area = document.getElementById('quizArea');
+            let correct = 0, answered = 0;
+
+            area.innerHTML = selected.map((q, i) => {
+                const opts = q.o.map((o, j) =>
+                    `<button class="pc-opt" data-q="${i}" data-a="${j}">${o}</button>`
+                ).join('');
+                return `<div class="pc-question"><p><strong>Q${i+1}.</strong> ${q.q}</p><div class="pc-opts">${opts}</div></div>`;
+            }).join('') + '<div class="pc-score" id="quizScore" style="display:none;"></div>';
+
+            area.onclick = function(e) {
+                const btn = e.target.closest('.pc-opt');
+                if (!btn || btn.classList.contains('disabled')) return;
+                const qi = parseInt(btn.dataset.q);
+                const ai = parseInt(btn.dataset.a);
+                const siblings = area.querySelectorAll(`[data-q="${qi}"]`);
+                siblings.forEach(s => s.classList.add('disabled'));
+                if (ai === selected[qi].a) { btn.classList.add('correct'); correct++; }
+                else { btn.classList.add('wrong'); siblings[selected[qi].a].classList.add('correct'); }
+                answered++;
+                if (answered === selected.length) {
+                    const score = document.getElementById('quizScore');
+                    score.style.display = 'block';
+                    const pct = Math.round(100 * correct / selected.length);
+                    const msg = pct >= 80 ? 'Great job! You and Luca are crushing it!' : pct >= 50 ? 'Getting there! Review the topics you missed.' : 'Keep studying — use the grapher and unit circle tabs to build intuition!';
+                    score.innerHTML = `<div class="big">${correct}/${selected.length}</div><p>${pct}% — ${msg}</p>`;
+                }
+            };
+        }
+
+        document.getElementById('newQuiz').addEventListener('click', generateQuiz);
+        generateQuiz();
+
+        // Resize handling
+        window.addEventListener('resize', () => {
+            drawGraph(); drawUnit(); drawTrans();
+        });
+    })();
+    </script>
+</body>
+</html>

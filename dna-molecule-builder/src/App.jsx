@@ -18,6 +18,11 @@ function getSavedTheme() {
         return "dark";
     }
 
+    const requestedTheme = new URLSearchParams(window.location.search).get("theme");
+    if (requestedTheme === "light" || requestedTheme === "dark") {
+        return requestedTheme;
+    }
+
     return window.localStorage.getItem("dna-molecule-builder-theme") || "dark";
 }
 

@@ -28,6 +28,12 @@ function getSavedTheme() {
     if (typeof window === "undefined") {
         return "dark";
     }
+
+    const requestedTheme = new URLSearchParams(window.location.search).get("theme");
+    if (requestedTheme === "light" || requestedTheme === "dark") {
+        return requestedTheme;
+    }
+
     return window.localStorage.getItem("dna-bases-theme") || "dark";
 }
 
@@ -521,19 +527,33 @@ function ExploreSidebar({ selectedBaseKey, hoveredAtomId, onSelect, onAppendSele
         <aside className="explore-sidebar" aria-label="Study controls and base details">
             <section className="sidebar-section sidebar-section--focus">
                 <div className="panel-heading">
-                    <span className="panel-kicker">Focus Base</span>
+                    <span className="panel-kicker">Selected Base</span>
                     <h2>{base.name}</h2>
                     <p>{base.description}</p>
                 </div>
 
-                <div className="explore-sidebar__stats">
-                    <StatChip label="Type" value={base.type} accent="cool" />
-                    <StatChip label="Pair" value={`${base.letter} · ${partner.letter}`} accent="warm" />
-                    <StatChip label="Formula" value={base.formula} accent="success" />
+                <div className="focus-facts" aria-label={`${base.name} details`}>
+                    <div className="focus-fact">
+                        <span className="focus-fact__label">Formula</span>
+                        <strong className="focus-fact__value focus-fact__value--success">{base.formula}</strong>
+                    </div>
+                    <div className="focus-fact">
+                        <span className="focus-fact__label">Pair</span>
+                        <strong className="focus-fact__value focus-fact__value--warm">
+                            {base.letter} · {partner.letter}
+                        </strong>
+                    </div>
+                    <div className="focus-fact">
+                        <span className="focus-fact__label">H-Bonds</span>
+                        <strong className="focus-fact__value focus-fact__value--cool">{base.hbondCount}</strong>
+                    </div>
                 </div>
 
-                <div className="sidebar-section__actions">
-                    <StatChip label="Pairs Built" value={strandCount} accent="cool" />
+                <div className="sidebar-section__utility">
+                    <div className="sidebar-section__meta">
+                        <span className="panel-kicker">Pairs Built</span>
+                        <strong>{strandCount}</strong>
+                    </div>
                     <button
                         type="button"
                         className="button button--primary button--full"
@@ -548,8 +568,8 @@ function ExploreSidebar({ selectedBaseKey, hoveredAtomId, onSelect, onAppendSele
             <section className="sidebar-section">
                 <div className="panel-heading">
                     <span className="panel-kicker">Base Library</span>
-                    <h3>Switch Structure</h3>
-                    <p>Choose a nucleobase to update the viewer, pairing map, and strand builder in one place.</p>
+                    <h3>Choose a Base</h3>
+                    <p>Swap the active structure and keep the strand builder aligned with the viewer.</p>
                 </div>
 
                 <div className="base-list" role="group" aria-label="DNA base selection">
@@ -581,7 +601,7 @@ function ExploreSidebar({ selectedBaseKey, hoveredAtomId, onSelect, onAppendSele
                 <div className="panel-heading">
                     <span className="panel-kicker">Hydrogen-Bond Map</span>
                     <h3>Donors & Acceptors</h3>
-                    <p>Hover atoms in the viewer to cross-reference the active bonding sites below.</p>
+                    <p>Hover the molecule to trace each active site and its canonical partner.</p>
                 </div>
 
                 <div className="legend-list legend-list--compact">
@@ -900,6 +920,24 @@ export function App() {
         update();
         query.addEventListener("change", update);
         return () => query.removeEventListener("change", update);
+    }, []);
+
+    useEffect(() => {
+        const handleMessage = (event) => {
+            if (event.data?.type !== "theme-change") {
+                return;
+            }
+
+            const nextTheme = event.data.mode;
+            if (nextTheme !== "light" && nextTheme !== "dark") {
+                return;
+            }
+
+            dispatch({ type: "SET_THEME", theme: nextTheme });
+        };
+
+        window.addEventListener("message", handleMessage);
+        return () => window.removeEventListener("message", handleMessage);
     }, []);
 
     useEffect(() => {

@@ -77,6 +77,7 @@ html,
 body,
 #root {
     width: 100%;
+    height: 100%;
     min-height: 100%;
     margin: 0;
 }
@@ -85,6 +86,19 @@ body {
     min-height: 100svh;
     background: var(--bg);
     font-family: "Space Grotesk", sans-serif;
+}
+
+body[data-embedded="true"] .app-header {
+    display: none;
+}
+
+body[data-embedded="true"] .dna-molecule-app {
+    min-height: 100svh;
+}
+
+body[data-embedded="true"] .app-shell {
+    min-height: 100svh;
+    padding-top: 1rem;
 }
 
 button,
