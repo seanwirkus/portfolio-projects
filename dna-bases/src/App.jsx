@@ -513,50 +513,111 @@ function ModeTabs({ activeMode, onSelect }) {
     );
 }
 
-function BaseRail({ selectedBaseKey, onSelect, onAppendSelected, strandCount }) {
+function ExploreSidebar({ selectedBaseKey, hoveredAtomId, onSelect, onAppendSelected, strandCount }) {
+    const base = DNA_BASES[selectedBaseKey];
+    const partner = DNA_BASES[getComplementKey(selectedBaseKey)];
+
     return (
-        <aside className="base-rail" aria-label="Base selector">
-            <div className="panel-heading">
-                <span className="panel-kicker">Base Library</span>
-                <h2>Choose a Base</h2>
-                <p>Select a nucleobase to inspect its geometry, donors, acceptors, and canonical pairing partner.</p>
-            </div>
+        <aside className="explore-sidebar" aria-label="Study controls and base details">
+            <section className="sidebar-section sidebar-section--focus">
+                <div className="panel-heading">
+                    <span className="panel-kicker">Focus Base</span>
+                    <h2>{base.name}</h2>
+                    <p>{base.description}</p>
+                </div>
 
-            <div className="base-list" role="group" aria-label="DNA base selection">
-                {BASE_ORDER.map((baseKey) => {
-                    const base = DNA_BASES[baseKey];
-                    const isSelected = baseKey === selectedBaseKey;
-                    const pairLabel = DNA_BASES[getComplementKey(baseKey)]?.letter || "–";
-                    return (
-                        <button
-                            key={baseKey}
-                            type="button"
-                            className={`base-card${isSelected ? " is-selected" : ""}`}
-                            data-base={base.letter}
-                            onClick={() => onSelect(baseKey)}
+                <div className="explore-sidebar__stats">
+                    <StatChip label="Type" value={base.type} accent="cool" />
+                    <StatChip label="Pair" value={`${base.letter} · ${partner.letter}`} accent="warm" />
+                    <StatChip label="Formula" value={base.formula} accent="success" />
+                </div>
+
+                <div className="sidebar-section__actions">
+                    <StatChip label="Pairs Built" value={strandCount} accent="cool" />
+                    <button
+                        type="button"
+                        className="button button--primary button--full"
+                        onClick={onAppendSelected}
+                        disabled={!isDnaStrandBase(selectedBaseKey)}
+                    >
+                        {isDnaStrandBase(selectedBaseKey) ? `Add ${getBasePairLabel(selectedBaseKey)} Pair` : "RNA Base Only"}
+                    </button>
+                </div>
+            </section>
+
+            <section className="sidebar-section">
+                <div className="panel-heading">
+                    <span className="panel-kicker">Base Library</span>
+                    <h3>Switch Structure</h3>
+                    <p>Choose a nucleobase to update the viewer, pairing map, and strand builder in one place.</p>
+                </div>
+
+                <div className="base-list" role="group" aria-label="DNA base selection">
+                    {BASE_ORDER.map((baseKey) => {
+                        const optionBase = DNA_BASES[baseKey];
+                        const isSelected = baseKey === selectedBaseKey;
+                        const pairLabel = DNA_BASES[getComplementKey(baseKey)]?.letter || "–";
+                        return (
+                            <button
+                                key={baseKey}
+                                type="button"
+                                className={`base-card${isSelected ? " is-selected" : ""}`}
+                                data-base={optionBase.letter}
+                                onClick={() => onSelect(baseKey)}
+                            >
+                                <span className="base-card__letter">{optionBase.letter}</span>
+                                <span className="base-card__content">
+                                    <strong>{optionBase.name}</strong>
+                                    <span>{optionBase.type}</span>
+                                </span>
+                                <span className="base-card__meta">{optionBase.letter} · {pairLabel}</span>
+                            </button>
+                        );
+                    })}
+                </div>
+            </section>
+
+            <section className="sidebar-section" aria-label="Hydrogen bond details">
+                <div className="panel-heading">
+                    <span className="panel-kicker">Hydrogen-Bond Map</span>
+                    <h3>Donors & Acceptors</h3>
+                    <p>Hover atoms in the viewer to cross-reference the active bonding sites below.</p>
+                </div>
+
+                <div className="legend-list legend-list--compact">
+                    <div className="legend-row">
+                        <span className="legend-dot legend-dot--donor" />
+                        <span>Donor site</span>
+                    </div>
+                    <div className="legend-row">
+                        <span className="legend-dot legend-dot--acceptor" />
+                        <span>Acceptor site</span>
+                    </div>
+                    <div className="legend-row">
+                        <span className="legend-label legend-label--nitrogen">N</span>
+                        <span>Nitrogen</span>
+                    </div>
+                    <div className="legend-row">
+                        <span className="legend-label legend-label--oxygen">O</span>
+                        <span>Oxygen</span>
+                    </div>
+                </div>
+
+                <div className="site-list">
+                    {base.hbondSites.map((site) => (
+                        <article
+                            key={site.atomId}
+                            className={`site-card site-card--${site.type}${hoveredAtomId === site.atomId ? " is-highlighted" : ""}`}
                         >
-                            <span className="base-card__letter">{base.letter}</span>
-                            <span className="base-card__content">
-                                <strong>{base.name}</strong>
-                                <span>{base.type}</span>
-                            </span>
-                            <span className="base-card__meta">{base.letter} · {pairLabel}</span>
-                        </button>
-                    );
-                })}
-            </div>
-
-            <div className="rail-footer">
-                <StatChip label="Pairs Built" value={strandCount} accent="cool" />
-                <button
-                    type="button"
-                    className="button button--primary button--full"
-                    onClick={onAppendSelected}
-                    disabled={!isDnaStrandBase(selectedBaseKey)}
-                >
-                    {isDnaStrandBase(selectedBaseKey) ? `Add ${getBasePairLabel(selectedBaseKey)} Pair` : "RNA Base Only"}
-                </button>
-            </div>
+                            <strong>
+                                {site.label} · {site.atomId}
+                            </strong>
+                            <p>{site.detail}</p>
+                            <small>Pairs with {site.pairingAtom}</small>
+                        </article>
+                    ))}
+                </div>
+            </section>
         </aside>
     );
 }
@@ -715,68 +776,6 @@ function StrandBuilder({
                 )}
             </div>
         </section>
-    );
-}
-
-function Inspector({ selectedBaseKey, hoveredAtomId }) {
-    const base = DNA_BASES[selectedBaseKey];
-    const partner = DNA_BASES[getComplementKey(selectedBaseKey)];
-
-    return (
-        <aside className="inspector" aria-label="Selected base details">
-            <section className="inspector-section">
-                <div className="panel-heading">
-                    <span className="panel-kicker">Selected Base</span>
-                    <h2>{base.name}</h2>
-                    <p>{base.description}</p>
-                </div>
-                <div className="inspector-metrics">
-                    <StatChip label="Formula" value={base.formula} accent="cool" />
-                    <StatChip label="Pair" value={`${base.letter} · ${partner.letter}`} accent="warm" />
-                    <StatChip label="H-Bonds" value={base.hbondCount} accent="success" />
-                </div>
-            </section>
-
-            <section className="inspector-section">
-                <div className="panel-heading">
-                    <span className="panel-kicker">Hydrogen-Bond Map</span>
-                    <h3>Donors & Acceptors</h3>
-                </div>
-                <div className="legend-list">
-                    <div className="legend-row">
-                        <span className="legend-dot legend-dot--donor" />
-                        <span>Donor site</span>
-                    </div>
-                    <div className="legend-row">
-                        <span className="legend-dot legend-dot--acceptor" />
-                        <span>Acceptor site</span>
-                    </div>
-                    <div className="legend-row">
-                        <span className="legend-label legend-label--nitrogen">N</span>
-                        <span>Nitrogen</span>
-                    </div>
-                    <div className="legend-row">
-                        <span className="legend-label legend-label--oxygen">O</span>
-                        <span>Oxygen</span>
-                    </div>
-                </div>
-
-                <div className="site-list">
-                    {base.hbondSites.map((site) => (
-                        <article
-                            key={site.atomId}
-                            className={`site-card site-card--${site.type}${hoveredAtomId === site.atomId ? " is-highlighted" : ""}`}
-                        >
-                            <strong>
-                                {site.label} · {site.atomId}
-                            </strong>
-                            <p>{site.detail}</p>
-                            <small>Pairs with {site.pairingAtom}</small>
-                        </article>
-                    ))}
-                </div>
-            </section>
-        </aside>
     );
 }
 
@@ -1260,21 +1259,23 @@ export function App() {
             <div className="dna-app__backdrop" aria-hidden="true" />
 
             <header className="app-header">
-                <div className="app-header__brand">
-                    <div className="brand-mark" aria-hidden="true">
-                        <span />
-                        <span />
-                        <span />
+                <div className="app-header__intro">
+                    <div className="app-header__brand">
+                        <div className="brand-mark" aria-hidden="true">
+                            <span />
+                            <span />
+                            <span />
+                        </div>
+                        <div>
+                            <span className="panel-kicker">Interactive Study Surface</span>
+                            <h1>DNA Strand Lab</h1>
+                        </div>
                     </div>
-                    <div>
-                        <span className="panel-kicker">Interactive Study Surface</span>
-                        <h1>DNA Strand Lab</h1>
-                    </div>
-                </div>
 
-                <p className="app-header__summary">
-                    Explore base geometry, rehearse canonical pairing, and build a complementary DNA strand one pair at a time.
-                </p>
+                    <p className="app-header__summary">
+                        Explore base geometry, rehearse canonical pairing, and build a complementary DNA strand one pair at a time.
+                    </p>
+                </div>
 
                 <div className="app-header__controls">
                     <button
@@ -1291,8 +1292,9 @@ export function App() {
 
             {state.mode === "explore" ? (
                 <main className="app-shell">
-                    <BaseRail
+                    <ExploreSidebar
                         selectedBaseKey={state.selectedBaseKey}
+                        hoveredAtomId={hoveredAtomId}
                         strandCount={state.strand.length}
                         onSelect={(baseKey) => {
                             exploreHoveredAtomRef.current = null;
@@ -1421,8 +1423,6 @@ export function App() {
                             onSelectBase={(baseKey) => dispatch({ type: "SELECT_BASE", baseKey })}
                         />
                     </section>
-
-                    <Inspector selectedBaseKey={state.selectedBaseKey} hoveredAtomId={hoveredAtomId} />
                 </main>
             ) : (
                 <main className="app-shell app-shell--quiz">
