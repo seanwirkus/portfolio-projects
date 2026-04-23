@@ -1,0 +1,19 @@
+{
+  "name": "circuit-lab",
+  "version": "0.1.0",
+  "description": "Browser circuit workbench: modular parts, wiring, and DC simulation.",
+  "main": "bundle.js",
+  "scripts": {
+    "build": "esbuild src/main.jsx --bundle --format=iife --target=es2020 --minify --outfile=bundle.js --loader:.css=css",
+    "dev": "npm run build -- --watch"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "dependencies": {
+    "esbuild": "^0.28.0",
+    "react": "^19.2.5",
+    "react-dom": "^19.2.5"
+  }
+}

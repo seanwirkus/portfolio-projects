@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Circuit Lab | Sean</title>
+    <meta name="description" content="Browser-based modular circuit workbench: drag-and-drop parts, wiring, and DC network simulation.">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+    <link rel="icon" type="image/svg+xml" href="favicon.svg">
+</head>
+<body>
+    <div class="cursor-dot"></div>
+    <div class="cursor-outline"></div>
+    <div class="bg-gradient bg-gradient-1"></div>
+    <div class="bg-gradient bg-gradient-2"></div>
+    <div class="bg-noise"></div>
+
+    <nav class="navbar">
+        <div class="nav-content">
+            <div class="logo magnetic" onclick="window.location.href='index.html'">S.</div>
+            <ul class="nav-links">
+                <li><a href="index.html#projects" class="magnetic">Back to Portfolio</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <main class="container project-page" style="--project-accent:#5bb3ff;--project-accent-alt:#6df0d6;">
+        <header class="project-page-header section-animate">
+            <a href="index.html#projects" class="back-link magnetic">← Back to projects</a>
+            <div class="project-kicker">Web Simulation & Systems</div>
+            <h1 class="project-page-title">Circuit Lab</h1>
+            <p class="project-summary">
+                A Tinkercad-style circuit workbench in the browser: a growing library of passives, power, semiconductors, and meters,
+                with pan/zoom canvas wiring and a real DC modified nodal solver for resistive networks and ideal sources.
+            </p>
+            <div class="project-callout">
+                <strong>Embedded here:</strong> the full workbench. Use <strong>Wire</strong> to connect pins, <strong>GND</strong> for the reference,
+                and the inspector to edit values. Scroll zooms, middle-click pans.
+            </div>
+        </header>
+
+        <section class="project-stage-card section-animate">
+            <div class="project-stage-bar">
+                <div class="project-stage-label">Circuit workbench (live)</div>
+                <div class="project-stage-actions">
+                    <a class="project-inline-link" href="circuit-lab/index.html" target="_blank" rel="noreferrer">Open full page</a>
+                </div>
+            </div>
+
+            <div class="project-stage-insights">
+                <article class="project-stage-insight">
+                    <span>Modularity</span>
+                    <strong>One registry, many part types</strong>
+                    <p>Parts are defined in a single catalog; adding a new type updates the palette and simulation hooks in one pass.</p>
+                </article>
+                <article class="project-stage-insight">
+                    <span>DC core</span>
+                    <strong>MNA + net merging</strong>
+                    <p>Resistors, ideal voltage sources, and iterative comparator output drive the linear solve with a shared ground net.</p>
+                </article>
+                <article class="project-stage-insight">
+                    <span>Build direction</span>
+                    <strong>AC & SPICE next</strong>
+                    <p>This release targets teaching and quick topology checks; time-domain and small-signal are natural extensions.</p>
+                </article>
+            </div>
+
+            <div class="project-frame-shell auto-resize" style="--frame-height:720px;">
+                <iframe
+                    class="project-frame"
+                    src="circuit-lab/index.html"
+                    title="Circuit Lab"
+                    loading="eager"
+                    scrolling="no"
+                    data-auto-resize
+                    data-min-height="560"
+                    data-max-height="1200"
+                ></iframe>
+            </div>
+            <div class="project-stage-note">
+                Run a local static server for the best resize behavior; the iframe loads the same bundle as the direct runtime.
+            </div>
+        </section>
+
+        <section class="project-meta-grid section-animate">
+            <article class="project-meta-card">
+                <h3>Tech stack</h3>
+                <div class="project-tag-list">
+                    <span class="tag">React</span>
+                    <span class="tag">SVG canvas</span>
+                    <span class="tag">MNA (DC)</span>
+                    <span class="tag">esbuild</span>
+                </div>
+            </article>
+            <article class="project-meta-card">
+                <h3>What the embed shows</h3>
+                <p>
+                    A schematic surface with a searchable part library, bezier-style wires, and readouts for LEDs, voltmeters, and ammeters
+                    that reflect the last DC solve.
+                </p>
+            </article>
+            <article class="project-meta-card">
+                <h3>Scope note</h3>
+                <ul class="project-points">
+                    <li>Semiconductors use simplified or toggled models suitable for learning, not foundry-accurate SPICE.</li>
+                    <li>AC, transient, and autowired breadboard views are not in this build.</li>
+                </ul>
+            </article>
+        </section>
+    </main>
+
+    <script src="script.js"></script>
+</body>
+</html>

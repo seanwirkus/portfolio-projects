@@ -4729,6 +4729,220 @@ body[data-theme-mode="light"] .precalc-chip {
     }
 }
 
+/* ——— Circuit Lab project card ——— */
+.circuit-lab-bg {
+    background:
+        radial-gradient(circle at 18% 22%, rgba(91, 179, 255, 0.2), transparent 32%),
+        radial-gradient(circle at 86% 72%, rgba(109, 240, 214, 0.12), transparent 28%),
+        linear-gradient(150deg, #0a0f1a 0%, #0d1322 50%, #0a1018 100%);
+}
+
+.circuit-lab-mini {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    min-height: 200px;
+    overflow: hidden;
+}
+
+.ccl-grid {
+    position: absolute;
+    inset: -20px;
+    background-image: 
+        linear-gradient(rgba(255,255,255,0.03) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255,255,255,0.03) 1px, transparent 1px);
+    background-size: 15px 15px;
+    pointer-events: none;
+}
+
+.ccl-batt {
+    position: absolute;
+    left: 8%;
+    top: 38%;
+    width: 56px;
+    height: 28px;
+    border-radius: 6px;
+    border: 1px solid rgba(91, 179, 255, 0.5);
+    background: linear-gradient(180deg, rgba(20, 35, 60, 0.95), rgba(8, 14, 28, 0.98));
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 6px;
+    font-family: 'JetBrains Mono', 'SF Mono', monospace;
+    font-size: 9px;
+    color: #94a8d8;
+    box-shadow: 0 0 20px rgba(91, 179, 255, 0.12);
+}
+
+.ccl-batt-pp {
+    color: #6df0d6;
+    font-weight: 600;
+    font-size: 10px;
+}
+
+.ccl-wires {
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 0;
+    bottom: 0;
+    pointer-events: none;
+}
+
+.ccl-wires-svg {
+    width: 100%;
+    height: 100%;
+}
+
+.ccl-wseg {
+    stroke-width: 2.5;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+}
+
+.ccl-wseg--cyan {
+    stroke: #00f2fe;
+    filter: drop-shadow(0 0 5px rgba(0, 242, 254, 0.6));
+}
+
+.ccl-wseg--green {
+    stroke: #4facfe;
+    filter: drop-shadow(0 0 5px rgba(79, 172, 254, 0.6));
+}
+
+.ccl-wseg--purple {
+    stroke: #b3ffab;
+    filter: drop-shadow(0 0 5px rgba(179, 255, 171, 0.6));
+}
+
+.ccl-wseg--purple {
+    stroke: #d06aff;
+    filter: drop-shadow(0 0 5px rgba(208, 106, 255, 0.6));
+}
+
+.ccl-res {
+    position: absolute;
+    transform: translate(-50%, -50%);
+    padding: 3px 8px;
+    border-radius: 4px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    font-weight: 600;
+    color: #00f2fe;
+    background: rgba(10, 15, 26, 0.9);
+    border: 1px solid rgba(0, 242, 254, 0.3);
+    box-shadow: 0 0 10px rgba(0, 242, 254, 0.15);
+}
+
+.ccl-res--purple {
+    color: #d06aff;
+    border-color: rgba(208, 106, 255, 0.3);
+    box-shadow: 0 0 10px rgba(208, 106, 255, 0.15);
+}
+
+.ccl-led {
+    position: absolute;
+    right: 10%;
+    top: 30%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2px;
+}
+
+.ccl-led-bulb {
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    background: radial-gradient(circle at 35% 30%, #e8fff0, #4facfe 40%, #00f2fe 100%);
+    box-shadow: 0 0 16px 4px rgba(79, 172, 254, 0.55);
+    border: 1px solid rgba(100, 255, 255, 0.35);
+}
+
+.ccl-led-txt {
+    font-size: 8px;
+    font-family: 'JetBrains Mono', monospace;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: rgba(180, 255, 200, 0.75);
+}
+
+.ccl-gnd {
+    position: absolute;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 9px;
+    font-weight: 600;
+    color: #00f2fe;
+    letter-spacing: 0.1em;
+}
+
+.ccl-node {
+    position: absolute;
+    width: 5px;
+    height: 5px;
+    border-radius: 50%;
+    background: #fff;
+    transform: translate(-50%, -50%);
+    box-shadow: 0 0 5px rgba(255,255,255,0.8);
+}
+
+.ccl-signal {
+    position: absolute;
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: #fff;
+    transform: translate(-50%, -50%);
+    box-shadow: 0 0 8px #fff, 0 0 12px #00f2fe;
+    animation: cclPulse var(--anim-dur) infinite ease-in-out;
+}
+
+@keyframes cclPulse {
+    0%, 100% { transform: scale(0.8) translate(-62.5%, -62.5%); opacity: 0.4; }
+    50% { transform: scale(1.4) translate(-35%, -35%); opacity: 1; }
+}
+
+body[data-theme-mode="light"] .circuit-lab-bg {
+    background:
+        radial-gradient(circle at 20% 24%, rgba(37, 99, 235, 0.1), transparent 32%),
+        radial-gradient(circle at 84% 70%, rgba(20, 184, 166, 0.1), transparent 30%),
+        linear-gradient(150deg, #f0f7ff 0%, #e8f4fc 50%, #f4fbff 100%);
+}
+
+body[data-theme-mode="light"] .ccl-batt {
+    background: linear-gradient(180deg, #fff, #e8f0ff);
+    border-color: rgba(37, 99, 235, 0.25);
+    color: #475569;
+}
+
+body[data-theme-mode="light"] .ccl-batt-pp {
+    color: #0284c7;
+}
+
+body[data-theme-mode="light"] .ccl-res {
+    background: rgba(255, 255, 255, 0.92);
+    color: #5b4fc9;
+    border-color: rgba(91, 79, 201, 0.25);
+}
+
+body[data-theme-mode="light"] .ccl-wseg {
+    stroke: #2563eb;
+    filter: none;
+    opacity: 0.9;
+}
+
+body[data-theme-mode="light"] .ccl-gnd {
+    color: #0369a1;
+}
+
+body[data-theme-mode="light"] .ccl-led-bulb {
+    box-shadow: 0 0 12px 2px rgba(22, 163, 74, 0.35);
+}
+
+body[data-theme-mode="light"] .ccl-led-txt {
+    color: #15803d;
+}
+
 body[data-theme-mode="light"] .cellstudy-bg {
     background:
         radial-gradient(circle at 24% 18%, rgba(52, 211, 153, 0.16), transparent 28%),
