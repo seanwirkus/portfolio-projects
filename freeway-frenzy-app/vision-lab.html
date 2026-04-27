@@ -389,16 +389,16 @@ const lastPacketEl = document.getElementById('lastPacket');
    so cars actually *fit* — 12 ft lane vs ~6 ft car.              */
 const WORLD = {
   forwardM: 50,           // Render the HUD canvas up to 50 feet
-  halfWidthM: 26,         // ±26 ft lateral (road + shoulders)
-  laneCount: 3,           // 3-lane highway
-  laneWidthM: 12,         // US standard lane width
-  shoulderM: 3,
+  halfWidthM: 14,         // Tightened lateral bounds (was 26)
+  laneCount: 1,           // Single lane (removes lane markers automatically)
+  laneWidthM: 16,         // Less wide road, focus on ego path (was 12*3=36)
+  shoulderM: 2,
   carWidthM: 8,
-  fovDeg: 120,            // wide dashcam-style horizontal FOV
-  verticalFovDeg: 48,     // raised with hFOV so the whole windshield feels wider
-  cameraHeightM: 3.2,
-  cameraPitchRad: 0.045,
-  cameraOffsetM: 13.0,    // offset to make distances read correctly
+  fovDeg: 128,            // widened again so more adjacent-lane context stays visible
+  verticalFovDeg: 84,     // drastically taller to show more road directly in front
+  cameraHeightM: 2.2,     // Lowered to grille height (~2.2 ft)
+  cameraPitchRad: 0.05,   // Adjusted pitch slightly upward since we are lower
+  cameraOffsetM: -5.0,    // Shifted forward 5 ft to bring objects visually closer while keeping math identical
   hudDepthScale: 1.0,
   lidarRangeM: 50.0,      // Sensor view matches render distance at 50 feet
   lidarMinM: 0.3,
@@ -413,7 +413,7 @@ WORLD.roadHalfM = (WORLD.laneCount * WORLD.laneWidthM) / 2;
 /* Scene editor view extents — larger than the detection world so
    objects render at a realistic, proportional size in the top-down view. */
 const SCENE_VIEW = {
-  halfWidthM: 52,   // ±52 ft lateral
+  halfWidthM: 20,   // zoomed in laterally (was 52) to match narrower road
   forwardM: 72,     // 72 ft forward
   rearM: 24,        // 24 ft behind the front bumper so the ego car is visible
 };
@@ -515,11 +515,17 @@ function hudHorizonY() {
   return HUD_H * 0.5 - hudFocalYPx() * Math.tan(WORLD.cameraPitchRad);
 }
 function hudProject(xM, yM, zM = 0) {
-  if (yM + WORLD.cameraOffsetM <= 0.1) return null;
+  // If the object's back edge is passing through the camera pane, still project the visible front segment!
+  const distWithOffset = yM + WORLD.cameraOffsetM;
+  if (distWithOffset <= -10) return null; // Only cull if it is truly incredibly far behind the camera.
+  
+  // Cap the focal division to prevent infinite sizes right on the camera plane
+  const safeDist = Math.max(0.1, distWithOffset);
+  
   const fx = hudFocalXPx();
   const fy = hudFocalYPx();
   const horizon = hudHorizonY();
-  const visualY = (yM + WORLD.cameraOffsetM) * WORLD.hudDepthScale;
+  const visualY = safeDist * WORLD.hudDepthScale;
   const screenX = HUD_W / 2 + fx * (xM / visualY);
   const screenY = horizon + fy * ((WORLD.cameraHeightM - zM) / visualY);
   return {
@@ -540,23 +546,86 @@ function fovHalfRad() { return (WORLD.fovDeg * Math.PI / 180) / 2; }
 function inFov(p) {
   const xRelM = p.xM - EGO.xM;
   const yRelM = p.yM;
-  if (yRelM <= 0.05) return false;
-  const ang = Math.atan2(Math.abs(xRelM), yRelM);
-  return ang <= fovHalfRad() && yRelM <= WORLD.forwardM;
+  
+  // Calculate to the rear bumper to allow it to clip seamlessly out of frame when passing
+  const dims = REAL_DIMS[p.type] || { w: 1, l: 1 };
+  const lengthM = dims.l || dims.w || 1;
+  const rearY = p.yM - (lengthM / 2);
+  
+  // They are considered 'in FOV' even if they slide fully behind the camera, up to half its length back, so they don't pop off screen early
+  // Camera offset is dynamically handled inside the HUD projection, but for detecting visibility we add it back.
+  if (p.yM < -lengthM) return false;
+  
+  // Provide a 25% overlap margin so objects render completely if they even partially touch the FOV line.
+  // Ensure the FOV maintains at least the width of the car when objects clip behind the virtual camera offset.
+  const projY = Math.max(0.1, yRelM + WORLD.cameraOffsetM);
+  let halfWidthAtDepth = Math.tan(fovHalfRad()) * projY;
+  halfWidthAtDepth = Math.max(WORLD.carWidthM / 2, halfWidthAtDepth);
+  
+  return Math.abs(xRelM) <= halfWidthAtDepth * 1.25 && yRelM <= WORLD.forwardM;
 }
+
+function hudEdgeGhostProp(p) {
+  const xRelM = p.xM - EGO.xM;
+  const yRelM = p.yM;
+  const dims = REAL_DIMS[p.type] || { w: 1, l: 1 };
+  const lengthM = dims.l || dims.w || 1;
+  if (p.yM < -lengthM || yRelM > WORLD.forwardM) return null;
+  
+  const projY = Math.max(0.1, yRelM + WORLD.cameraOffsetM);
+  let halfWidthAtDepth = Math.tan(fovHalfRad()) * projY;
+  halfWidthAtDepth = Math.max(WORLD.carWidthM / 2, halfWidthAtDepth);
+
+  if (!isFinite(halfWidthAtDepth) || halfWidthAtDepth <= 0.01) return null;
+  
+  // With 25% overlap margin for solid rendering, the ghosting only starts beyond that
+  if (Math.abs(xRelM) <= halfWidthAtDepth * 1.25) return null;
+  
+  const sideOverflowM = Math.abs(xRelM) - (halfWidthAtDepth * 1.25);
+  const sideNorm = Math.min(1, sideOverflowM / Math.max(1.2, WORLD.laneWidthM * 0.7));
+  const depthNorm = Math.min(1, yRelM / WORLD.forwardM);
+  
+  // Exaggerate their exit speed outward
+  const edgeSlideM = WORLD.laneWidthM * (0.02 + sideNorm * 0.15);
+  
+  const depthFade = 1 - depthNorm;
+  const sideFade = 1 - sideNorm;
+  return {
+    ...p,
+    xM: xRelM + Math.sign(xRelM) * edgeSlideM,
+    yM: yRelM,
+    ghostAlpha: 0.06 + depthFade * 0.22 + sideFade * 0.14,
+    ghostLineAlpha: 0.12 + depthFade * 0.2 + sideFade * 0.1,
+    ghostTextAlpha: 0.2 + depthFade * 0.22 + sideFade * 0.12,
+    ghostBrightness: 0.68 + depthFade * 0.36,
+    ghostSideNorm: sideNorm,
+    ghostDepthNorm: depthNorm,
+    ghostDistM: Math.hypot(xRelM, yRelM),
+  };
+}
+
 function detectAll() {
   const out = [];
   for (const p of props) {
     if (!inFov(p)) continue;
     const xRelM = p.xM - EGO.xM;
-    const yRelM = p.yM;
-    const dist = Math.hypot(xRelM, yRelM);
+    
+    const dims = REAL_DIMS[p.type] || { w: 1, l: 1 };
+    const lengthM = dims.l || dims.w || 1;
+    // The rear license plate / rear bumper coordinate (longitudinally)
+    const rearY = p.yM - (lengthM / 2);
+    
+    // Calculate distance simply based on how far AHEAD the object is on the road.
+    // This perfectly matches driver intuition (a car in the next lane 0ft ahead is 0ft away, not a diagonal hypotenuse)
+    const dist = Math.max(0, rearY);
+    
     const cls = CLASSES[p.type];
+    
     // Confidence: high near center + close, decays toward FOV edges + range.
-    const angNorm = Math.atan2(Math.abs(xRelM), yRelM) / fovHalfRad();
+    const angNorm = Math.atan2(Math.abs(xRelM), Math.max(0.1, rearY)) / fovHalfRad();
     const distNorm = Math.min(1, dist / WORLD.forwardM);
     const conf = Math.max(0.42, 0.98 - angNorm * 0.18 - distNorm * 0.35);
-    out.push({ id: p.id, prop: p, class: cls.name, color: cls.color, distM: dist, xRelM, yRelM, conf });
+    out.push({ id: p.id, prop: p, class: cls.name, color: cls.color, distM: dist, xRelM, yRelM: p.yM, conf });
   }
   out.sort((a, b) => a.distM - b.distM);
   return out;
@@ -567,18 +636,44 @@ function detectAll() {
    We model a narrow beam: pick the nearest prop within a few inches
    lateral of the ray over its range. Add small jitter for feel. */
 function lidarReading() {
-  const beamHalfM = 0.2;
   let nearest = Infinity;
   let hit = null;
+  // Two sensors mounted on the left and right sides of the front grille
+  const sensorOffset = (WORLD.carWidthM / 2) * 0.85; // Push sensors closer to the outer edges
+  const leftSensorX = EGO.xM - sensorOffset;
+  const rightSensorX = EGO.xM + sensorOffset;
+  const beamHalfM = 1.2; // Massive thickness to essentially blanket the front width completely
+  
   for (const p of props) {
-    if (p.yM < WORLD.lidarMinM || p.yM > WORLD.lidarRangeM) continue;
-    if (Math.abs(p.xM - EGO.xM) > beamHalfM) continue;
-    if (p.yM < nearest) { nearest = p.yM; hit = p; }
+    // We want the distance to the edge facing the sensor (the rear)
+    const dims = REAL_DIMS[p.type] || { w: 1, l: 1 };
+    const lengthM = dims.l || dims.w || 1;
+    let rearY = p.yM - (lengthM / 2);
+    const frontY = p.yM + (lengthM / 2);
+    
+    // If we are currently inside or overlapping the object, clamp the distance to 0 so it registers as an active collision.
+    if (rearY < WORLD.lidarMinM && frontY > 0) {
+      rearY = 0.0;
+    }
+    
+    if (rearY < 0 || rearY > WORLD.lidarRangeM) continue;
+    
+    // Check if the prop falls within the beam of EITHER the left or right sensor
+    const propLeftE = p.xM - (dims.w / 2);
+    const propRightE = p.xM + (dims.w / 2);
+    
+    const leftSensorHit = (leftSensorX >= propLeftE - beamHalfM) && (leftSensorX <= propRightE + beamHalfM);
+    const rightSensorHit = (rightSensorX >= propLeftE - beamHalfM) && (rightSensorX <= propRightE + beamHalfM);
+    
+    if (!leftSensorHit && !rightSensorHit) continue;
+    
+    if (rearY < nearest) { nearest = rearY; hit = p; }
   }
   if (!isFinite(nearest)) return { distM: null, hit: null, raw: WORLD.lidarRangeM };
   // 1000 Hz sensor — add tiny jitter for realism.
   const jitter = (Math.random() - 0.5) * 0.015;
-  return { distM: Math.max(WORLD.lidarMinM, nearest + jitter), hit, raw: nearest };
+  const distM = nearest === 0 ? 0 : Math.max(WORLD.lidarMinM, nearest + jitter);
+  return { distM: distM, hit, raw: nearest };
 }
 
 /* ── Decision logic ────────────────────────────────────────── */
@@ -601,14 +696,17 @@ function makeDecision(detections, lidar, dt) {
   const ped = detections.find(d => d.class === 'PEDESTRIAN');
   if (ped) return { state: 'YIELD', reason: `Pedestrian · ${ped.distM.toFixed(1)} ft`, color: '#facc15' };
 
-  // Forward car → check TTC from approach speed
-  const carAhead = detections.find(d => d.class === 'CAR');
+  // Forward car → check TTC from approach speed. Use camera detection OR raw lidar hit lock.
+  const carAhead = detections.find(d => d.class === 'CAR') || (lidar?.hit?.type === 'car' ? { distM: lidar.distM, prop: lidar.hit } : null);
   if (carAhead && now != null && _approachMs > 0.4) {
     const ttc = now / _approachMs;
     if (ttc < 1.5) return { state: 'BRAKE', reason: `TTC ${ttc.toFixed(1)}s · car closing fast`, color: '#f43f5e' };
     if (ttc < 3.5) return { state: 'CAUTION', reason: `TTC ${ttc.toFixed(1)}s · maintain gap`, color: '#facc15' };
   }
   if (carAhead && now != null && now < 8) {
+    return { state: 'BRAKE', reason: `COLLISION IMMINENT · ${now.toFixed(1)} ft`, color: '#f43f5e' };
+  }
+  if (carAhead && now != null && now < 15) {
     return { state: 'CAUTION', reason: `Car ${now.toFixed(1)} ft ahead`, color: '#facc15' };
   }
 
@@ -629,7 +727,7 @@ let _approachMs = 0;
 // Real-world dimensions per class (feet). Used so icons scale
 // metrically through the pinhole projection (proj.pxPerM).
 const REAL_DIMS = {
-  car:   { w: 6.2, h: 4.2,  l: 14.5 }, // sleeker car
+  car:   { w: 6.5, h: 4.5, l: 12.0 }, // Squat, blocky proportions to counter FOV elongation
   stop:  { w: 2, h: 2, postH: 3.8 },
   light: { w: 1, h: 2.4,  postH: 5.0 },
   ped:   { w: 1.8, h: 5.6 },
@@ -838,202 +936,163 @@ function iconBounds(prop, proj) {
   return { x: cx - 20, y: gy - 30, w: 40, h: 30 };
 }
 
+function drawHudProp(ctx, proj, prop) {
+  if (prop.type === 'car') {
+    drawHudCar(ctx, proj, prop);
+  } else if (prop.type === 'stop') {
+    drawHudStop(ctx, proj);
+  } else if (prop.type === 'light') {
+    drawHudLight(ctx, proj, prop);
+  } else if (prop.type === 'ped') {
+    drawHudPed(ctx, proj);
+  }
+}
+
+function drawHudGhost(ctx, prop) {
+  const proj = hudProject(prop.xM, prop.yM);
+  if (!proj) return;
+  ctx.save();
+  ctx.globalAlpha = prop.ghostAlpha ?? 0.28;
+  const brightness = (prop.ghostBrightness ?? 1).toFixed(2);
+  const contrast = (0.82 + (1 - (prop.ghostSideNorm ?? 0)) * 0.12).toFixed(2);
+  ctx.filter = `grayscale(1) saturate(0) brightness(${brightness}) contrast(${contrast})`;
+  drawHudProp(ctx, proj, prop);
+  ctx.restore();
+
+  const box = iconBounds(prop, proj);
+  ctx.save();
+  ctx.globalAlpha = Math.min(0.48, prop.ghostLineAlpha ?? 0.24);
+  ctx.strokeStyle = 'rgba(226,232,240,0.95)';
+  ctx.lineWidth = 1;
+  ctx.setLineDash([5, 6 + (prop.ghostSideNorm ?? 0) * 8]);
+  ctx.strokeRect(box.x, box.y, box.w, box.h);
+  ctx.setLineDash([]);
+  ctx.globalAlpha = Math.min(0.56, prop.ghostTextAlpha ?? 0.32);
+  ctx.fillStyle = 'rgba(226,232,240,0.9)';
+  ctx.font = '10px ui-monospace, Menlo, monospace';
+  ctx.fillText(`${CLASSES[prop.type].name} ${prop.ghostDistM.toFixed(1)}ft`, box.x, box.y - 6);
+  ctx.restore();
+}
+
 function drawHudCar(ctx, proj, prop) {
   const pts = carPerspectivePoints(prop);
-  const m = hudProject(prop.xM, Math.max(0.25, pts.rearY)).pxPerM;
-  const sz = Math.max(0.2, m / 60); 
+  if (!pts.rgl || !pts.rgr || !pts.fgl || !pts.fgr) return;
   const palette = CAR_PALETTE[(prop.color | 0) % CAR_PALETTE.length];
-  const body = palette.body, roof = palette.roof;
-  const halfW = REAL_DIMS.car.w / 2;
-  const x = prop.xM;
-  const rearY = pts.rearY, frontY = pts.frontY;
-  const bodyZ = REAL_DIMS.car.h * 0.55, roofZ = REAL_DIMS.car.h;
-
-  const rearTopL = hudProject(x - halfW * 0.95, rearY, bodyZ), rearTopR = hudProject(x + halfW * 0.95, rearY, bodyZ);
-  const frontTopL = hudProject(x - halfW * 0.72, frontY, bodyZ), frontTopR = hudProject(x + halfW * 0.72, frontY, bodyZ);
-  const roofRearL = hudProject(x - halfW * 0.58, lerp(rearY, frontY, 0.2), roofZ);
-  const roofRearR = hudProject(x + halfW * 0.58, lerp(rearY, frontY, 0.2), roofZ);
-  const roofFrontL = hudProject(x - halfW * 0.42, lerp(rearY, frontY, 0.72), roofZ);
-  const roofFrontR = hudProject(x + halfW * 0.42, lerp(rearY, frontY, 0.72), roofZ);
   
-  const mirrorL = hudProject(x - halfW * 1.1, lerp(rearY, frontY, 0.5), bodyZ * 0.85);
-  const mirrorR = hudProject(x + halfW * 1.1, lerp(rearY, frontY, 0.5), bodyZ * 0.85);
+  const x = prop.xM;
+  const halfW = REAL_DIMS.car.w / 2;
+  const rearY = pts.rearY, frontY = pts.frontY;
+  
+  // Sleek proportions
+  const roofZ = REAL_DIMS.car.h * 0.95;
+  const bodyZ = REAL_DIMS.car.h * 0.45;
+  const cabRearY = lerp(rearY, frontY, 0.20);
+  const cabFrontY = lerp(rearY, frontY, 0.65);
+  
+  const rTopL = hudProject(x - halfW, rearY, bodyZ);
+  const rTopR = hudProject(x + halfW, rearY, bodyZ);
+  const fTopL = hudProject(x - halfW, frontY, bodyZ);
+  const fTopR = hudProject(x + halfW, frontY, bodyZ);
+  
+  const roofRL = hudProject(x - halfW * 0.75, cabRearY, roofZ);
+  const roofRR = hudProject(x + halfW * 0.75, cabRearY, roofZ);
+  const roofFL = hudProject(x - halfW * 0.7, cabFrontY, roofZ);
+  const roofFR = hudProject(x + halfW * 0.7, cabFrontY, roofZ);
 
-  // 1. Shadow & Undercarriage
+  if (!rTopL || !roofRL) return;
+
   ctx.save();
-  ctx.fillStyle = 'rgba(0,0,0,0.72)';
+  ctx.lineJoin = 'round';
+  ctx.lineCap = 'round';
+
+  // 1. Soft glowing drop shadow
+  ctx.fillStyle = 'rgba(0, 0, 0, 0.4)';
+  ctx.shadowColor = 'rgba(0, 0, 0, 0.8)';
+  ctx.shadowBlur = 10;
   drawPoly(ctx, [pts.rgl, pts.rgr, pts.fgr, pts.fgl]);
   ctx.fill();
-  ctx.fillStyle = '#0a0a0a';
-  drawPoly(ctx, [pts.rgl, pts.rgr, {x: pts.rgr.x, y: pts.rgr.y-6*sz}, {x: pts.rgl.x, y: pts.rgl.y-6*sz}]);
-  ctx.fill();
-  ctx.restore();
-
-  // 1b. Rear tires (outboard, at axle — black rubber + rim)
-  const axleY = Math.min(rearY + 0.92, frontY - 0.4);
-  const track = halfW * 0.82;
-  const wLp = hudProject(x - track, axleY, 0);
-  const wRp = hudProject(x + track, axleY, 0);
-  if (wLp && wRp) {
-    const tw = Math.max(3, m * 0.4);
-    const th = Math.max(2.4, m * 0.32);
-    const drawTire = (wp) => {
-      const cy = wp.y - th * 0.1;
-      ctx.fillStyle = '#070707';
-      ctx.beginPath();
-      ctx.ellipse(wp.x, cy, tw, th, 0, 0, Math.PI * 2);
-      ctx.fill();
-      ctx.strokeStyle = '#1c1917';
-      ctx.lineWidth = Math.max(0.6, 0.12 * m);
-      ctx.beginPath();
-      ctx.ellipse(wp.x, cy, tw * 0.9, th * 0.9, 0, 0, Math.PI * 2);
-      ctx.stroke();
-      ctx.strokeStyle = 'rgba(55,65,81,0.95)';
-      ctx.beginPath();
-      ctx.ellipse(wp.x, cy, tw * 0.78, th * 0.78, 0, 0, Math.PI * 2);
-      ctx.stroke();
-      ctx.fillStyle = '#4b5563';
-      ctx.beginPath();
-      ctx.ellipse(wp.x, cy, tw * 0.4, th * 0.36, 0, 0, Math.PI * 2);
-      ctx.fill();
-      ctx.fillStyle = 'rgba(17,24,39,0.5)';
-      ctx.beginPath();
-      ctx.ellipse(wp.x, cy, tw * 0.2, th * 0.18, 0, 0, Math.PI * 2);
-      ctx.fill();
-    };
-    drawTire(wLp);
-    drawTire(wRp);
-  }
-
-  // 2. Main Body Shell (Gradients for metallic volume)
-  ctx.save();
-  ctx.shadowColor = body; ctx.shadowBlur = 12 * sz;
-  ctx.fillStyle = body;
-  drawPoly(ctx, [pts.rgl, pts.rgr, rearTopR, rearTopL]); // Rear face
-  ctx.fill();
-  
-  const sideGradL = ctx.createLinearGradient(pts.rgl.x, pts.rgl.y, rearTopL.x, rearTopL.y - 50*sz);
-  sideGradL.addColorStop(0, '#0f172a'); sideGradL.addColorStop(0.5, body); sideGradL.addColorStop(1, roof);
-  ctx.fillStyle = sideGradL;
-  drawPoly(ctx, [pts.rgl, rearTopL, frontTopL, pts.fgl]); // Left side
-  
-  const sideGradR = ctx.createLinearGradient(pts.rgr.x, pts.rgr.y, rearTopR.x, rearTopR.y - 50*sz);
-  sideGradR.addColorStop(0, '#0f172a'); sideGradR.addColorStop(0.5, body); sideGradR.addColorStop(1, roof);
-  ctx.fillStyle = sideGradR;
-  drawPoly(ctx, [pts.rgr, rearTopR, frontTopR, pts.fgr]); // Right side
-  ctx.fill();
-
-  ctx.fillStyle = body;
-  drawPoly(ctx, [rearTopL, rearTopR, frontTopR, frontTopL]); // Hood/Trunk
-  ctx.fill();
-  ctx.restore();
-
-  // 3. Side Mirrors
-  if (mirrorL && mirrorR) {
-    ctx.fillStyle = body;
-    ctx.beginPath();
-    ctx.ellipse(mirrorL.x, mirrorL.y, 4 * sz, 2 * sz, 0, 0, Math.PI * 2);
-    ctx.ellipse(mirrorR.x, mirrorR.y, 4 * sz, 2 * sz, 0, 0, Math.PI * 2);
-    ctx.fill();
-    ctx.fillStyle = 'rgba(51,65,85,0.95)'; // dark mirror glass
-    ctx.beginPath();
-    ctx.ellipse(mirrorL.x + 1*sz, mirrorL.y - 0.5*sz, 2 * sz, 1 * sz, 0, 0, Math.PI * 2);
-    ctx.ellipse(mirrorR.x - 1*sz, mirrorR.y - 0.5*sz, 2 * sz, 1 * sz, 0, 0, Math.PI * 2);
-    ctx.fill();
-  }
-
-  // 4. Cabin Interior & Glass — privacy tint
-  ctx.fillStyle = '#020617';
-  drawPoly(ctx, [roofRearL, roofRearR, roofFrontR, roofFrontL]);
-  ctx.fill();
-
-  const rwBL = lerpPoint(rearTopL, rearTopR, 0.12), rwBR = lerpPoint(rearTopL, rearTopR, 0.88);
-  const rwTL = lerpPoint(roofRearL, roofRearR, 0.1), rwTR = lerpPoint(roofRearL, roofRearR, 0.9);
-  const glassGrad = ctx.createLinearGradient((rwTL.x + rwTR.x) / 2, rwTL.y, (rwBL.x + rwBR.x) / 2, rwBL.y);
-  glassGrad.addColorStop(0, '#0c1a2e');
-  glassGrad.addColorStop(0.35, '#152a3d');
-  glassGrad.addColorStop(0.65, '#1e3a4d');
-  glassGrad.addColorStop(1, '#0b1220');
-  ctx.fillStyle = glassGrad;
-  drawPoly(ctx, [rwBL, rwBR, rwTR, rwTL]);
-  ctx.fill();
-  
-  // Interior silhouette (headrests)
-  ctx.fillStyle = 'rgba(2,6,23,0.55)';
-  drawPoly(ctx, [
-    lerpPoint(rwBL, rwBR, 0.22), lerpPoint(rwBL, rwBR, 0.42),
-    lerpPoint(rwTL, rwTR, 0.38), lerpPoint(rwTL, rwTR, 0.26),
-  ]);
-  ctx.fill();
-  ctx.fillStyle = 'rgba(2,6,23,0.45)';
-  drawPoly(ctx, [
-    lerpPoint(rwBL, rwBR, 0.58), lerpPoint(rwBL, rwBR, 0.78),
-    lerpPoint(rwTL, rwTR, 0.72), lerpPoint(rwTL, rwTR, 0.62),
-  ]);
-  ctx.fill();
-
-  // Faint cool-sky sheen
-  ctx.fillStyle = 'rgba(56,189,248,0.06)';
-  drawPoly(ctx, [
-    lerpPoint(rwBL, rwBR, 0.14), lerpPoint(rwBL, rwBR, 0.28),
-    lerpPoint(rwTL, rwTR, 0.32), lerpPoint(rwTL, rwTR, 0.18),
-  ]);
-  ctx.fill();
-
-  // Roof rail / defroster zone
-  ctx.strokeStyle = 'rgba(148,163,184,0.22)';
-  ctx.lineWidth = Math.max(0.6, 0.9 * sz);
-  drawLine(ctx, lerpPoint(roofRearL, roofFrontL, 0.35), lerpPoint(roofRearR, roofFrontR, 0.35));
-  ctx.strokeStyle = 'rgba(15,23,42,0.75)';
-  ctx.lineWidth = Math.max(0.9, 1.1 * sz);
-  drawLine(ctx, lerpPoint(rwTL, rwBL, 0.5), lerpPoint(rwTR, rwBR, 0.5));
-
-  // Pillars & Roof
-  ctx.fillStyle = roof;
-  drawPoly(ctx, [rearTopL, rwBL, rwTL, roofRearL]); // L Pillar
-  drawPoly(ctx, [rearTopR, rwBR, rwTR, roofRearR]); // R Pillar
-  drawPoly(ctx, [roofRearL, roofRearR, roofFrontR, roofFrontL]); // Roof panel
-  ctx.fill();
-
-  // Panel Seams / Chrome Trims
-  ctx.strokeStyle = 'rgba(255,255,255,0.32)';
-  ctx.lineWidth = Math.max(1, 1.2 * sz);
-  drawLine(ctx, rearTopL, rearTopR);
-  drawLine(ctx, rwTL, rwTR);
-  ctx.strokeStyle = 'rgba(0,0,0,0.5)';
-  drawLine(ctx, roofRearL, roofRearR);
-
-  // 5. Details (Taillights, Plate, Exhaust)
-  ctx.save();
-  ctx.shadowColor = '#ff1133';
-  ctx.shadowBlur = 18 * sz;
-  ctx.fillStyle = '#ff1133';
-  const ly = lerp(pts.rgl.y, rearTopL.y, 0.45);
-  roundRect(ctx, lerp(pts.rgl.x, pts.rgr.x, 0.10), ly - 2.5 * sz, 15 * sz, 5.5 * sz, 2.5);
-  roundRect(ctx, lerp(pts.rgl.x, pts.rgr.x, 0.90) - 15 * sz, ly - 2.5 * sz, 15 * sz, 5.5 * sz, 2.5);
-  ctx.fill();
-  // Inner bright spot
-  ctx.fillStyle = '#fecaca';
   ctx.shadowBlur = 0;
-  ctx.fillRect(lerp(pts.rgl.x, pts.rgr.x, 0.12), ly - 1 * sz, 10 * sz, 2 * sz);
-  ctx.fillRect(lerp(pts.rgl.x, pts.rgr.x, 0.88) - 10 * sz, ly - 1 * sz, 10 * sz, 2 * sz);
+
+  // 2. Base Body Panels (smooth glossy metallic style)
+  const gradM = ctx.createLinearGradient(rTopL.x, rTopL.y, pts.rgl.x, pts.rgl.y);
+  gradM.addColorStop(0, mixHex(palette.body, '#ffffff', 0.2));
+  gradM.addColorStop(1, mixHex(palette.body, '#000000', 0.6));
+
+  ctx.fillStyle = gradM;
+  // Left Side
+  drawPoly(ctx, [pts.rgl, rTopL, fTopL, pts.fgl]); ctx.fill();
+  // Right Side
+  drawPoly(ctx, [pts.rgr, rTopR, fTopR, pts.fgr]); ctx.fill();
+  // Front Face
+  drawPoly(ctx, [pts.fgl, pts.fgr, fTopR, fTopL]); ctx.fill();
+
+  // Rear Face (direct view)
+  const gradRear = ctx.createLinearGradient(rTopL.x, rTopL.y, pts.rgl.x, pts.rgl.y);
+  gradRear.addColorStop(0, palette.body);
+  gradRear.addColorStop(1, mixHex(palette.body, '#111111', 0.8));
+  ctx.fillStyle = gradRear;
+  drawPoly(ctx, [pts.rgl, pts.rgr, rTopR, rTopL]); ctx.fill();
+
+  // Top panels (Trunk/Hood)
+  ctx.fillStyle = mixHex(palette.body, '#ffffff', 0.25);
+  drawPoly(ctx, [rTopL, rTopR, roofRR, roofRL]); ctx.fill(); // Trunk to roof
+  drawPoly(ctx, [fTopL, fTopR, roofFR, roofFL]); ctx.fill(); // Hood to roof
+
+  // 3. Cabin/Glass (Opaque glossy dark monolithic windows)
+  ctx.fillStyle = '#161920'; // Sleek tinted glass
+  
+  // Rear Window
+  drawPoly(ctx, [rTopL, rTopR, roofRR, roofRL]); ctx.fill();
+  // Left Window
+  drawPoly(ctx, [rTopL, roofRL, roofFL, fTopL]); ctx.fill();
+  // Right Window
+  drawPoly(ctx, [rTopR, roofRR, roofFR, fTopR]); ctx.fill();
+  // Windshield
+  drawPoly(ctx, [fTopL, fTopR, roofFR, roofFL]); ctx.fill();
+  
+  // Roof Panel
+  ctx.fillStyle = palette.body;
+  drawPoly(ctx, [roofRL, roofRR, roofFR, roofFL]); ctx.fill();
+
+  // 4. Subtle Wireframe glowing edge for that "FSD HUD" look
+  ctx.lineWidth = 1;
+  ctx.strokeStyle = 'rgba(255, 255, 255, 0.15)';
+  // Base outline
+  drawPoly(ctx, [pts.rgl, pts.rgr, pts.fgr, pts.fgl]); ctx.stroke();
+  // Main body box outline
+  drawPoly(ctx, [rTopL, rTopR, fTopR, fTopL]); ctx.stroke();
+  drawLine(ctx, pts.rgl, rTopL); drawLine(ctx, pts.rgr, rTopR);
+  drawLine(ctx, pts.fgl, fTopL); drawLine(ctx, pts.fgr, fTopR);
+  // Cabin outline
+  drawPoly(ctx, [roofRL, roofRR, roofFR, roofFL]); ctx.stroke();
+  drawLine(ctx, rTopL, roofRL); drawLine(ctx, rTopR, roofRR);
+  drawLine(ctx, fTopL, roofFL); drawLine(ctx, fTopR, roofFR);
+
+  // 5. Sleek Neon Taillights
+  ctx.shadowColor = '#ff2222';
+  ctx.shadowBlur = 12;
+  ctx.fillStyle = '#ff2222';
+  const tL1 = lerpPoint(rTopL, rTopR, 0.05), tL2 = lerpPoint(rTopL, rTopR, 0.25);
+  const tR1 = lerpPoint(rTopL, rTopR, 0.75), tR2 = lerpPoint(rTopL, rTopR, 0.95);
+  
+  // Left Tail
+  drawPoly(ctx, [
+    hudProject(x - halfW * 0.9, rearY, bodyZ * 0.95),
+    hudProject(x - halfW * 0.5, rearY, bodyZ * 0.95),
+    hudProject(x - halfW * 0.5, rearY, bodyZ * 0.7),
+    hudProject(x - halfW * 0.9, rearY, bodyZ * 0.7)
+  ]);
+  ctx.fill();
+  // Right Tail
+  drawPoly(ctx, [
+    hudProject(x + halfW * 0.5, rearY, bodyZ * 0.95),
+    hudProject(x + halfW * 0.9, rearY, bodyZ * 0.95),
+    hudProject(x + halfW * 0.9, rearY, bodyZ * 0.7),
+    hudProject(x + halfW * 0.5, rearY, bodyZ * 0.7)
+  ]);
+  ctx.fill();
+
   ctx.restore();
-
-  // Chrome Bumper Accent
-  ctx.fillStyle = '#cbd5e1';
-  ctx.fillRect(lerp(pts.rgl.x, pts.rgr.x, 0.1), pts.rgl.y - 3 * sz, pts.rgr.x - pts.rgl.x - (pts.rgr.x - pts.rgl.x)*0.2, 1.5 * sz);
-
-  // License Plate
-  const plateX = lerp(pts.rgl.x, pts.rgr.x, 0.5) - 9 * sz;
-  const plateY = ly - 1.5 * sz;
-  ctx.fillStyle = 'rgba(15,23,42,0.35)';
-  roundRect(ctx, plateX - 0.5 * sz, plateY - 0.5 * sz, 18 * sz + sz, 6 * sz + sz, 1.5);
-  ctx.fill();
-  ctx.fillStyle = '#e2e8f0';
-  roundRect(ctx, plateX, plateY, 18 * sz, 6 * sz, 1.2);
-  ctx.fill();
-  ctx.fillStyle = '#475569';
-  ctx.fillRect(lerp(pts.rgl.x, pts.rgr.x, 0.5) - 6 * sz, ly + 0.5 * sz, 12 * sz, 2 * sz); // fake text
 }
 
 function drawHudCarRear(ctx, proj, prop) {
@@ -1046,44 +1105,59 @@ function drawHudStop(ctx, proj) {
   const cx = proj.x, cy = proj.y;
   const r = (REAL_DIMS.stop.w / 2) * m;
   const postH = REAL_DIMS.stop.postH * m;
-  const sz = Math.max(0.2, m / 60);
-  const sy = cy - postH;  // sign center y
-  // Post
+  
+  // Center of the sign sits at the top of the post
+  const signCenterY = cy - postH;
+  
   ctx.save();
+  // Post runs from sign center down to the ground (cy)
   ctx.fillStyle = '#6b7280';
-  ctx.fillRect(cx - 2 * sz, sy, 3 * sz, postH + 2);
+  const postWidth = Math.max(2, r * 0.15);
+  ctx.fillRect(cx - (postWidth / 2), signCenterY, postWidth, postH);
+  
   // Octagon
-  ctx.shadowColor = '#f43f5e';
-  ctx.shadowBlur = 14;
+  if (r > 4) {
+    ctx.shadowColor = '#f43f5e';
+    ctx.shadowBlur = Math.min(15, r * 0.5);
+  }
   ctx.fillStyle = '#dc2626';
   ctx.beginPath();
   for (let i = 0; i < 8; i++) {
     const a = (i / 8) * Math.PI * 2 + Math.PI / 8;
     const x = cx + Math.cos(a) * r;
-    const y = sy - r + Math.sin(a) * r;
+    const y = signCenterY + Math.sin(a) * r;
     if (i === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
   }
   ctx.closePath();
   ctx.fill();
+  
   // White inner border
   ctx.shadowBlur = 0;
-  ctx.strokeStyle = '#ffffff';
-  ctx.lineWidth = Math.max(1, 1.6 * sz);
-  ctx.beginPath();
-  for (let i = 0; i < 8; i++) {
-    const a = (i / 8) * Math.PI * 2 + Math.PI / 8;
-    const x = cx + Math.cos(a) * (r - 3 * sz);
-    const y = sy - r + Math.sin(a) * (r - 3 * sz);
-    if (i === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+  if (r > 6) {
+    ctx.strokeStyle = '#ffffff';
+    ctx.lineWidth = Math.max(1, r * 0.08);
+    const innerR = r * 0.85;
+    ctx.beginPath();
+    for (let i = 0; i < 8; i++) {
+      const a = (i / 8) * Math.PI * 2 + Math.PI / 8;
+      const x = cx + Math.cos(a) * innerR;
+      const y = signCenterY + Math.sin(a) * innerR;
+      if (i === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+    }
+    ctx.closePath();
+    ctx.stroke();
   }
-  ctx.closePath();
-  ctx.stroke();
-  // "STOP" text
-  ctx.fillStyle = '#ffffff';
-  ctx.font = `bold ${Math.max(8, Math.floor(r * 0.55))}px ui-sans-serif, system-ui, sans-serif`;
-  ctx.textAlign = 'center';
-  ctx.textBaseline = 'middle';
-  ctx.fillText('STOP', cx, sy - r + 1);
+  
+  // "STOP" text (only render if large enough to not bleed over the border)
+  if (r > 8) {
+    const fontSize = Math.floor(r * 0.55);
+    ctx.fillStyle = '#ffffff';
+    ctx.font = `900 ${fontSize}px ui-sans-serif, system-ui, sans-serif`;
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText('STOP', cx, signCenterY + fontSize * 0.07);
+  }
+  
   ctx.restore();
 }
 
@@ -1189,17 +1263,20 @@ function drawHudRangeLadder(ctx, yNearM, yFarM) {
   ctx.font = '9px ui-monospace, Menlo, monospace';
   ctx.textAlign = 'center';
   ctx.textBaseline = 'middle';
-  for (let yM = 10; yM <= Math.min(80, yFarM); yM += 10) {
+  let lastLabelY = Infinity;
+  for (let yM = 12; yM <= Math.min(72, yFarM); yM += 12) {
     if (yM <= yNearM) continue;
     const left = hudGroundPoint(-WORLD.roadHalfM * 0.72, yM);
     const right = hudGroundPoint(WORLD.roadHalfM * 0.72, yM);
     const center = hudGroundPoint(0, yM);
+    if (Math.abs(lastLabelY - center.y) < 18) continue;
+    lastLabelY = center.y;
     ctx.globalAlpha = Math.max(0.16, 0.46 - yM / yFarM * 0.24);
     ctx.strokeStyle = 'rgba(34,211,238,0.5)';
     ctx.lineWidth = 1;
     drawLine(ctx, left, right);
     ctx.fillStyle = 'rgba(203,213,225,0.72)';
-    ctx.fillText(`${yM} ft`, center.x, center.y - 8);
+    ctx.fillText(`${yM} ft`, center.x, center.y - 10);
   }
   ctx.restore();
 }
@@ -1207,24 +1284,26 @@ function drawHudRangeLadder(ctx, yNearM, yFarM) {
 function drawHudEgoForeground(ctx, W, H) {
   // Premium hand-crafted ego car — drawn as a modern sedan seen from
   // a slightly elevated rear-¾ view, like Tesla's perception HUD.
-  // NOT projected through the pinhole camera (which causes extreme
-  // distortion at close range). Instead, proportions are manually
-  // controlled relative to the HUD canvas for a clean, premium look.
-
+  
   const cx = W / 2;
   // Anchor the ego car flush with the bottom of the screen to create a solid "blind area"
-  const groundY = H + 5; 
+  const groundY = H + 24; 
 
-  // Mathematically derived sizing (approx ~25% of canvas width) so it
-  // perfectly covers the immediate physical footprint of the lane.
-  const carW = Math.min(W * 0.25, 300);
-  const carH = carW * 0.48;
+  // Make the ego car proportionate size to the actual 3D road projection of its size
+  // Calculate its exact pixel footprint at the very front of the hood (near plane)
+  const leftP = hudGroundPoint(-WORLD.carWidthM / 2, 0.1);
+  const rightP = hudGroundPoint(WORLD.carWidthM / 2, 0.1);
+  const projectedW = rightP.x - leftP.x;
+  
+  // Lock car width to exactly its geometric footprint on the road
+  const carW = isFinite(projectedW) && projectedW > 0 ? projectedW : W * 0.15;
+  const carH = carW * 0.45;
   const topY = groundY - carH;
 
   const rearHalfW = carW / 2;
-  const hoodHalfW = rearHalfW * 0.72;
-  const roofHalfW = carW * 0.30;
-  const roofFrontHalfW = carW * 0.22;
+  const hoodHalfW = rearHalfW * 0.76;
+  const roofHalfW = carW * 0.34;
+  const roofFrontHalfW = carW * 0.29;
   const carLen    = carH; 
 
   const bumperH = carH * 0.3;
@@ -1332,7 +1411,7 @@ function drawHudEgoForeground(ctx, W, H) {
   ubGrad.addColorStop(1, '#064e77');
   ctx.fillStyle = ubGrad;
   const ubBotHW = wAt(bodyTop);
-  const ubTopHW = lerp(rearHalfW, roofHalfW, 0.5);
+  const ubTopHW = lerp(rearHalfW, roofHalfW, 0.58);
   drawPoly(ctx, [
     { x: cx - ubBotHW, y: bodyTop },
     { x: cx + ubBotHW, y: bodyTop },
@@ -1383,8 +1462,10 @@ function drawHudEgoForeground(ctx, W, H) {
   drawPoly(ctx, [
     { x: cx - roofHalfW, y: glassTop },
     { x: cx + roofHalfW, y: glassTop },
+    { x: cx + roofHalfW * 0.96, y: glassTop - hoodH * 0.18 },
     { x: cx + roofFrontHalfW, y: hoodTop + hoodH * 0.35 },
     { x: cx - roofFrontHalfW, y: hoodTop + hoodH * 0.35 },
+    { x: cx - roofHalfW * 0.96, y: glassTop - hoodH * 0.18 },
   ]);
   ctx.fill();
 
@@ -1529,12 +1610,14 @@ function drawProjectedRoadBand(ctx, yNear, yFar, fillStyle) {
 }
 
 function scenePropSize(prop) {
-  const dims = CLASSES[prop.type].real;
+  const dims = prop.type === 'car'
+    ? { w: REAL_DIMS.car.w * 0.85, l: REAL_DIMS.car.l * 0.98 } // Srim down visually
+    : CLASSES[prop.type].real;
   const pxW = Math.max(8, (dims.w / (2 * SCENE_VIEW.halfWidthM)) * SC_W);
   let pxH;
   if (prop.type === 'car') {
     const totalY = SCENE_VIEW.forwardM + SCENE_VIEW.rearM;
-    pxH = Math.max(8, (dims.h / totalY) * SC_H);
+    pxH = Math.max(8, (dims.l / totalY) * SC_H);
   } else {
     pxH = pxW * (dims.h / dims.w);
   }
@@ -1546,7 +1629,9 @@ function renderHUD(detections, lidar) {
   const ctx = hudCtx;
   const W = HUD_W, H = HUD_H;
   const HORIZON_Y = hudHorizonY();
-  const ROAD_NEAR_M = hudNearestVisibleGroundM();
+  
+  // Pull the ground mesh all the way back to the car's bumper (yM = 0)
+  const ROAD_NEAR_M = 0.1;
   const ROAD_FAR_M = WORLD.forwardM;
 
   // Sky — flat, deep, no gradient drama
@@ -1691,6 +1776,14 @@ function renderHUD(detections, lidar) {
 
   // Detections — proper iconography per class, scaled metrically
   // through the pinhole projection. Sort far→near so closer draws on top.
+  const ghostProps = props
+    .map(hudEdgeGhostProp)
+    .filter(Boolean)
+    .sort((a, b) => b.ghostDistM - a.ghostDistM);
+  for (const ghost of ghostProps) {
+    drawHudGhost(ctx, ghost);
+  }
+
   const sortedDet = [...detections].sort((a, b) => b.distM - a.distM);
   for (const d of sortedDet) {
     const hudProp = { ...d.prop, xM: d.xRelM, yM: d.yRelM };
@@ -1698,15 +1791,7 @@ function renderHUD(detections, lidar) {
     if (!proj) continue;
 
     ctx.save();
-    if (hudProp.type === 'car') {
-      drawHudCar(ctx, proj, hudProp);
-    } else if (hudProp.type === 'stop') {
-      drawHudStop(ctx, proj);
-    } else if (hudProp.type === 'light') {
-      drawHudLight(ctx, proj, hudProp);
-    } else if (hudProp.type === 'ped') {
-      drawHudPed(ctx, proj);
-    }
+    drawHudProp(ctx, proj, hudProp);
     ctx.restore();
 
     // Detection box overlay (cyan brackets) — measured per icon
@@ -1743,7 +1828,8 @@ function renderHUD(detections, lidar) {
     ctx.restore();
   }
 
-  drawHudEgoForeground(ctx, W, H);
+  // Removed ego car foreground overlay
+  // drawHudEgoForeground(ctx, W, H);
 
   // Bottom HUD strip — speed/decision style
   ctx.save();
@@ -2106,7 +2192,16 @@ function renderScene(detections, lidar) {
     ctx.fillStyle = 'rgba(229,231,235,0.7)';
     ctx.font = '9px ui-monospace, monospace';
     ctx.textAlign = 'left';
-    const dist = Math.hypot(p.xM, p.yM);
+    
+    const xRelM = p.xM - EGO.xM;
+    const dims = REAL_DIMS[p.type] || { w: 1, l: 1 };
+    const lengthM = dims.l || dims.w || 1;
+    // Rear license plate / rear bumper center coordinate (pure longitudinal distance)
+    const rearY = p.yM - (lengthM / 2);
+    // Ignore lateral offset for distance readouts — users intuitively think of "distance" 
+    // as how far AHEAD the object is on the road.
+    const dist = Math.max(0, rearY);
+    
     ctx.fillText(`${cls.name} · ${dist.toFixed(1)}ft`, sp.px + pxW / 2 + 6, cy - 2);
     if (p.type === 'light') {
       ctx.fillText(`(click to toggle: ${p.light})`, sp.px + pxW / 2 + 6, cy + 10);
@@ -2115,7 +2210,8 @@ function renderScene(detections, lidar) {
 
   // Ego car (front bumper at y=0 — distances are measured from here)
   ctx.save();
-  const egoW = (WORLD.carWidthM / (2 * SCENE_VIEW.halfWidthM)) * SC_W;
+  const visualEgoW = 6.2 * 0.85; // Use slimmed-down physical dimension (was 8)
+  const egoW = (visualEgoW / (2 * SCENE_VIEW.halfWidthM)) * SC_W;
   const totalY = SCENE_VIEW.forwardM + SCENE_VIEW.rearM;
   const egoH = (16 / totalY) * SC_H;
   // Front bumper at ego.py (y=0). Car body extends behind (below) it.

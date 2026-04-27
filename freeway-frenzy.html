@@ -164,17 +164,17 @@
                 <article class="project-stage-insight">
                     <span>From game to driver-assist</span>
                     <strong>Same two-MCU split, real sensors</strong>
-                    <p>The C3 stops reading a joystick and starts fusing a camera + TFmini-S LiDAR; the S3 stops rendering traffic and starts rendering a Tesla-style perception HUD over the same UART link.</p>
+                    <p>The ESP32-C3 stops reading a joystick and starts fusing camera classifications with TFmini-S LiDAR distance. The ESP32-S3 stops rendering arcade traffic and instead draws a driver-assist perception HUD over the same UART link.</p>
                 </article>
                 <article class="project-stage-insight">
                     <span>Sensor stack</span>
                     <strong>Camera + 1000Hz ToF LiDAR</strong>
-                    <p>TFmini-S returns single-point distance from 0.1–12&nbsp;m; the camera classifies cars, stop signs, signals, and pedestrians. The simulator models both before any flashing happens.</p>
+                    <p>The TFmini-S reports a single forward distance sample across its 0.1-12 m range while the camera identifies cars, stop signs, signals, and pedestrians. The simulator exercises both before anything is flashed to hardware.</p>
                 </article>
                 <article class="project-stage-insight">
                     <span>Why simulate first</span>
                     <strong>Lock the UART data contract</strong>
-                    <p>The packet format the sim emits — distance plus a detection list — becomes the exact UART payload between C3 and S3 once we move to hardware.</p>
+                    <p>The packet emitted by the simulator, a distance reading plus a detection list, becomes the exact UART payload shared between the C3 and S3 when the system moves onto the real boards.</p>
                 </article>
             </div>
             <div class="project-frame-shell project-frame-shell--preview ff-desktop-frame" style="--frame-height:680px; --frame-ratio:1024 / 640;">
