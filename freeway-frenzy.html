@@ -160,6 +160,20 @@
                     <a class="project-inline-link" href="freeway-frenzy-app/vision-lab.html" target="_blank" rel="noreferrer">Open full simulator</a>
                 </div>
             </div>
+            <div class="ff-vision-intro" aria-label="Vision Lab introduction">
+                <p class="ff-vision-intro-title">RetroVision — LiDAR distance, camera detections, real-time perception.</p>
+                <p class="ff-vision-intro-lead">
+                    From game to driver-assist: the same two-MCU split is now reused with real sensors. The ESP32-C3 fuses camera classifications with TFmini-S LiDAR distance, and the ESP32-S3 renders a perception HUD over the same UART link.
+                </p>
+                <div class="ff-vision-chip-row" aria-label="Vision Lab stack">
+                    <span class="ff-vision-chip">ESP32-S3</span>
+                    <span class="ff-vision-chip">ESP32-C3</span>
+                    <span class="ff-vision-chip">C</span>
+                    <span class="ff-vision-chip">ESP-IDF</span>
+                    <span class="ff-vision-chip">LVGL</span>
+                    <span class="ff-vision-chip">UART</span>
+                </div>
+            </div>
             <div class="project-stage-insights">
                 <article class="project-stage-insight">
                     <span>From game to driver-assist</span>
@@ -200,6 +214,53 @@
                 Drag cars, stop signs, signals, or pedestrians into the lane. The left HUD is what the S3 would draw; the right scene is what the camera + LiDAR see. The footer telemetry is the live UART payload.
             </div>
         </section>
+
+        <style>
+            .ff-vision-intro {
+                margin: 1rem 0 1.1rem;
+                padding: 1rem 1.1rem;
+                border: 1px solid rgba(255, 255, 255, 0.11);
+                border-radius: 14px;
+                background:
+                    radial-gradient(110% 140% at 8% 0%, rgba(34, 211, 238, 0.16), transparent 56%),
+                    linear-gradient(120deg, rgba(17, 24, 39, 0.72), rgba(8, 47, 73, 0.48));
+                backdrop-filter: blur(1px);
+            }
+
+            .ff-vision-intro-lead {
+                margin: 0;
+                color: #dbe7f5;
+                line-height: 1.68;
+            }
+
+            .ff-vision-intro-title {
+                margin: 0 0 0.4rem;
+                color: #67e8f9;
+                font-weight: 700;
+                letter-spacing: 0.02em;
+                font-size: 0.98rem;
+            }
+
+            .ff-vision-chip-row {
+                margin-top: 0.85rem;
+                display: flex;
+                flex-wrap: wrap;
+                gap: 0.5rem;
+            }
+
+            .ff-vision-chip {
+                display: inline-flex;
+                align-items: center;
+                padding: 0.3rem 0.62rem;
+                border-radius: 999px;
+                border: 1px solid rgba(34, 211, 238, 0.42);
+                background: rgba(8, 145, 178, 0.14);
+                color: #a5f3fc;
+                font-size: 0.77rem;
+                letter-spacing: 0.03em;
+                font-weight: 600;
+            }
+        </style>
 
         <section class="project-meta-grid section-animate">
             <article class="project-meta-card">
