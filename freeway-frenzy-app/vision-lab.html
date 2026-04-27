@@ -257,6 +257,18 @@
 
   .sparkline { width: 100%; height: 36px; display: block; }
 
+  /* Chromeless embed mode (used when iframe'd into the home spotlight).
+     Hides each panel's header bar and the entire footer telemetry strip
+     so the parent window chrome can act as the surround. */
+  body.chromeless .lab {
+    grid-template-rows: 1fr;
+    padding: 6px;
+    gap: 6px;
+  }
+  body.chromeless .panel-head { display: none; }
+  body.chromeless .footer { display: none; }
+  body.chromeless .panel { border-radius: 6px; }
+
   /* Mobile */
   @media (max-width: 900px) {
     .lab {
@@ -267,10 +279,22 @@
     }
     .footer { grid-column: 1; grid-template-columns: 1fr 1fr; }
     .footer .tile.arch-tile { grid-column: 1 / span 2; }
+    body.chromeless .lab { grid-template-rows: 1fr 1fr; }
   }
 </style>
 </head>
 <body>
+<script>
+  // Apply chromeless class as early as possible so layout is correct on first paint.
+  (function() {
+    try {
+      const params = new URLSearchParams(window.location.search);
+      if (params.get('chromeless') === '1') {
+        document.body.classList.add('chromeless');
+      }
+    } catch (e) { /* noop */ }
+  })();
+</script>
 <div class="lab">
 
   <!-- LEFT: ESP32-S3 HUD (Tesla-vision style) -->
