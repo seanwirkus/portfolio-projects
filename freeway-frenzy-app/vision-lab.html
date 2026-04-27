@@ -1,0 +1,2444 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Freeway Frenzy — Vision Lab</title>
+<meta name="description" content="Browser simulator for an ESP32-C3 + TFmini-S LiDAR + camera vision system rendered on an ESP32-S3 display, modeled on Tesla's perception HUD.">
+<style>
+  :root {
+    --bg-0: #05020F;
+    --bg-1: #0B0718;
+    --bg-2: #12092A;
+    --line: rgba(180,160,255,0.16);
+    --line-strong: rgba(180,160,255,0.32);
+    --neon-l: #8b5cf6;
+    --neon-r: #ec4899;
+    --neon-c: #22d3ee;
+    --neon-y: #facc15;
+    --neon-g: #34d399;
+    --neon-rd: #f43f5e;
+    --text: #e5e7eb;
+    --muted: #94a3b8;
+  }
+  * { margin:0; padding:0; box-sizing:border-box; }
+  html, body { height:100%; }
+  body {
+    background:
+      radial-gradient(1200px 600px at 15% 0%, rgba(139,92,246,0.18), transparent 60%),
+      radial-gradient(1200px 600px at 85% 0%, rgba(236,72,153,0.18), transparent 60%),
+      linear-gradient(180deg, #05020F 0%, #0a0420 50%, #05020F 100%);
+    color: var(--text);
+    font-family: 'SF Mono', 'JetBrains Mono', Menlo, Consolas, monospace;
+    overflow: hidden;
+    user-select: none;
+    -webkit-user-select: none;
+  }
+
+  .lab {
+    display: grid;
+    /* Perception HUD (left) a bit wider than the scene editor — closer to real dash layout */
+    grid-template-columns: minmax(0, 1.45fr) minmax(0, 1fr);
+    grid-template-rows: 1fr 180px;
+    gap: 10px;
+    padding: 10px;
+    height: 100vh;
+    width: 100vw;
+  }
+  .panel {
+    position: relative;
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    background:
+      linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0)),
+      rgba(8, 4, 22, 0.85);
+    overflow: hidden;
+    box-shadow: 0 0 40px rgba(139,92,246,0.06) inset;
+  }
+  .panel-head {
+    position: absolute; top: 0; left: 0; right: 0;
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 8px 12px;
+    font-size: 10px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--muted);
+    z-index: 5;
+    pointer-events: none;
+    background: linear-gradient(180deg, rgba(0,0,0,0.55), transparent);
+  }
+  .panel-head .pill {
+    border: 1px solid var(--line-strong);
+    color: var(--neon-c);
+    padding: 2px 8px;
+    border-radius: 999px;
+    font-size: 9px;
+    background: rgba(34,211,238,0.06);
+  }
+  canvas { display: block; width: 100%; height: 100%; }
+
+  /* Telemetry footer spans both columns */
+  .footer {
+    grid-column: 1 / span 2;
+    display: grid;
+    grid-template-columns: 1.2fr 1fr 1fr 0.9fr;
+    gap: 10px;
+  }
+  .tile {
+    position: relative;
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    background: rgba(8, 4, 22, 0.85);
+    padding: 12px 14px;
+    overflow: hidden;
+  }
+  .tile h4 {
+    font-size: 9px;
+    letter-spacing: 0.22em;
+    color: var(--muted);
+    text-transform: uppercase;
+    margin-bottom: 8px;
+    font-weight: 500;
+  }
+  .arch-row {
+    display: flex; align-items: center; gap: 8px;
+    font-size: 11px;
+    flex-wrap: wrap;
+  }
+  .chip {
+    border: 1px solid var(--line-strong);
+    border-radius: 6px;
+    padding: 4px 8px;
+    background: rgba(139,92,246,0.06);
+    color: #cbd5e1;
+    display: inline-flex; align-items: center; gap: 6px;
+  }
+  .chip .dot {
+    width: 6px; height: 6px; border-radius: 50%;
+    background: var(--neon-g);
+    box-shadow: 0 0 6px var(--neon-g);
+  }
+  .chip.warn .dot { background: var(--neon-y); box-shadow: 0 0 6px var(--neon-y); }
+  .chip.err  .dot { background: var(--neon-rd); box-shadow: 0 0 6px var(--neon-rd); }
+  .arrow { color: var(--neon-c); font-size: 14px; }
+
+  .big-num {
+    font-size: 28px;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    color: var(--neon-c);
+    text-shadow: 0 0 12px rgba(34,211,238,0.5);
+    font-variant-numeric: tabular-nums;
+  }
+  .big-num .unit { font-size: 13px; color: var(--muted); margin-left: 4px; text-shadow: none; }
+  .row { display: flex; justify-content: space-between; align-items: baseline; }
+  .small { font-size: 10px; color: var(--muted); }
+
+  .det-list {
+    display: flex; flex-direction: column; gap: 4px;
+    font-size: 11px;
+    max-height: 110px;
+    overflow-y: auto;
+  }
+  .det {
+    display: grid;
+    grid-template-columns: 14px 1fr auto auto;
+    gap: 8px;
+    align-items: center;
+    padding: 3px 6px;
+    border-radius: 4px;
+    background: rgba(255,255,255,0.02);
+    border-left: 2px solid var(--neon-c);
+  }
+  .det .swatch {
+    width: 8px; height: 8px; border-radius: 2px;
+  }
+  .det .conf {
+    color: var(--muted);
+    font-variant-numeric: tabular-nums;
+    font-size: 10px;
+  }
+  .det .dist {
+    color: var(--neon-c);
+    font-variant-numeric: tabular-nums;
+    font-size: 10px;
+  }
+
+  .toolbar {
+    position: absolute;
+    bottom: 10px;
+    left: 10px;
+    right: 10px;
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+    z-index: 6;
+  }
+  .tool {
+    flex: 1;
+    min-width: 80px;
+    border: 1px solid var(--line-strong);
+    background: rgba(8,4,22,0.9);
+    color: #cbd5e1;
+    padding: 8px 6px;
+    border-radius: 6px;
+    font-family: inherit;
+    font-size: 10px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    cursor: grab;
+    transition: all 0.15s;
+    text-align: center;
+  }
+  .tool:hover {
+    border-color: var(--neon-c);
+    color: var(--neon-c);
+    background: rgba(34,211,238,0.06);
+  }
+  .tool:active { cursor: grabbing; }
+  .tool.danger { border-color: rgba(244,63,94,0.4); color: #fda4af; }
+  .tool.danger:hover { border-color: var(--neon-rd); color: var(--neon-rd); background: rgba(244,63,94,0.08); }
+
+  .legend-key {
+    position: absolute;
+    bottom: 10px;
+    left: 10px;
+    z-index: 4;
+    font-size: 9px;
+    letter-spacing: 0.1em;
+    color: var(--muted);
+    background: rgba(8,4,22,0.7);
+    border: 1px solid var(--line);
+    border-radius: 6px;
+    padding: 6px 8px;
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    pointer-events: none;
+  }
+  .legend-key .lk-item { display: inline-flex; align-items: center; gap: 4px; }
+  .legend-key .lk-dot { width: 8px; height: 2px; }
+
+  .drive-pad {
+    position: absolute;
+    right: 10px;
+    bottom: 10px;
+    z-index: 6;
+    display: grid;
+    grid-template-columns: repeat(3, 34px);
+    grid-template-rows: repeat(2, 34px);
+    gap: 5px;
+  }
+  .drive-btn {
+    border: 1px solid var(--line-strong);
+    border-radius: 8px;
+    background: rgba(8,4,22,0.84);
+    color: #cbd5e1;
+    font: 700 15px/1 'SF Mono', Menlo, monospace;
+    cursor: pointer;
+    box-shadow: 0 0 12px rgba(34,211,238,0.04) inset;
+  }
+  .drive-btn:nth-child(1) { grid-column: 2; }
+  .drive-btn:nth-child(2) { grid-column: 1; grid-row: 2; }
+  .drive-btn:nth-child(3) { grid-column: 2; grid-row: 2; }
+  .drive-btn:nth-child(4) { grid-column: 3; grid-row: 2; }
+  .drive-btn.is-active {
+    border-color: var(--neon-c);
+    color: var(--neon-c);
+    background: rgba(34,211,238,0.12);
+    box-shadow: 0 0 16px rgba(34,211,238,0.24);
+  }
+
+  .sparkline { width: 100%; height: 36px; display: block; }
+
+  /* Mobile */
+  @media (max-width: 900px) {
+    .lab {
+      grid-template-columns: 1fr;
+      grid-template-rows: 1fr 1fr auto;
+      gap: 6px;
+      padding: 6px;
+    }
+    .footer { grid-column: 1; grid-template-columns: 1fr 1fr; }
+    .footer .tile.arch-tile { grid-column: 1 / span 2; }
+  }
+</style>
+</head>
+<body>
+<div class="lab">
+
+  <!-- LEFT: ESP32-S3 HUD (Tesla-vision style) -->
+  <section class="panel" id="hudPanel">
+    <div class="panel-head">
+      <span>ESP32-S3 · Perception HUD · 1024×600</span>
+      <span class="pill" id="hudFps">— fps</span>
+    </div>
+    <canvas id="hud"></canvas>
+    <div class="legend-key">
+      <span class="lk-item"><span class="lk-dot" style="background:var(--neon-c);"></span>Detection</span>
+      <span class="lk-item"><span class="lk-dot" style="background:var(--neon-rd);"></span>LiDAR ray</span>
+      <span class="lk-item"><span class="lk-dot" style="background:var(--neon-y);"></span>Caution zone</span>
+    </div>
+    <div class="drive-pad" aria-label="Drive controls">
+      <button class="drive-btn" data-drive="up" aria-label="Accelerate">↑</button>
+      <button class="drive-btn" data-drive="left" aria-label="Steer left">←</button>
+      <button class="drive-btn" data-drive="down" aria-label="Brake">↓</button>
+      <button class="drive-btn" data-drive="right" aria-label="Steer right">→</button>
+    </div>
+  </section>
+
+  <!-- RIGHT: scene editor (top-down world) -->
+  <section class="panel" id="scenePanel">
+    <div class="panel-head">
+      <span>Scene Editor · Top-down · drag props</span>
+      <span class="pill" id="scenePill">CAMERA FOV 100°</span>
+    </div>
+    <canvas id="scene"></canvas>
+    <div class="toolbar">
+      <button class="tool" data-spawn="car">+ Car</button>
+      <button class="tool" data-spawn="stop">+ Stop sign</button>
+      <button class="tool" data-spawn="light">+ Signal</button>
+      <button class="tool" data-spawn="ped">+ Pedestrian</button>
+      <button class="tool danger" id="clearBtn">Clear</button>
+    </div>
+  </section>
+
+  <!-- FOOTER: telemetry -->
+  <section class="footer">
+    <div class="tile arch-tile">
+      <h4>System architecture · live UART link</h4>
+      <div class="arch-row">
+        <span class="chip"><span class="dot"></span>TFmini-S LiDAR</span>
+        <span class="arrow">→</span>
+        <span class="chip"><span class="dot"></span>Camera</span>
+        <span class="arrow">→</span>
+        <span class="chip"><span class="dot"></span>ESP32-C3 fusion</span>
+        <span class="arrow">→</span>
+        <span class="chip"><span class="dot"></span>UART 115200</span>
+        <span class="arrow">→</span>
+        <span class="chip"><span class="dot"></span>ESP32-S3 render</span>
+      </div>
+      <div class="small" style="margin-top:8px;">
+        Packet contract: <span style="color:var(--neon-c);">{ distance_ft_x100: u16, n: u8, [{class, x, y, w, h, conf}] }</span>
+      </div>
+      <div class="small" style="margin-top:4px;">
+        TX rate: <span id="txRate">0</span> Hz · last packet: <span id="lastPacket">—</span>
+      </div>
+    </div>
+
+    <div class="tile">
+      <h4>TFmini-S · forward distance</h4>
+      <div class="row">
+        <div class="big-num" id="distVal">—<span class="unit">ft</span></div>
+        <div class="small" id="distState">—</div>
+      </div>
+      <div class="small" style="margin-top:6px;">Range 0.3 – 36.0 ft · 1000 Hz</div>
+      <canvas class="sparkline" id="spark"></canvas>
+    </div>
+
+    <div class="tile">
+      <h4>Detections (camera CNN sim)</h4>
+      <div class="det-list" id="detList">
+        <div class="small" style="opacity:0.5;">No objects in FOV — drag a prop into the lane.</div>
+      </div>
+    </div>
+
+    <div class="tile">
+      <h4>Decision</h4>
+      <div class="big-num" id="decisionVal" style="color:var(--neon-g); text-shadow: 0 0 12px rgba(52,211,153,0.5);">CLEAR</div>
+      <div class="small" id="decisionReason" style="margin-top:6px;">No hazards detected.</div>
+      <div class="small" style="margin-top:8px;">
+        TTC: <span id="ttcVal" style="color:var(--neon-c);">—</span>
+      </div>
+    </div>
+  </section>
+
+</div>
+
+<script>
+/* ─────────────────────────────────────────────────────────────
+   Vision Lab — simulator for the FreewayFrenzy hardware reused
+   as a real-world driver-assist vision stack.
+
+   Architecture mirrors the actual build:
+     ESP32-C3 (sensor fusion)  →  UART  →  ESP32-S3 (render)
+   The "packet" emitted to the HUD canvas is the same contract
+   that will go over the wire when this is flashed.
+   ───────────────────────────────────────────────────────────── */
+
+const hud   = document.getElementById('hud');
+const scene = document.getElementById('scene');
+const hudCtx   = hud.getContext('2d');
+const sceneCtx = scene.getContext('2d');
+
+const fpsEl = document.getElementById('hudFps');
+const distVal = document.getElementById('distVal');
+const distState = document.getElementById('distState');
+const detList = document.getElementById('detList');
+const decisionVal = document.getElementById('decisionVal');
+const decisionReason = document.getElementById('decisionReason');
+const ttcVal = document.getElementById('ttcVal');
+const sparkCv = document.getElementById('spark');
+const sparkCtx = sparkCv.getContext('2d');
+const txRateEl = document.getElementById('txRate');
+const lastPacketEl = document.getElementById('lastPacket');
+
+/* ── World coordinate system ─────────────────────────────────
+   Real units (feet). Ego car sits at world origin, camera mounted
+   at the dash height looking forward (+Y). Lanes match US standard
+   so cars actually *fit* — 12 ft lane vs ~6 ft car.              */
+const WORLD = {
+  forwardM: 50,           // Render the HUD canvas up to 50 feet
+  halfWidthM: 26,         // ±26 ft lateral (road + shoulders)
+  laneCount: 3,           // 3-lane highway
+  laneWidthM: 12,         // US standard lane width
+  shoulderM: 3,
+  carWidthM: 8,
+  fovDeg: 120,            // wide dashcam-style horizontal FOV
+  verticalFovDeg: 48,     // raised with hFOV so the whole windshield feels wider
+  cameraHeightM: 3.2,
+  cameraPitchRad: 0.045,
+  cameraOffsetM: 13.0,    // offset to make distances read correctly
+  hudDepthScale: 1.0,
+  lidarRangeM: 50.0,      // Sensor view matches render distance at 50 feet
+  lidarMinM: 0.3,
+};
+WORLD.roadHalfM = (WORLD.laneCount * WORLD.laneWidthM) / 2;
+
+(function syncSceneFovPill() {
+  const el = document.getElementById('scenePill');
+  if (el) el.textContent = `CAMERA FOV ${WORLD.fovDeg}°`;
+})();
+
+/* Scene editor view extents — larger than the detection world so
+   objects render at a realistic, proportional size in the top-down view. */
+const SCENE_VIEW = {
+  halfWidthM: 52,   // ±52 ft lateral
+  forwardM: 72,     // 72 ft forward
+  rearM: 24,        // 24 ft behind the front bumper so the ego car is visible
+};
+
+/* Per-class palette and real-world dimensions. */
+const CAR_PALETTE = [
+  { name: 'Metallic Silver', body: '#e2e8f0', roof: '#94a3b8' },
+  { name: 'Graphite',        body: '#64748b', roof: '#334155' },
+  { name: 'Midnight Blue',   body: '#1e3a8a', roof: '#172554' },
+  { name: 'Crimson',         body: '#be123c', roof: '#881337' },
+  { name: 'Pearl White',     body: '#f8fafc', roof: '#cbd5e1' },
+  { name: 'Jet Black',       body: '#0f172a', roof: '#020617' },
+  { name: 'Champagne',       body: '#d6d3d1', roof: '#a8a29e' },
+  { name: 'Deep Forest',     body: '#115e59', roof: '#042f2e' },
+];
+const CLASSES = {
+  car:   { name: 'CAR',           color: '#22d3ee', real: { w: 6.2, h: 15 } },
+  stop:  { name: 'STOP_SIGN',     color: '#f43f5e', real: { w: 2, h: 2 } },
+  light: { name: 'TRAFFIC_LIGHT', color: '#facc15', real: { w: 1, h: 2.4 } },
+  ped:   { name: 'PEDESTRIAN',    color: '#a78bfa', real: { w: 1.8, h: 5.6 } },
+};
+
+/* Props placed in the world. For cars, yM is the range to the rear bumper,
+   because that is the distance a forward LiDAR/camera would report. */
+let nextId = 1;
+let props = [
+  { id: nextId++, type: 'car',  xM: 0,    yM: 24, color: 1 },
+  { id: nextId++, type: 'stop', xM: 14,   yM: 33 },
+];
+
+const EGO = {
+  xM: 0,
+  speedMps: 0,
+  travelM: 0,
+  maxSpeedMps: 45,
+  accelMps2: 18,
+  brakeMps2: 32,
+  dragMps2: 4,
+  steerMps: 12,
+};
+const driveKeys = { left: false, right: false, up: false, down: false };
+
+let dragging = null;        // { prop, offX, offY } when mouse-dragging existing
+let spawning = null;        // { type } when dragging from toolbar
+let mouseScene = { x: 0, y: 0, in: false };
+
+/* ── Canvas sizing ─────────────────────────────────────────── */
+function fit(cv) {
+  const dpr = window.devicePixelRatio || 1;
+  const r = cv.getBoundingClientRect();
+  cv.width  = Math.floor(r.width * dpr);
+  cv.height = Math.floor(r.height * dpr);
+  const ctx = cv.getContext('2d');
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  return { w: r.width, h: r.height };
+}
+let HUD_W, HUD_H, SC_W, SC_H, SP_W, SP_H;
+function fitAll() {
+  ({ w: HUD_W, h: HUD_H } = fit(hud));
+  ({ w: SC_W,  h: SC_H  } = fit(scene));
+  ({ w: SP_W,  h: SP_H  } = fit(sparkCv));
+}
+window.addEventListener('resize', fitAll);
+fitAll();
+
+/* ── Scene → world coordinate mapping ──────────────────────── */
+function sceneToWorld(px, py) {
+  const xM = (px / SC_W - 0.5) * 2 * SCENE_VIEW.halfWidthM;
+  const totalY = SCENE_VIEW.forwardM + SCENE_VIEW.rearM;
+  const yM = (1 - py / SC_H) * totalY - SCENE_VIEW.rearM;
+  return { xM, yM };
+}
+function worldToScene(xM, yM) {
+  const px = (xM / (2 * SCENE_VIEW.halfWidthM) + 0.5) * SC_W;
+  const totalY = SCENE_VIEW.forwardM + SCENE_VIEW.rearM;
+  const py = (1 - (yM + SCENE_VIEW.rearM) / totalY) * SC_H;
+  return { px, py };
+}
+
+/* ── HUD projection — proper pinhole camera ─────────────────
+   World axes: x = lateral (right +), y = forward (+), z = up.
+   Camera at (0, 0, cameraHeightM), looking along +y, slight pitch.
+   For a point on the ground (z=0) at world (xM, yM, 0):
+
+       focalX_px = (HUD_W / 2) / tan(horizontal_fov/2)
+       focalY_px = (HUD_H / 2) / tan(vertical_fov/2)
+       screenX   = HUD_W/2 + focalX_px * (x / distance)
+       screenY   = horizon + focalY_px * (cameraHeight / distance)
+
+   The math is unitless; WORLD values are feet for this simulator. */
+function hudFocalXPx() {
+  return (HUD_W / 2) / Math.tan((WORLD.fovDeg * Math.PI / 180) / 2);
+}
+function hudFocalYPx() {
+  return (HUD_H / 2) / Math.tan((WORLD.verticalFovDeg * Math.PI / 180) / 2);
+}
+function hudHorizonY() {
+  // Slight downward pitch nudges the horizon up the screen.
+  return HUD_H * 0.5 - hudFocalYPx() * Math.tan(WORLD.cameraPitchRad);
+}
+function hudProject(xM, yM, zM = 0) {
+  if (yM + WORLD.cameraOffsetM <= 0.1) return null;
+  const fx = hudFocalXPx();
+  const fy = hudFocalYPx();
+  const horizon = hudHorizonY();
+  const visualY = (yM + WORLD.cameraOffsetM) * WORLD.hudDepthScale;
+  const screenX = HUD_W / 2 + fx * (xM / visualY);
+  const screenY = horizon + fy * ((WORLD.cameraHeightM - zM) / visualY);
+  return {
+    x: screenX,
+    y: screenY,
+    pxPerM: fy / visualY,
+    pxPerMX: fx / visualY,
+    depth: yM / WORLD.forwardM,
+    yM,
+  };
+}
+
+/* ── Detection model ────────────────────────────────────────
+   For each prop in the camera FOV cone, emit a detection with
+   class, world position, range, and a fake confidence that
+   decays gracefully with distance + lateral offset.            */
+function fovHalfRad() { return (WORLD.fovDeg * Math.PI / 180) / 2; }
+function inFov(p) {
+  const xRelM = p.xM - EGO.xM;
+  const yRelM = p.yM;
+  if (yRelM <= 0.05) return false;
+  const ang = Math.atan2(Math.abs(xRelM), yRelM);
+  return ang <= fovHalfRad() && yRelM <= WORLD.forwardM;
+}
+function detectAll() {
+  const out = [];
+  for (const p of props) {
+    if (!inFov(p)) continue;
+    const xRelM = p.xM - EGO.xM;
+    const yRelM = p.yM;
+    const dist = Math.hypot(xRelM, yRelM);
+    const cls = CLASSES[p.type];
+    // Confidence: high near center + close, decays toward FOV edges + range.
+    const angNorm = Math.atan2(Math.abs(xRelM), yRelM) / fovHalfRad();
+    const distNorm = Math.min(1, dist / WORLD.forwardM);
+    const conf = Math.max(0.42, 0.98 - angNorm * 0.18 - distNorm * 0.35);
+    out.push({ id: p.id, prop: p, class: cls.name, color: cls.color, distM: dist, xRelM, yRelM, conf });
+  }
+  out.sort((a, b) => a.distM - b.distM);
+  return out;
+}
+
+/* ── LiDAR (single-point ToF) ────────────────────────────────
+   TFmini-S returns nearest distance along a narrow forward ray.
+   We model a narrow beam: pick the nearest prop within a few inches
+   lateral of the ray over its range. Add small jitter for feel. */
+function lidarReading() {
+  const beamHalfM = 0.2;
+  let nearest = Infinity;
+  let hit = null;
+  for (const p of props) {
+    if (p.yM < WORLD.lidarMinM || p.yM > WORLD.lidarRangeM) continue;
+    if (Math.abs(p.xM - EGO.xM) > beamHalfM) continue;
+    if (p.yM < nearest) { nearest = p.yM; hit = p; }
+  }
+  if (!isFinite(nearest)) return { distM: null, hit: null, raw: WORLD.lidarRangeM };
+  // 1000 Hz sensor — add tiny jitter for realism.
+  const jitter = (Math.random() - 0.5) * 0.015;
+  return { distM: Math.max(WORLD.lidarMinM, nearest + jitter), hit, raw: nearest };
+}
+
+/* ── Decision logic ────────────────────────────────────────── */
+function makeDecision(detections, lidar, dt) {
+  // Track approach speed via simple history of lidar distance
+  const now = lidar.distM;
+  if (now != null && _lastLidar != null) {
+    const inst = (_lastLidar - now) / dt; // ft/s, positive = approaching
+    _approachMs = _approachMs * 0.75 + inst * 0.25;
+  }
+  if (now != null) _lastLidar = now;
+
+  // Stop sign / red light → STOP regardless of distance if close
+  const stopSign = detections.find(d => d.class === 'STOP_SIGN' && d.distM < 25);
+  const redLight = detections.find(d => d.class === 'TRAFFIC_LIGHT' && d.prop.light === 'red' && d.distM < 33);
+  if (stopSign) return { state: 'STOP', reason: `Stop sign ahead · ${stopSign.distM.toFixed(1)} ft`, color: '#f43f5e' };
+  if (redLight) return { state: 'STOP', reason: `Red signal ahead · ${redLight.distM.toFixed(1)} ft`, color: '#f43f5e' };
+
+  // Pedestrian anywhere in FOV → caution
+  const ped = detections.find(d => d.class === 'PEDESTRIAN');
+  if (ped) return { state: 'YIELD', reason: `Pedestrian · ${ped.distM.toFixed(1)} ft`, color: '#facc15' };
+
+  // Forward car → check TTC from approach speed
+  const carAhead = detections.find(d => d.class === 'CAR');
+  if (carAhead && now != null && _approachMs > 0.4) {
+    const ttc = now / _approachMs;
+    if (ttc < 1.5) return { state: 'BRAKE', reason: `TTC ${ttc.toFixed(1)}s · car closing fast`, color: '#f43f5e' };
+    if (ttc < 3.5) return { state: 'CAUTION', reason: `TTC ${ttc.toFixed(1)}s · maintain gap`, color: '#facc15' };
+  }
+  if (carAhead && now != null && now < 8) {
+    return { state: 'CAUTION', reason: `Car ${now.toFixed(1)} ft ahead`, color: '#facc15' };
+  }
+
+  // Yellow signal
+  const yellow = detections.find(d => d.class === 'TRAFFIC_LIGHT' && d.prop.light === 'yellow');
+  if (yellow) return { state: 'CAUTION', reason: `Yellow signal · ${yellow.distM.toFixed(1)} ft`, color: '#facc15' };
+
+  return { state: 'CLEAR', reason: 'No hazards detected.', color: '#34d399' };
+}
+let _lastLidar = null;
+let _approachMs = 0;
+
+/* ── HUD icon helpers ──────────────────────────────────────── */
+// All icons drawn with proj.x as horizontal center, proj.y as the
+// ground contact (the "feet" of the object). sz is the scale 0..1
+// where 1 is at the ego-camera plane.
+
+// Real-world dimensions per class (feet). Used so icons scale
+// metrically through the pinhole projection (proj.pxPerM).
+const REAL_DIMS = {
+  car:   { w: 6.2, h: 4.2,  l: 14.5 }, // sleeker car
+  stop:  { w: 2, h: 2, postH: 3.8 },
+  light: { w: 1, h: 2.4,  postH: 5.0 },
+  ped:   { w: 1.8, h: 5.6 },
+};
+
+function lerp(a, b, t) {
+  return a + (b - a) * t;
+}
+
+function mixHex(fg, bg, t) {
+  const a = (h) => {
+    const s = h.replace('#', '');
+    if (s.length === 3) {
+      return [0,1,2].map((i) => parseInt(s[i] + s[i], 16));
+    }
+    return [parseInt(s.slice(0,2), 16), parseInt(s.slice(2,4), 16), parseInt(s.slice(4,6), 16)];
+  };
+  const A = a(fg), B = a(bg);
+  const r = Math.round(lerp(A[0], B[0], t));
+  const g = Math.round(lerp(A[1], B[1], t));
+  const b = Math.round(lerp(A[2], B[2], t));
+  return `rgb(${r},${g},${b})`;
+}
+
+function lerpPoint(a, b, t) {
+  return { x: lerp(a.x, b.x, t), y: lerp(a.y, b.y, t) };
+}
+
+function drawPoly(ctx, pts) {
+  ctx.beginPath();
+  ctx.moveTo(pts[0].x, pts[0].y);
+  for (let i = 1; i < pts.length; i++) ctx.lineTo(pts[i].x, pts[i].y);
+  ctx.closePath();
+}
+
+function drawLine(ctx, a, b) {
+  ctx.beginPath();
+  ctx.moveTo(a.x, a.y);
+  ctx.lineTo(b.x, b.y);
+  ctx.stroke();
+}
+
+function drawRearVehicle(ctx, cx, bottomY, w, h, palette, options = {}) {
+  const body = options.body || palette.body;
+  const roof = options.roof || palette.roof;
+  const sensor = !!options.sensor;
+  const depth3d = !!options.depth3d;
+  const glow = options.glow || body;
+  const r = Math.max(4, h * 0.08);
+  const x = cx - w / 2;
+  const top = bottomY - h;
+  const bodyTop = top + h * 0.34;
+  const bumperTop = bottomY - h * 0.22;
+  const roofPanelW = w * (sensor ? 0.58 : 0.74);
+  const cabinW = w * (sensor ? 0.4 : 0.58);
+  const glassPanelH = h * (sensor ? 0.22 : 0.28);
+  const cabinX = cx - cabinW / 2;
+
+  ctx.save();
+  ctx.fillStyle = 'rgba(0,0,0,0.5)';
+  ctx.beginPath();
+  ctx.ellipse(cx, bottomY + h * 0.05, w * 0.45, Math.max(2, h * 0.06), 0, 0, Math.PI * 2);
+  ctx.fill();
+
+  ctx.shadowColor = glow;
+  ctx.shadowBlur = options.shadowBlur ?? 10;
+  ctx.fillStyle = body;
+  roundRect(ctx, x, bodyTop, w, bottomY - bodyTop, r);
+  ctx.fill();
+  ctx.shadowBlur = 0;
+
+  if (depth3d) {
+    ctx.fillStyle = 'rgba(255,255,255,0.12)';
+    drawPoly(ctx, [
+      { x: x + w * 0.12, y: bodyTop + h * 0.02 },
+      { x: x + w * 0.88, y: bodyTop + h * 0.02 },
+      { x: x + w * 0.76, y: top + h * 0.18 },
+      { x: x + w * 0.24, y: top + h * 0.18 },
+    ]);
+    ctx.fill();
+    ctx.fillStyle = 'rgba(2,6,23,0.22)';
+    drawPoly(ctx, [
+      { x, y: bodyTop + h * 0.04 },
+      { x: x + w * 0.12, y: bodyTop + h * 0.02 },
+      { x: x + w * 0.18, y: bottomY },
+      { x, y: bottomY },
+    ]);
+    ctx.fill();
+    drawPoly(ctx, [
+      { x: x + w, y: bodyTop + h * 0.04 },
+      { x: x + w * 0.88, y: bodyTop + h * 0.02 },
+      { x: x + w * 0.82, y: bottomY },
+      { x: x + w, y: bottomY },
+    ]);
+    ctx.fill();
+  }
+
+  ctx.fillStyle = roof;
+  roundRect(ctx, cx - roofPanelW / 2, top + h * 0.06, roofPanelW, h * 0.34, r * 0.75);
+  ctx.fill();
+
+  ctx.fillStyle = '#9fb1c2';
+  roundRect(ctx, cabinX, top + h * 0.12, cabinW, glassPanelH, r * 0.45);
+  ctx.fill();
+  ctx.fillStyle = '#d7e1ea';
+  ctx.fillRect(cabinX + cabinW * 0.1, top + h * 0.15, cabinW * 0.28, glassPanelH * 0.65);
+  ctx.fillStyle = 'rgba(15,23,42,0.45)';
+  ctx.fillRect(cx - 1, top + h * 0.12, 2, glassPanelH);
+
+  ctx.fillStyle = 'rgba(255,255,255,0.14)';
+  ctx.fillRect(x + w * 0.08, bodyTop + h * 0.04, w * 0.84, Math.max(2, h * 0.03));
+  ctx.fillStyle = 'rgba(2,6,23,0.18)';
+  ctx.fillRect(x, bodyTop + h * 0.34, w, h * 0.07);
+
+  ctx.fillStyle = '#020617';
+  roundRect(ctx, x - w * 0.02, bodyTop + h * 0.15, w * 0.14, h * 0.18, 2);
+  roundRect(ctx, x + w * 0.88, bodyTop + h * 0.15, w * 0.14, h * 0.18, 2);
+  ctx.fill();
+
+  ctx.fillStyle = '#111827';
+  roundRect(ctx, x + w * 0.08, bumperTop, w * 0.84, bottomY - bumperTop, r * 0.55);
+  ctx.fill();
+
+  ctx.fillStyle = '#ef4444';
+  ctx.shadowColor = '#ef4444';
+  ctx.shadowBlur = h * 0.08;
+  ctx.fillRect(x + w * 0.18, bodyTop + h * 0.36, w * 0.15, h * 0.09);
+  ctx.fillRect(x + w * 0.67, bodyTop + h * 0.36, w * 0.15, h * 0.09);
+  ctx.shadowBlur = 0;
+
+  ctx.fillStyle = '#facc15';
+  ctx.fillRect(x + w * 0.08, bumperTop + h * 0.05, w * 0.05, h * 0.07);
+  ctx.fillRect(x + w * 0.87, bumperTop + h * 0.05, w * 0.05, h * 0.07);
+  ctx.fillStyle = '#e2e8f0';
+  ctx.fillRect(cx - w * 0.09, bumperTop + h * 0.06, w * 0.18, h * 0.09);
+
+  ctx.strokeStyle = 'rgba(255,255,255,0.42)';
+  ctx.lineWidth = Math.max(1, h * 0.018);
+  roundRect(ctx, x, bodyTop, w, bottomY - bodyTop, r);
+  ctx.stroke();
+  ctx.strokeStyle = 'rgba(2,6,23,0.4)';
+  drawLine(ctx, { x, y: bumperTop }, { x: x + w, y: bumperTop });
+  drawLine(ctx, { x: cx, y: bodyTop + h * 0.08 }, { x: cx, y: bumperTop });
+
+  if (sensor) {
+    ctx.fillStyle = '#0f172a';
+    roundRect(ctx, cx - w * 0.08, bodyTop + h * 0.18, w * 0.16, h * 0.1, 4);
+    ctx.fill();
+    ctx.fillStyle = '#22d3ee';
+    ctx.beginPath();
+    ctx.arc(cx, bodyTop + h * 0.23, Math.max(2, w * 0.018), 0, Math.PI * 2);
+    ctx.fill();
+  }
+
+  ctx.restore();
+}
+
+function carPerspectivePoints(prop) {
+  const halfW = REAL_DIMS.car.w / 2;
+  const rearY = Math.max(0.25, prop.yM);
+  const frontY = Math.max(rearY + 0.25, prop.yM + REAL_DIMS.car.l);
+  const x = prop.xM;
+  const topZ = REAL_DIMS.car.h;
+  return {
+    rearY,
+    frontY,
+    rgl: hudProject(x - halfW, rearY, 0),
+    rgr: hudProject(x + halfW, rearY, 0),
+    fgl: hudProject(x - halfW, frontY, 0),
+    fgr: hudProject(x + halfW, frontY, 0),
+    rtl: hudProject(x - halfW, rearY, topZ),
+    rtr: hudProject(x + halfW, rearY, topZ),
+    ftl: hudProject(x - halfW, frontY, topZ),
+    ftr: hudProject(x + halfW, frontY, topZ),
+  };
+}
+
+function iconBounds(prop, proj) {
+  // Visual bbox in screen px, derived from real feet × pxPerM.
+  const cx = proj.x, gy = proj.y; // ground contact point
+  const m = proj.pxPerM;
+  if (prop.type === 'car') {
+    const rear = hudProject(prop.xM, prop.yM, 0);
+    const top = hudProject(prop.xM, prop.yM, REAL_DIMS.car.h);
+    if (!rear || !top) return { x: cx - 20, y: gy - 30, w: 40, h: 30 };
+    const w = REAL_DIMS.car.w * rear.pxPerMX;
+    const h = Math.max(14, (rear.y - top.y) * 0.78);
+    return { x: rear.x - w / 2, y: rear.y - h, w, h };
+  }
+  if (prop.type === 'stop') {
+    const w = REAL_DIMS.stop.w * m;
+    const postH = REAL_DIMS.stop.postH * m;
+    return { x: cx - w / 2, y: gy - postH - w, w, h: w };
+  }
+  if (prop.type === 'light') {
+    const w = REAL_DIMS.light.w * m;
+    const h = REAL_DIMS.light.h * m;
+    const postH = REAL_DIMS.light.postH * m;
+    return { x: cx - w / 2, y: gy - postH - h, w, h };
+  }
+  if (prop.type === 'ped') {
+    const w = REAL_DIMS.ped.w * m;
+    const h = REAL_DIMS.ped.h * m;
+    return { x: cx - w / 2, y: gy - h, w, h };
+  }
+  return { x: cx - 20, y: gy - 30, w: 40, h: 30 };
+}
+
+function drawHudCar(ctx, proj, prop) {
+  const pts = carPerspectivePoints(prop);
+  const m = hudProject(prop.xM, Math.max(0.25, pts.rearY)).pxPerM;
+  const sz = Math.max(0.2, m / 60); 
+  const palette = CAR_PALETTE[(prop.color | 0) % CAR_PALETTE.length];
+  const body = palette.body, roof = palette.roof;
+  const halfW = REAL_DIMS.car.w / 2;
+  const x = prop.xM;
+  const rearY = pts.rearY, frontY = pts.frontY;
+  const bodyZ = REAL_DIMS.car.h * 0.55, roofZ = REAL_DIMS.car.h;
+
+  const rearTopL = hudProject(x - halfW * 0.95, rearY, bodyZ), rearTopR = hudProject(x + halfW * 0.95, rearY, bodyZ);
+  const frontTopL = hudProject(x - halfW * 0.72, frontY, bodyZ), frontTopR = hudProject(x + halfW * 0.72, frontY, bodyZ);
+  const roofRearL = hudProject(x - halfW * 0.58, lerp(rearY, frontY, 0.2), roofZ);
+  const roofRearR = hudProject(x + halfW * 0.58, lerp(rearY, frontY, 0.2), roofZ);
+  const roofFrontL = hudProject(x - halfW * 0.42, lerp(rearY, frontY, 0.72), roofZ);
+  const roofFrontR = hudProject(x + halfW * 0.42, lerp(rearY, frontY, 0.72), roofZ);
+  
+  const mirrorL = hudProject(x - halfW * 1.1, lerp(rearY, frontY, 0.5), bodyZ * 0.85);
+  const mirrorR = hudProject(x + halfW * 1.1, lerp(rearY, frontY, 0.5), bodyZ * 0.85);
+
+  // 1. Shadow & Undercarriage
+  ctx.save();
+  ctx.fillStyle = 'rgba(0,0,0,0.72)';
+  drawPoly(ctx, [pts.rgl, pts.rgr, pts.fgr, pts.fgl]);
+  ctx.fill();
+  ctx.fillStyle = '#0a0a0a';
+  drawPoly(ctx, [pts.rgl, pts.rgr, {x: pts.rgr.x, y: pts.rgr.y-6*sz}, {x: pts.rgl.x, y: pts.rgl.y-6*sz}]);
+  ctx.fill();
+  ctx.restore();
+
+  // 1b. Rear tires (outboard, at axle — black rubber + rim)
+  const axleY = Math.min(rearY + 0.92, frontY - 0.4);
+  const track = halfW * 0.82;
+  const wLp = hudProject(x - track, axleY, 0);
+  const wRp = hudProject(x + track, axleY, 0);
+  if (wLp && wRp) {
+    const tw = Math.max(3, m * 0.4);
+    const th = Math.max(2.4, m * 0.32);
+    const drawTire = (wp) => {
+      const cy = wp.y - th * 0.1;
+      ctx.fillStyle = '#070707';
+      ctx.beginPath();
+      ctx.ellipse(wp.x, cy, tw, th, 0, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.strokeStyle = '#1c1917';
+      ctx.lineWidth = Math.max(0.6, 0.12 * m);
+      ctx.beginPath();
+      ctx.ellipse(wp.x, cy, tw * 0.9, th * 0.9, 0, 0, Math.PI * 2);
+      ctx.stroke();
+      ctx.strokeStyle = 'rgba(55,65,81,0.95)';
+      ctx.beginPath();
+      ctx.ellipse(wp.x, cy, tw * 0.78, th * 0.78, 0, 0, Math.PI * 2);
+      ctx.stroke();
+      ctx.fillStyle = '#4b5563';
+      ctx.beginPath();
+      ctx.ellipse(wp.x, cy, tw * 0.4, th * 0.36, 0, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.fillStyle = 'rgba(17,24,39,0.5)';
+      ctx.beginPath();
+      ctx.ellipse(wp.x, cy, tw * 0.2, th * 0.18, 0, 0, Math.PI * 2);
+      ctx.fill();
+    };
+    drawTire(wLp);
+    drawTire(wRp);
+  }
+
+  // 2. Main Body Shell (Gradients for metallic volume)
+  ctx.save();
+  ctx.shadowColor = body; ctx.shadowBlur = 12 * sz;
+  ctx.fillStyle = body;
+  drawPoly(ctx, [pts.rgl, pts.rgr, rearTopR, rearTopL]); // Rear face
+  ctx.fill();
+  
+  const sideGradL = ctx.createLinearGradient(pts.rgl.x, pts.rgl.y, rearTopL.x, rearTopL.y - 50*sz);
+  sideGradL.addColorStop(0, '#0f172a'); sideGradL.addColorStop(0.5, body); sideGradL.addColorStop(1, roof);
+  ctx.fillStyle = sideGradL;
+  drawPoly(ctx, [pts.rgl, rearTopL, frontTopL, pts.fgl]); // Left side
+  
+  const sideGradR = ctx.createLinearGradient(pts.rgr.x, pts.rgr.y, rearTopR.x, rearTopR.y - 50*sz);
+  sideGradR.addColorStop(0, '#0f172a'); sideGradR.addColorStop(0.5, body); sideGradR.addColorStop(1, roof);
+  ctx.fillStyle = sideGradR;
+  drawPoly(ctx, [pts.rgr, rearTopR, frontTopR, pts.fgr]); // Right side
+  ctx.fill();
+
+  ctx.fillStyle = body;
+  drawPoly(ctx, [rearTopL, rearTopR, frontTopR, frontTopL]); // Hood/Trunk
+  ctx.fill();
+  ctx.restore();
+
+  // 3. Side Mirrors
+  if (mirrorL && mirrorR) {
+    ctx.fillStyle = body;
+    ctx.beginPath();
+    ctx.ellipse(mirrorL.x, mirrorL.y, 4 * sz, 2 * sz, 0, 0, Math.PI * 2);
+    ctx.ellipse(mirrorR.x, mirrorR.y, 4 * sz, 2 * sz, 0, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillStyle = 'rgba(51,65,85,0.95)'; // dark mirror glass
+    ctx.beginPath();
+    ctx.ellipse(mirrorL.x + 1*sz, mirrorL.y - 0.5*sz, 2 * sz, 1 * sz, 0, 0, Math.PI * 2);
+    ctx.ellipse(mirrorR.x - 1*sz, mirrorR.y - 0.5*sz, 2 * sz, 1 * sz, 0, 0, Math.PI * 2);
+    ctx.fill();
+  }
+
+  // 4. Cabin Interior & Glass — privacy tint
+  ctx.fillStyle = '#020617';
+  drawPoly(ctx, [roofRearL, roofRearR, roofFrontR, roofFrontL]);
+  ctx.fill();
+
+  const rwBL = lerpPoint(rearTopL, rearTopR, 0.12), rwBR = lerpPoint(rearTopL, rearTopR, 0.88);
+  const rwTL = lerpPoint(roofRearL, roofRearR, 0.1), rwTR = lerpPoint(roofRearL, roofRearR, 0.9);
+  const glassGrad = ctx.createLinearGradient((rwTL.x + rwTR.x) / 2, rwTL.y, (rwBL.x + rwBR.x) / 2, rwBL.y);
+  glassGrad.addColorStop(0, '#0c1a2e');
+  glassGrad.addColorStop(0.35, '#152a3d');
+  glassGrad.addColorStop(0.65, '#1e3a4d');
+  glassGrad.addColorStop(1, '#0b1220');
+  ctx.fillStyle = glassGrad;
+  drawPoly(ctx, [rwBL, rwBR, rwTR, rwTL]);
+  ctx.fill();
+  
+  // Interior silhouette (headrests)
+  ctx.fillStyle = 'rgba(2,6,23,0.55)';
+  drawPoly(ctx, [
+    lerpPoint(rwBL, rwBR, 0.22), lerpPoint(rwBL, rwBR, 0.42),
+    lerpPoint(rwTL, rwTR, 0.38), lerpPoint(rwTL, rwTR, 0.26),
+  ]);
+  ctx.fill();
+  ctx.fillStyle = 'rgba(2,6,23,0.45)';
+  drawPoly(ctx, [
+    lerpPoint(rwBL, rwBR, 0.58), lerpPoint(rwBL, rwBR, 0.78),
+    lerpPoint(rwTL, rwTR, 0.72), lerpPoint(rwTL, rwTR, 0.62),
+  ]);
+  ctx.fill();
+
+  // Faint cool-sky sheen
+  ctx.fillStyle = 'rgba(56,189,248,0.06)';
+  drawPoly(ctx, [
+    lerpPoint(rwBL, rwBR, 0.14), lerpPoint(rwBL, rwBR, 0.28),
+    lerpPoint(rwTL, rwTR, 0.32), lerpPoint(rwTL, rwTR, 0.18),
+  ]);
+  ctx.fill();
+
+  // Roof rail / defroster zone
+  ctx.strokeStyle = 'rgba(148,163,184,0.22)';
+  ctx.lineWidth = Math.max(0.6, 0.9 * sz);
+  drawLine(ctx, lerpPoint(roofRearL, roofFrontL, 0.35), lerpPoint(roofRearR, roofFrontR, 0.35));
+  ctx.strokeStyle = 'rgba(15,23,42,0.75)';
+  ctx.lineWidth = Math.max(0.9, 1.1 * sz);
+  drawLine(ctx, lerpPoint(rwTL, rwBL, 0.5), lerpPoint(rwTR, rwBR, 0.5));
+
+  // Pillars & Roof
+  ctx.fillStyle = roof;
+  drawPoly(ctx, [rearTopL, rwBL, rwTL, roofRearL]); // L Pillar
+  drawPoly(ctx, [rearTopR, rwBR, rwTR, roofRearR]); // R Pillar
+  drawPoly(ctx, [roofRearL, roofRearR, roofFrontR, roofFrontL]); // Roof panel
+  ctx.fill();
+
+  // Panel Seams / Chrome Trims
+  ctx.strokeStyle = 'rgba(255,255,255,0.32)';
+  ctx.lineWidth = Math.max(1, 1.2 * sz);
+  drawLine(ctx, rearTopL, rearTopR);
+  drawLine(ctx, rwTL, rwTR);
+  ctx.strokeStyle = 'rgba(0,0,0,0.5)';
+  drawLine(ctx, roofRearL, roofRearR);
+
+  // 5. Details (Taillights, Plate, Exhaust)
+  ctx.save();
+  ctx.shadowColor = '#ff1133';
+  ctx.shadowBlur = 18 * sz;
+  ctx.fillStyle = '#ff1133';
+  const ly = lerp(pts.rgl.y, rearTopL.y, 0.45);
+  roundRect(ctx, lerp(pts.rgl.x, pts.rgr.x, 0.10), ly - 2.5 * sz, 15 * sz, 5.5 * sz, 2.5);
+  roundRect(ctx, lerp(pts.rgl.x, pts.rgr.x, 0.90) - 15 * sz, ly - 2.5 * sz, 15 * sz, 5.5 * sz, 2.5);
+  ctx.fill();
+  // Inner bright spot
+  ctx.fillStyle = '#fecaca';
+  ctx.shadowBlur = 0;
+  ctx.fillRect(lerp(pts.rgl.x, pts.rgr.x, 0.12), ly - 1 * sz, 10 * sz, 2 * sz);
+  ctx.fillRect(lerp(pts.rgl.x, pts.rgr.x, 0.88) - 10 * sz, ly - 1 * sz, 10 * sz, 2 * sz);
+  ctx.restore();
+
+  // Chrome Bumper Accent
+  ctx.fillStyle = '#cbd5e1';
+  ctx.fillRect(lerp(pts.rgl.x, pts.rgr.x, 0.1), pts.rgl.y - 3 * sz, pts.rgr.x - pts.rgl.x - (pts.rgr.x - pts.rgl.x)*0.2, 1.5 * sz);
+
+  // License Plate
+  const plateX = lerp(pts.rgl.x, pts.rgr.x, 0.5) - 9 * sz;
+  const plateY = ly - 1.5 * sz;
+  ctx.fillStyle = 'rgba(15,23,42,0.35)';
+  roundRect(ctx, plateX - 0.5 * sz, plateY - 0.5 * sz, 18 * sz + sz, 6 * sz + sz, 1.5);
+  ctx.fill();
+  ctx.fillStyle = '#e2e8f0';
+  roundRect(ctx, plateX, plateY, 18 * sz, 6 * sz, 1.2);
+  ctx.fill();
+  ctx.fillStyle = '#475569';
+  ctx.fillRect(lerp(pts.rgl.x, pts.rgr.x, 0.5) - 6 * sz, ly + 0.5 * sz, 12 * sz, 2 * sz); // fake text
+}
+
+function drawHudCarRear(ctx, proj, prop) {
+  // Now identical to drawHudCar, kept for compatibility if called elsewhere
+  drawHudCar(ctx, proj, prop);
+}
+
+function drawHudStop(ctx, proj) {
+  const m = proj.pxPerM;
+  const cx = proj.x, cy = proj.y;
+  const r = (REAL_DIMS.stop.w / 2) * m;
+  const postH = REAL_DIMS.stop.postH * m;
+  const sz = Math.max(0.2, m / 60);
+  const sy = cy - postH;  // sign center y
+  // Post
+  ctx.save();
+  ctx.fillStyle = '#6b7280';
+  ctx.fillRect(cx - 2 * sz, sy, 3 * sz, postH + 2);
+  // Octagon
+  ctx.shadowColor = '#f43f5e';
+  ctx.shadowBlur = 14;
+  ctx.fillStyle = '#dc2626';
+  ctx.beginPath();
+  for (let i = 0; i < 8; i++) {
+    const a = (i / 8) * Math.PI * 2 + Math.PI / 8;
+    const x = cx + Math.cos(a) * r;
+    const y = sy - r + Math.sin(a) * r;
+    if (i === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+  }
+  ctx.closePath();
+  ctx.fill();
+  // White inner border
+  ctx.shadowBlur = 0;
+  ctx.strokeStyle = '#ffffff';
+  ctx.lineWidth = Math.max(1, 1.6 * sz);
+  ctx.beginPath();
+  for (let i = 0; i < 8; i++) {
+    const a = (i / 8) * Math.PI * 2 + Math.PI / 8;
+    const x = cx + Math.cos(a) * (r - 3 * sz);
+    const y = sy - r + Math.sin(a) * (r - 3 * sz);
+    if (i === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+  }
+  ctx.closePath();
+  ctx.stroke();
+  // "STOP" text
+  ctx.fillStyle = '#ffffff';
+  ctx.font = `bold ${Math.max(8, Math.floor(r * 0.55))}px ui-sans-serif, system-ui, sans-serif`;
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.fillText('STOP', cx, sy - r + 1);
+  ctx.restore();
+}
+
+function drawHudLight(ctx, proj, prop) {
+  const m = proj.pxPerM;
+  const cx = proj.x, cy = proj.y;
+  const w = REAL_DIMS.light.w * m;
+  const h = REAL_DIMS.light.h * m;
+  const postH = REAL_DIMS.light.postH * m;
+  const sz = Math.max(0.2, m / 60);
+  const x0 = cx - w / 2, y0 = cy - postH - h;
+  // Gantry post + arm
+  ctx.save();
+  ctx.fillStyle = '#374151';
+  ctx.fillRect(cx - 1.5 * sz, y0 + h, 3 * sz, postH);
+  // Housing
+  ctx.fillStyle = '#0f172a';
+  roundRect(ctx, x0, y0, w, h, 3 * sz);
+  ctx.fill();
+  ctx.strokeStyle = '#475569';
+  ctx.lineWidth = Math.max(1, 1 * sz);
+  roundRect(ctx, x0, y0, w, h, 3 * sz);
+  ctx.stroke();
+  // Bulbs
+  const bulbR = w * 0.32;
+  const colors = ['#f43f5e', '#facc15', '#34d399'];
+  const states = ['red', 'yellow', 'green'];
+  for (let i = 0; i < 3; i++) {
+    const by = y0 + h * (0.22 + i * 0.28);
+    const lit = prop.light === states[i];
+    if (lit) {
+      ctx.shadowColor = colors[i];
+      ctx.shadowBlur = 14;
+    } else {
+      ctx.shadowBlur = 0;
+    }
+    ctx.fillStyle = lit ? colors[i] : '#1a0e2e';
+    ctx.beginPath();
+    ctx.arc(cx, by, bulbR, 0, Math.PI * 2);
+    ctx.fill();
+  }
+  ctx.restore();
+}
+
+function drawHudPed(ctx, proj) {
+  const m = proj.pxPerM;
+  const cx = proj.x, cy = proj.y;
+  const totalH = REAL_DIMS.ped.h * m;
+  const headR  = totalH * 0.10;
+  const bodyH  = totalH * 0.42;
+  const legH   = totalH * 0.42;
+  const sz = Math.max(0.2, m / 60);
+  ctx.save();
+  ctx.shadowColor = '#a78bfa';
+  ctx.shadowBlur = 8;
+  ctx.fillStyle = '#a78bfa';
+  // Head
+  ctx.beginPath();
+  ctx.arc(cx, cy - bodyH - legH - headR - 2, headR, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.shadowBlur = 0;
+  // Torso
+  ctx.fillStyle = '#7c3aed';
+  roundRect(ctx, cx - 6 * sz, cy - bodyH - legH, 12 * sz, bodyH, 3 * sz);
+  ctx.fill();
+  // Arms
+  ctx.strokeStyle = '#a78bfa';
+  ctx.lineCap = 'round';
+  ctx.lineWidth = Math.max(1.5, 3 * sz);
+  ctx.beginPath();
+  ctx.moveTo(cx - 6 * sz, cy - bodyH - legH + 4 * sz);
+  ctx.lineTo(cx - 12 * sz, cy - legH);
+  ctx.moveTo(cx + 6 * sz, cy - bodyH - legH + 4 * sz);
+  ctx.lineTo(cx + 12 * sz, cy - legH);
+  ctx.stroke();
+  // Legs
+  ctx.beginPath();
+  ctx.moveTo(cx - 3 * sz, cy - legH);
+  ctx.lineTo(cx - 6 * sz, cy);
+  ctx.moveTo(cx + 3 * sz, cy - legH);
+  ctx.lineTo(cx + 6 * sz, cy);
+  ctx.stroke();
+  ctx.restore();
+}
+
+function roundRect(ctx, x, y, w, h, r) {
+  r = Math.min(r, w / 2, h / 2);
+  ctx.beginPath();
+  ctx.moveTo(x + r, y);
+  ctx.lineTo(x + w - r, y);
+  ctx.quadraticCurveTo(x + w, y, x + w, y + r);
+  ctx.lineTo(x + w, y + h - r);
+  ctx.quadraticCurveTo(x + w, y + h, x + w - r, y + h);
+  ctx.lineTo(x + r, y + h);
+  ctx.quadraticCurveTo(x, y + h, x, y + h - r);
+  ctx.lineTo(x, y + r);
+  ctx.quadraticCurveTo(x, y, x + r, y);
+  ctx.closePath();
+}
+
+function drawHudRangeLadder(ctx, yNearM, yFarM) {
+  ctx.save();
+  ctx.font = '9px ui-monospace, Menlo, monospace';
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  for (let yM = 10; yM <= Math.min(80, yFarM); yM += 10) {
+    if (yM <= yNearM) continue;
+    const left = hudGroundPoint(-WORLD.roadHalfM * 0.72, yM);
+    const right = hudGroundPoint(WORLD.roadHalfM * 0.72, yM);
+    const center = hudGroundPoint(0, yM);
+    ctx.globalAlpha = Math.max(0.16, 0.46 - yM / yFarM * 0.24);
+    ctx.strokeStyle = 'rgba(34,211,238,0.5)';
+    ctx.lineWidth = 1;
+    drawLine(ctx, left, right);
+    ctx.fillStyle = 'rgba(203,213,225,0.72)';
+    ctx.fillText(`${yM} ft`, center.x, center.y - 8);
+  }
+  ctx.restore();
+}
+
+function drawHudEgoForeground(ctx, W, H) {
+  // Premium hand-crafted ego car — drawn as a modern sedan seen from
+  // a slightly elevated rear-¾ view, like Tesla's perception HUD.
+  // NOT projected through the pinhole camera (which causes extreme
+  // distortion at close range). Instead, proportions are manually
+  // controlled relative to the HUD canvas for a clean, premium look.
+
+  const cx = W / 2;
+  // Anchor the ego car flush with the bottom of the screen to create a solid "blind area"
+  const groundY = H + 5; 
+
+  // Mathematically derived sizing (approx ~25% of canvas width) so it
+  // perfectly covers the immediate physical footprint of the lane.
+  const carW = Math.min(W * 0.25, 300);
+  const carH = carW * 0.48;
+  const topY = groundY - carH;
+
+  const rearHalfW = carW / 2;
+  const hoodHalfW = rearHalfW * 0.72;
+  const roofHalfW = carW * 0.30;
+  const roofFrontHalfW = carW * 0.22;
+  const carLen    = carH; 
+
+  const bumperH = carH * 0.3;
+  const bodyH   = carH * 0.35;
+  const glassH  = carH * 0.25;
+  const hoodH   = carH * 0.1;
+
+  const bumperTop = groundY - bumperH;
+  const bodyTop   = bumperTop - bodyH;
+  const glassTop  = bodyTop - glassH;
+  const hoodTop   = glassTop - hoodH;
+
+  // Width at each vertical slice
+  const wAt = (y) => {
+    const t = (groundY - y) / carH;
+    return lerp(rearHalfW, hoodHalfW, Math.min(1, t));
+  };
+
+  ctx.save();
+
+  // ── Ground shadow ──
+  ctx.fillStyle = 'rgba(0,0,0,0.5)';
+  ctx.beginPath();
+  ctx.ellipse(cx, groundY + 4, rearHalfW * 0.85, 6, 0, 0, Math.PI * 2);
+  ctx.fill();
+
+  // ── Body (lower panel) ──
+  const bodyGrad = ctx.createLinearGradient(cx - rearHalfW, 0, cx + rearHalfW, 0);
+  bodyGrad.addColorStop(0, '#065a82');
+  bodyGrad.addColorStop(0.15, '#0b7daa');
+  bodyGrad.addColorStop(0.5, '#0ea5e9');
+  bodyGrad.addColorStop(0.85, '#0b7daa');
+  bodyGrad.addColorStop(1, '#065a82');
+  ctx.fillStyle = bodyGrad;
+  ctx.shadowColor = '#0ea5e9';
+  ctx.shadowBlur = 16;
+  drawPoly(ctx, [
+    { x: cx - rearHalfW, y: groundY },
+    { x: cx + rearHalfW, y: groundY },
+    { x: cx + wAt(bodyTop), y: bodyTop },
+    { x: cx - wAt(bodyTop), y: bodyTop },
+  ]);
+  ctx.fill();
+  ctx.shadowBlur = 0;
+
+  // ── Bumper area (dark inset) ──
+  const bInset = rearHalfW * 0.06;
+  ctx.fillStyle = '#0c2d48';
+  drawPoly(ctx, [
+    { x: cx - rearHalfW + bInset, y: groundY - 2 },
+    { x: cx + rearHalfW - bInset, y: groundY - 2 },
+    { x: cx + rearHalfW - bInset * 1.5, y: bumperTop },
+    { x: cx - rearHalfW + bInset * 1.5, y: bumperTop },
+  ]);
+  ctx.fill();
+
+  // ── Taillights ──
+  const tlW = rearHalfW * 0.22;
+  const tlH = bumperH * 0.55;
+  const tlY = bumperTop + bumperH * 0.15;
+  ctx.shadowColor = '#ef4444';
+  ctx.shadowBlur = 12;
+  ctx.fillStyle = '#ef4444';
+  roundRect(ctx, cx - rearHalfW + bInset * 2, tlY, tlW, tlH, 3);
+  ctx.fill();
+  roundRect(ctx, cx + rearHalfW - bInset * 2 - tlW, tlY, tlW, tlH, 3);
+  ctx.fill();
+  ctx.shadowBlur = 0;
+  // Taillight inner detail
+  ctx.fillStyle = '#fca5a5';
+  ctx.fillRect(cx - rearHalfW + bInset * 2 + 3, tlY + 2, tlW - 6, 2);
+  ctx.fillRect(cx + rearHalfW - bInset * 2 - tlW + 3, tlY + 2, tlW - 6, 2);
+
+  // ── License plate ──
+  const plateW = rearHalfW * 0.28;
+  const plateH = bumperH * 0.42;
+  ctx.fillStyle = '#e2e8f0';
+  roundRect(ctx, cx - plateW / 2, bumperTop + bumperH * 0.28, plateW, plateH, 2);
+  ctx.fill();
+  ctx.fillStyle = '#64748b';
+  ctx.font = `bold ${Math.max(6, plateH * 0.6)}px ui-monospace, monospace`;
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.fillText('EGO', cx, bumperTop + bumperH * 0.28 + plateH / 2);
+
+  // ── Turn signals (amber) ──
+  ctx.fillStyle = '#fbbf24';
+  ctx.fillRect(cx - rearHalfW + bInset, groundY - 5, 6, 3);
+  ctx.fillRect(cx + rearHalfW - bInset - 6, groundY - 5, 6, 3);
+
+  // ── Body panel highlight (chrome strip) ──
+  ctx.strokeStyle = 'rgba(255,255,255,0.35)';
+  ctx.lineWidth = 1.2;
+  drawLine(ctx,
+    { x: cx - rearHalfW + 2, y: bumperTop },
+    { x: cx + rearHalfW - 2, y: bumperTop }
+  );
+
+  // ── Upper body / C-pillar transition ──
+  const ubGrad = ctx.createLinearGradient(cx - rearHalfW, 0, cx + rearHalfW, 0);
+  ubGrad.addColorStop(0, '#064e77');
+  ubGrad.addColorStop(0.2, '#0a8cc4');
+  ubGrad.addColorStop(0.5, '#0ea5e9');
+  ubGrad.addColorStop(0.8, '#0a8cc4');
+  ubGrad.addColorStop(1, '#064e77');
+  ctx.fillStyle = ubGrad;
+  const ubBotHW = wAt(bodyTop);
+  const ubTopHW = lerp(rearHalfW, roofHalfW, 0.5);
+  drawPoly(ctx, [
+    { x: cx - ubBotHW, y: bodyTop },
+    { x: cx + ubBotHW, y: bodyTop },
+    { x: cx + ubTopHW, y: glassTop },
+    { x: cx - ubTopHW, y: glassTop },
+  ]);
+  ctx.fill();
+
+  // ── Rear window (glass) ──
+  const glassInset = 4;
+  const gwBot = ubBotHW - glassInset;
+  const gwTop = ubTopHW - glassInset;
+  const glassGrad = ctx.createLinearGradient(0, bodyTop, 0, glassTop);
+  glassGrad.addColorStop(0, '#1e3a5f');
+  glassGrad.addColorStop(0.3, '#2a5a80');
+  glassGrad.addColorStop(0.6, '#3b82a8');
+  glassGrad.addColorStop(1, '#4a9ec0');
+  ctx.fillStyle = glassGrad;
+  drawPoly(ctx, [
+    { x: cx - gwBot, y: bodyTop - 3 },
+    { x: cx + gwBot, y: bodyTop - 3 },
+    { x: cx + gwTop, y: glassTop + 3 },
+    { x: cx - gwTop, y: glassTop + 3 },
+  ]);
+  ctx.fill();
+  // Glass reflection highlight
+  ctx.fillStyle = 'rgba(255,255,255,0.12)';
+  drawPoly(ctx, [
+    { x: cx - gwBot * 0.6, y: bodyTop - 2 },
+    { x: cx - gwBot * 0.15, y: bodyTop - 2 },
+    { x: cx - gwTop * 0.2, y: glassTop + 5 },
+    { x: cx - gwTop * 0.55, y: glassTop + 5 },
+  ]);
+  ctx.fill();
+  // Glass divider (center pillar)
+  ctx.strokeStyle = 'rgba(0,0,0,0.3)';
+  ctx.lineWidth = 1.5;
+  drawLine(ctx, { x: cx, y: bodyTop - 2 }, { x: cx, y: glassTop + 4 });
+
+  // ── Roof panel ──
+  const roofGrad = ctx.createLinearGradient(cx - roofHalfW, 0, cx + roofHalfW, 0);
+  roofGrad.addColorStop(0, '#053d5e');
+  roofGrad.addColorStop(0.3, '#0879a8');
+  roofGrad.addColorStop(0.5, '#0891b2');
+  roofGrad.addColorStop(0.7, '#0879a8');
+  roofGrad.addColorStop(1, '#053d5e');
+  ctx.fillStyle = roofGrad;
+  drawPoly(ctx, [
+    { x: cx - roofHalfW, y: glassTop },
+    { x: cx + roofHalfW, y: glassTop },
+    { x: cx + roofFrontHalfW, y: hoodTop + hoodH * 0.35 },
+    { x: cx - roofFrontHalfW, y: hoodTop + hoodH * 0.35 },
+  ]);
+  ctx.fill();
+
+  // ── Windshield (front glass visible over roof) ──
+  const wsInset = 3;
+  const wsBotHW = roofFrontHalfW - wsInset;
+  const wsTopHW = hoodHalfW * 0.52;
+  const wsBot = hoodTop + hoodH * 0.38;
+  const wsTop = hoodTop + hoodH * 0.08;
+  const wsGrad = ctx.createLinearGradient(0, wsBot, 0, wsTop);
+  wsGrad.addColorStop(0, '#2a6080');
+  wsGrad.addColorStop(0.5, '#4a9aba');
+  wsGrad.addColorStop(1, '#6bc0dc');
+  ctx.fillStyle = wsGrad;
+  drawPoly(ctx, [
+    { x: cx - wsBotHW, y: wsBot },
+    { x: cx + wsBotHW, y: wsBot },
+    { x: cx + wsTopHW, y: wsTop },
+    { x: cx - wsTopHW, y: wsTop },
+  ]);
+  ctx.fill();
+  // Windshield reflection
+  ctx.fillStyle = 'rgba(255,255,255,0.15)';
+  drawPoly(ctx, [
+    { x: cx + wsBotHW * 0.1, y: wsBot - 1 },
+    { x: cx + wsBotHW * 0.7, y: wsBot - 1 },
+    { x: cx + wsTopHW * 0.65, y: wsTop + 2 },
+    { x: cx + wsTopHW * 0.15, y: wsTop + 2 },
+  ]);
+  ctx.fill();
+
+  // ── Hood (front panel tapering forward) ──
+  const hoodGrad = ctx.createLinearGradient(0, glassTop, 0, hoodTop);
+  hoodGrad.addColorStop(0, '#0891b2');
+  hoodGrad.addColorStop(0.5, '#0ea5e9');
+  hoodGrad.addColorStop(1, '#38bdf8');
+  ctx.fillStyle = hoodGrad;
+  drawPoly(ctx, [
+    { x: cx - roofFrontHalfW - 6, y: hoodTop + hoodH * 0.35 },
+    { x: cx + roofFrontHalfW + 6, y: hoodTop + hoodH * 0.35 },
+    { x: cx + hoodHalfW * 0.65, y: hoodTop },
+    { x: cx - hoodHalfW * 0.65, y: hoodTop },
+  ]);
+  ctx.fill();
+
+  // ── Side mirrors ──
+  ctx.fillStyle = '#064e77';
+  const mirY = glassTop + glassH * 0.3;
+  const mirW = 8, mirH = 5;
+  roundRect(ctx, cx - ubTopHW - mirW - 1, mirY, mirW, mirH, 2);
+  ctx.fill();
+  roundRect(ctx, cx + ubTopHW + 1, mirY, mirW, mirH, 2);
+  ctx.fill();
+  // Mirror glass
+  ctx.fillStyle = '#4a9aba';
+  ctx.fillRect(cx - ubTopHW - mirW, mirY + 1, mirW - 2, mirH - 2);
+  ctx.fillRect(cx + ubTopHW + 2, mirY + 1, mirW - 2, mirH - 2);
+
+  // Rear POV: tires sit under the body — no visible wheel disks (avoids “floating” semicircles).
+  // Subtle lower sill / shadow only.
+  ctx.fillStyle = 'rgba(2,6,23,0.55)';
+  roundRect(
+    ctx,
+    cx - rearHalfW * 0.88,
+    groundY - 4,
+    rearHalfW * 1.76,
+    5,
+    2
+  );
+  ctx.fill();
+
+  // ── Sensor pod (roof mount) ──
+  const podW = 14, podH2 = 6;
+  const podY = glassTop - 2;
+  ctx.fillStyle = '#0f172a';
+  roundRect(ctx, cx - podW / 2, podY - podH2, podW, podH2, 3);
+  ctx.fill();
+  ctx.fillStyle = '#22d3ee';
+  ctx.shadowColor = '#22d3ee';
+  ctx.shadowBlur = 10;
+  ctx.beginPath();
+  ctx.arc(cx, podY - podH2 / 2, 2.5, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.shadowBlur = 0;
+
+  // ── Outline / chrome trim ──
+  ctx.strokeStyle = 'rgba(255,255,255,0.22)';
+  ctx.lineWidth = 1;
+  // Body outline
+  drawPoly(ctx, [
+    { x: cx - rearHalfW, y: groundY },
+    { x: cx + rearHalfW, y: groundY },
+    { x: cx + hoodHalfW * 0.65, y: hoodTop },
+    { x: cx - hoodHalfW * 0.65, y: hoodTop },
+  ]);
+  ctx.stroke();
+  // Side panel seam
+  ctx.strokeStyle = 'rgba(0,0,0,0.2)';
+  drawLine(ctx,
+    { x: cx - rearHalfW + bInset * 2 + tlW + 4, y: bumperTop + bumperH * 0.3 },
+    { x: cx - ubTopHW + 3, y: glassTop + 3 }
+  );
+  drawLine(ctx,
+    { x: cx + rearHalfW - bInset * 2 - tlW - 4, y: bumperTop + bumperH * 0.3 },
+    { x: cx + ubTopHW - 3, y: glassTop + 3 }
+  );
+
+  // ── Cyan glow strip under car ──
+  ctx.fillStyle = 'rgba(34,211,238,0.5)';
+  ctx.shadowColor = '#22d3ee';
+  ctx.shadowBlur = 12;
+  ctx.fillRect(cx - rearHalfW * 0.55, groundY + 6, rearHalfW * 1.1, 2);
+  ctx.shadowBlur = 0;
+
+  ctx.restore();
+}
+
+function hudNearestVisibleGroundM() {
+  const bottomFromHorizon = Math.max(1, HUD_H - hudHorizonY());
+  const visualY = (hudFocalYPx() * WORLD.cameraHeightM) / (bottomFromHorizon * WORLD.hudDepthScale);
+  return visualY - WORLD.cameraOffsetM;
+}
+
+function hudGroundPoint(xM, yM) {
+  return hudProject(xM, Math.max(yM, 0.1), 0);
+}
+
+function drawProjectedRoadBand(ctx, yNear, yFar, fillStyle) {
+  if (yFar <= yNear) return;
+  const leftNear = hudGroundPoint(-WORLD.roadHalfM - EGO.xM, yNear);
+  const rightNear = hudGroundPoint(WORLD.roadHalfM - EGO.xM, yNear);
+  const rightFar = hudGroundPoint(WORLD.roadHalfM - EGO.xM, yFar);
+  const leftFar = hudGroundPoint(-WORLD.roadHalfM - EGO.xM, yFar);
+  ctx.fillStyle = fillStyle;
+  ctx.beginPath();
+  ctx.moveTo(leftNear.x, leftNear.y);
+  ctx.lineTo(rightNear.x, rightNear.y);
+  ctx.lineTo(rightFar.x, rightFar.y);
+  ctx.lineTo(leftFar.x, leftFar.y);
+  ctx.closePath();
+  ctx.fill();
+}
+
+function scenePropSize(prop) {
+  const dims = CLASSES[prop.type].real;
+  const pxW = Math.max(8, (dims.w / (2 * SCENE_VIEW.halfWidthM)) * SC_W);
+  let pxH;
+  if (prop.type === 'car') {
+    const totalY = SCENE_VIEW.forwardM + SCENE_VIEW.rearM;
+    pxH = Math.max(8, (dims.h / totalY) * SC_H);
+  } else {
+    pxH = pxW * (dims.h / dims.w);
+  }
+  return { pxW, pxH };
+}
+
+/* ── HUD rendering ─────────────────────────────────────────── */
+function renderHUD(detections, lidar) {
+  const ctx = hudCtx;
+  const W = HUD_W, H = HUD_H;
+  const HORIZON_Y = hudHorizonY();
+  const ROAD_NEAR_M = hudNearestVisibleGroundM();
+  const ROAD_FAR_M = WORLD.forwardM;
+
+  // Sky — flat, deep, no gradient drama
+  ctx.fillStyle = '#070314';
+  ctx.fillRect(0, 0, W, HORIZON_Y);
+
+  // Tacky line-art horizon — single neon horizon line + thin echo lines
+  ctx.save();
+  ctx.lineCap = 'round';
+  // Echo lines above the horizon (clean, evenly spaced — the "tacky" look)
+  ctx.strokeStyle = 'rgba(34,211,238,0.18)';
+  ctx.lineWidth = 1;
+  for (let i = 1; i <= 5; i++) {
+    const y = HORIZON_Y - i * 14;
+    if (y < 8) break;
+    ctx.globalAlpha = 0.42 - i * 0.07;
+    ctx.beginPath();
+    ctx.moveTo(W * 0.06, y);
+    ctx.lineTo(W * 0.94, y);
+    ctx.stroke();
+  }
+  // Vertical scan ticks (very subtle, evenly spaced)
+  ctx.globalAlpha = 0.18;
+  ctx.strokeStyle = 'rgba(34,211,238,0.6)';
+  for (let i = 1; i < 10; i++) {
+    const x = (W / 10) * i;
+    ctx.beginPath();
+    ctx.moveTo(x, HORIZON_Y - 4);
+    ctx.lineTo(x, HORIZON_Y - 8);
+    ctx.stroke();
+  }
+  // The horizon line itself — bright cyan with glow
+  ctx.globalAlpha = 1;
+  ctx.shadowBlur = 14;
+  ctx.shadowColor = '#22d3ee';
+  ctx.strokeStyle = '#22d3ee';
+  ctx.lineWidth = 1.6;
+  ctx.beginPath();
+  ctx.moveTo(0, HORIZON_Y);
+  ctx.lineTo(W, HORIZON_Y);
+  ctx.stroke();
+  ctx.restore();
+
+  // Compass / heading reticle on the horizon
+  ctx.save();
+  ctx.fillStyle = 'rgba(34,211,238,0.7)';
+  ctx.font = '9px ui-monospace, Menlo, monospace';
+  ctx.textAlign = 'center';
+  ctx.fillText('▼ N', W / 2, HORIZON_Y - 14);
+  ctx.restore();
+
+  // Ground — flat dark, no gradient
+  ctx.fillStyle = '#0a0420';
+  ctx.fillRect(0, HORIZON_Y, W, H - HORIZON_Y);
+
+  // Road plane — projected from fixed foot coordinates, not hand-tuned screen points.
+  ctx.save();
+  drawProjectedRoadBand(ctx, ROAD_NEAR_M, ROAD_FAR_M, '#0d0628');
+
+  // Neon road edges in real lane geometry.
+  ctx.lineCap = 'round';
+  ctx.shadowBlur = 10;
+  ctx.shadowColor = '#8b5cf6';
+  ctx.strokeStyle = '#a78bfa';
+  ctx.lineWidth = 1.6;
+  const leftNear = hudGroundPoint(-WORLD.roadHalfM - EGO.xM, ROAD_NEAR_M);
+  const leftFar = hudGroundPoint(-WORLD.roadHalfM - EGO.xM, ROAD_FAR_M);
+  const rightNear = hudGroundPoint(WORLD.roadHalfM - EGO.xM, ROAD_NEAR_M);
+  const rightFar = hudGroundPoint(WORLD.roadHalfM - EGO.xM, ROAD_FAR_M);
+  ctx.beginPath();
+  ctx.moveTo(leftNear.x, leftNear.y);
+  ctx.lineTo(leftFar.x, leftFar.y);
+  ctx.stroke();
+  ctx.shadowColor = '#ec4899';
+  ctx.strokeStyle = '#f9a8d4';
+  ctx.beginPath();
+  ctx.moveTo(rightNear.x, rightNear.y);
+  ctx.lineTo(rightFar.x, rightFar.y);
+  ctx.stroke();
+  ctx.restore();
+
+  // Lane dashes: fixed world-space paint segments. Ego is parked, so there is no scrolling phase.
+  ctx.save();
+  ctx.shadowBlur = 6;
+  ctx.shadowColor = 'rgba(180,160,255,0.6)';
+  ctx.strokeStyle = '#b8a8ff';
+  ctx.lineCap = 'round';
+  for (let l = 1; l < WORLD.laneCount; l++) {
+    const xM = -WORLD.roadHalfM + l * WORLD.laneWidthM - EGO.xM;
+    const dashLenM = 10;
+    const gapM = 20;
+    const periodM = dashLenM + gapM;
+    const movingOffsetM = EGO.travelM % periodM;
+    for (let yM = 8 - movingOffsetM; yM < ROAD_FAR_M; yM += periodM) {
+      const y0 = Math.max(ROAD_NEAR_M, yM);
+      const y1 = Math.min(ROAD_FAR_M, yM + dashLenM);
+      if (y1 <= ROAD_NEAR_M) continue;
+      const a = hudGroundPoint(xM, y0);
+      const b = hudGroundPoint(xM, y1);
+      ctx.globalAlpha = Math.max(0.24, Math.min(0.88, 0.95 - y0 / ROAD_FAR_M * 0.7));
+      ctx.lineWidth = Math.max(1.1, Math.min(4.5, a.pxPerM * 0.12));
+      ctx.beginPath();
+      ctx.moveTo(a.x, a.y);
+      ctx.lineTo(b.x, b.y);
+      ctx.stroke();
+    }
+  }
+  ctx.restore();
+
+  // Caution zone: projected 0-13 ft road band.
+  ctx.save();
+  drawProjectedRoadBand(ctx, ROAD_NEAR_M, Math.min(13, ROAD_FAR_M), 'rgba(250,204,21,0.07)');
+  ctx.restore();
+  drawHudRangeLadder(ctx, ROAD_NEAR_M, ROAD_FAR_M);
+
+  // LiDAR ray (down center)
+  ctx.save();
+  ctx.strokeStyle = 'rgba(244,63,94,0.65)';
+  ctx.shadowColor = '#f43f5e';
+  ctx.shadowBlur = 12;
+  ctx.lineWidth = 1.5;
+  ctx.setLineDash([6, 6]);
+  const lidarStart = hudGroundPoint(0, ROAD_NEAR_M);
+  const lidarEnd = hudGroundPoint(0, Math.min(WORLD.lidarRangeM, ROAD_FAR_M));
+  ctx.beginPath();
+  ctx.moveTo(lidarStart.x, lidarStart.y);
+  ctx.lineTo(lidarEnd.x, lidarEnd.y);
+  ctx.stroke();
+  ctx.setLineDash([]);
+  // Hit dot
+  if (lidar.distM != null) {
+    const hit = hudGroundPoint(0, lidar.distM);
+    ctx.fillStyle = '#fff';
+    ctx.shadowBlur = 16;
+    ctx.beginPath();
+    ctx.arc(hit.x, hit.y, 5, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillStyle = '#f43f5e';
+    ctx.fillText(`${lidar.distM.toFixed(2)} ft`, hit.x + 10, hit.y + 4);
+  }
+  ctx.restore();
+
+  // Detections — proper iconography per class, scaled metrically
+  // through the pinhole projection. Sort far→near so closer draws on top.
+  const sortedDet = [...detections].sort((a, b) => b.distM - a.distM);
+  for (const d of sortedDet) {
+    const hudProp = { ...d.prop, xM: d.xRelM, yM: d.yRelM };
+    const proj = hudProject(hudProp.xM, hudProp.yM);
+    if (!proj) continue;
+
+    ctx.save();
+    if (hudProp.type === 'car') {
+      drawHudCar(ctx, proj, hudProp);
+    } else if (hudProp.type === 'stop') {
+      drawHudStop(ctx, proj);
+    } else if (hudProp.type === 'light') {
+      drawHudLight(ctx, proj, hudProp);
+    } else if (hudProp.type === 'ped') {
+      drawHudPed(ctx, proj);
+    }
+    ctx.restore();
+
+    // Detection box overlay (cyan brackets) — measured per icon
+    const box = iconBounds(hudProp, proj);
+    ctx.save();
+    ctx.strokeStyle = d.color;
+    ctx.shadowColor = d.color;
+    ctx.shadowBlur = 10;
+    ctx.lineWidth = 1.4;
+    ctx.globalAlpha = 0.9;
+    const corner = Math.max(7, Math.min(box.w, box.h) * 0.22);
+    const drawBracket = (cx, cy, dx, dy) => {
+      ctx.beginPath();
+      ctx.moveTo(cx + dx * corner, cy);
+      ctx.lineTo(cx, cy);
+      ctx.lineTo(cx, cy + dy * corner);
+      ctx.stroke();
+    };
+    drawBracket(box.x,         box.y,         +1, +1);
+    drawBracket(box.x + box.w, box.y,         -1, +1);
+    drawBracket(box.x,         box.y + box.h, +1, -1);
+    drawBracket(box.x + box.w, box.y + box.h, -1, -1);
+
+    // Label
+    ctx.font = '10px ui-monospace, Menlo, monospace';
+    ctx.globalAlpha = 1;
+    ctx.shadowBlur = 0;
+    const label = `${d.class} ${d.distM.toFixed(1)}ft ${(d.conf * 100).toFixed(0)}%`;
+    const tw = ctx.measureText(label).width + 10;
+    ctx.fillStyle = 'rgba(8,4,22,0.85)';
+    ctx.fillRect(box.x, box.y - 16, tw, 14);
+    ctx.fillStyle = d.color;
+    ctx.fillText(label, box.x + 5, box.y - 5);
+    ctx.restore();
+  }
+
+  drawHudEgoForeground(ctx, W, H);
+
+  // Bottom HUD strip — speed/decision style
+  ctx.save();
+  ctx.fillStyle = 'rgba(8,4,22,0.6)';
+  ctx.fillRect(0, H - 28, W, 28);
+  ctx.fillStyle = '#22d3ee';
+  ctx.font = '10px ui-monospace, Menlo, monospace';
+  ctx.fillText(`FOV ${WORLD.fovDeg}°  ·  RANGE ${WORLD.lidarRangeM.toFixed(1)} ft  ·  TARGETS ${detections.length}  ·  SPEED ${(EGO.speedMps * 0.681818).toFixed(0)} mph`, 12, H - 10);
+  ctx.textAlign = 'right';
+  const lt = lidar.distM == null ? 'NO RETURN' : `${lidar.distM.toFixed(2)} ft`;
+  ctx.fillStyle = lidar.distM == null ? '#94a3b8' : '#22d3ee';
+  ctx.fillText(`LIDAR ${lt}`, W - 12, H - 10);
+  ctx.restore();
+}
+
+function drawSceneVehicle(ctx, sp, pxW, pxH, palette, isEgo = false) {
+  const body = isEgo ? '#22d3ee' : palette.body;
+  const roof = isEgo ? '#0891b2' : palette.roof;
+  const x0 = sp.px - pxW / 2;
+  const y0 = sp.py - pxH / 2;
+  const r = Math.max(2.5, Math.min(pxW, pxH) * 0.12);
+  const sz = Math.max(0.25, (pxW + pxH) / 90);
+
+  ctx.save();
+  // Soft cast shadow (ahead = smaller y = top of rect)
+  ctx.fillStyle = 'rgba(0,0,0,0.35)';
+  ctx.beginPath();
+  ctx.ellipse(sp.px, y0 + pxH * 0.55, pxW * 0.48, pxH * 0.2, 0, 0, Math.PI * 2);
+  ctx.fill();
+
+  // Wheels — drawn BEFORE body so they sit underneath the chassis
+  const wx = Math.max(3, pxW * 0.175);
+  const wy = Math.max(4, pxH * 0.14);
+  const drawWheel = (cx, cy) => {
+    ctx.fillStyle = '#030305';
+    ctx.beginPath();
+    ctx.ellipse(cx, cy, wx * 1.05, wy * 1.05, 0, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillStyle = '#0a0a0a';
+    ctx.beginPath();
+    ctx.ellipse(cx, cy, wx, wy, 0, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.strokeStyle = '#27272a';
+    ctx.lineWidth = Math.max(0.4, sz * 0.2);
+    ctx.beginPath();
+    ctx.ellipse(cx, cy, wx * 0.88, wy * 0.88, 0, 0, Math.PI * 2);
+    ctx.stroke();
+    ctx.fillStyle = 'rgba(55,65,81,0.95)';
+    ctx.beginPath();
+    ctx.ellipse(cx, cy, wx * 0.52, wy * 0.48, 0, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillStyle = 'rgba(15,23,42,0.6)';
+    ctx.beginPath();
+    ctx.ellipse(cx, cy, wx * 0.22, wy * 0.2, 0, 0, Math.PI * 2);
+    ctx.fill();
+    // Sidewall catchlight
+    ctx.fillStyle = 'rgba(100,116,139,0.35)';
+    ctx.beginPath();
+    ctx.ellipse(cx - wx * 0.25, cy - wy * 0.15, wx * 0.2, wy * 0.12, 0, 0, Math.PI * 2);
+    ctx.fill();
+  };
+  const oy = pxH * 0.29;
+  const wcx = x0 + wx * 1.02;
+  const wcxR = x0 + pxW - wx * 1.02;
+  drawWheel(wcx, y0 + oy);
+  drawWheel(wcxR, y0 + oy);
+  drawWheel(wcx, y0 + pxH - oy);
+  drawWheel(wcxR, y0 + pxH - oy);
+
+  ctx.shadowColor = isEgo ? '#22d3ee' : body;
+  ctx.shadowBlur = isEgo ? 16 : 12;
+  const bodyGrad = ctx.createLinearGradient(x0, y0, x0 + pxW, y0);
+  if (isEgo) {
+    bodyGrad.addColorStop(0, '#0e7490');
+    bodyGrad.addColorStop(0.5, body);
+    bodyGrad.addColorStop(1, '#0e7490');
+  } else {
+    bodyGrad.addColorStop(0, mixHex(body, '#020617', 0.35));
+    bodyGrad.addColorStop(0.45, body);
+    bodyGrad.addColorStop(0.55, mixHex(body, '#ffffff', 0.12));
+    bodyGrad.addColorStop(1, mixHex(body, '#020617', 0.28));
+  }
+  ctx.fillStyle = bodyGrad;
+  roundRect(ctx, x0, y0, pxW, pxH, r);
+  ctx.fill();
+  ctx.shadowBlur = 0;
+
+  // Hood (front / top of box): lighter wedge
+  const hoodH = pxH * 0.22;
+  ctx.fillStyle = isEgo ? 'rgba(165,243,252,0.2)' : 'rgba(255,255,255,0.12)';
+  drawPoly(ctx, [
+    { x: x0 + pxW * 0.1,  y: y0 + hoodH * 0.2 },
+    { x: x0 + pxW * 0.9,  y: y0 + hoodH * 0.2 },
+    { x: x0 + pxW * 0.72, y: y0 + hoodH * 1.1 },
+    { x: x0 + pxW * 0.28, y: y0 + hoodH * 1.1 },
+  ]);
+  ctx.fill();
+
+  // Cabin / roof
+  const cabW = pxW * 0.7;
+  const cabH = pxH * 0.4;
+  const cabX = sp.px - cabW / 2;
+  const cabY = y0 + pxH * 0.2;
+  const roofGrad = ctx.createLinearGradient(cabX, cabY, cabX + cabW, cabY);
+  roofGrad.addColorStop(0, mixHex(roof, '#000000', 0.5));
+  roofGrad.addColorStop(0.5, roof);
+  roofGrad.addColorStop(1, mixHex(roof, '#000000', 0.5));
+  ctx.fillStyle = roofGrad;
+  roundRect(ctx, cabX, cabY, cabW, cabH, r * 0.75);
+  ctx.fill();
+
+  // Glass — ego keeps a light HUD look; other cars: dark tint (not “open” / clear)
+  if (isEgo) {
+    ctx.fillStyle = 'rgba(207,250,254,0.5)';
+  } else {
+    const glGrad = ctx.createLinearGradient(sp.px, y0 + pxH * 0.02, sp.px, y0 + pxH * 0.12);
+    glGrad.addColorStop(0, 'rgba(15,23,42,0.96)');
+    glGrad.addColorStop(1, 'rgba(30,41,59,0.9)');
+    ctx.fillStyle = glGrad;
+  }
+  roundRect(ctx, sp.px - pxW * 0.32, y0 + pxH * 0.04, pxW * 0.64, Math.max(2, pxH * 0.08), 2);
+  ctx.fill();
+  if (!isEgo) {
+    ctx.strokeStyle = 'rgba(51,65,85,0.5)';
+    ctx.lineWidth = Math.max(0.5, sz * 0.25);
+    roundRect(ctx, sp.px - pxW * 0.32, y0 + pxH * 0.04, pxW * 0.64, Math.max(2, pxH * 0.08), 2);
+    ctx.stroke();
+  }
+  if (isEgo) {
+    ctx.fillStyle = 'rgba(8,47,73,0.7)';
+  } else {
+    ctx.fillStyle = 'rgba(7,12,20,0.94)';
+  }
+  roundRect(ctx, sp.px - pxW * 0.3, y0 + pxH * 0.55, pxW * 0.6, Math.max(2, pxH * 0.12), 2);
+  ctx.fill();
+
+  // Side character lines
+  ctx.strokeStyle = isEgo ? 'rgba(255,255,255,0.35)' : 'rgba(255,255,255,0.22)';
+  ctx.lineWidth = Math.max(0.6, sz * 0.4);
+  ctx.setLineDash([3 * sz, 2 * sz]);
+  ctx.beginPath();
+  ctx.moveTo(x0 + pxW * 0.1,  y0 + pxH * 0.5);
+  ctx.lineTo(x0 + pxW * 0.9,  y0 + pxH * 0.5);
+  ctx.stroke();
+  ctx.setLineDash([]);
+
+  // (Wheels moved to above the body rendering)
+
+  // DRLs (front edge)
+  ctx.fillStyle = isEgo ? 'rgba(165,243,252,0.9)' : 'rgba(241,245,249,0.75)';
+  ctx.fillRect(x0 + pxW * 0.12, y0 + 1, pxW * 0.2, Math.max(1, sz * 0.4));
+  ctx.fillRect(x0 + pxW * 0.68, y0 + 1, pxW * 0.2, Math.max(1, sz * 0.4));
+  // Taillights (rear)
+  const tl = isEgo ? 'rgba(248,113,113,0.95)' : 'rgba(251,113,133,0.9)';
+  ctx.shadowColor = '#ef4444';
+  ctx.shadowBlur = isEgo ? 8 : 5;
+  ctx.fillStyle = tl;
+  roundRect(ctx, x0 + pxW * 0.1,  y0 + pxH - 3, pxW * 0.22, 2, 0.5);
+  ctx.fill();
+  roundRect(ctx, x0 + pxW * 0.68, y0 + pxH - 3, pxW * 0.22, 2, 0.5);
+  ctx.fill();
+  ctx.shadowBlur = 0;
+  // License plate
+  ctx.fillStyle = 'rgba(226,232,240,0.9)';
+  roundRect(ctx, sp.px - pxW * 0.12, y0 + pxH * 0.44, pxW * 0.24, Math.max(2, pxH * 0.08), 1);
+  ctx.fill();
+
+  ctx.strokeStyle = isEgo ? 'rgba(224,250,255,0.55)' : 'rgba(255,255,255,0.4)';
+  ctx.lineWidth = isEgo ? 1.5 : 1;
+  roundRect(ctx, x0, y0, pxW, pxH, r);
+  ctx.stroke();
+  ctx.restore();
+}
+
+/* ── Scene rendering (top-down) ────────────────────────────── */
+function renderScene(detections, lidar) {
+  const ctx = sceneCtx;
+  const W = SC_W, H = SC_H;
+
+  // Background
+  ctx.fillStyle = '#06031a';
+  ctx.fillRect(0, 0, W, H);
+
+  // Grid (5 ft squares)
+  ctx.save();
+  ctx.strokeStyle = 'rgba(180,160,255,0.08)';
+  ctx.lineWidth = 1;
+  for (let m = -WORLD.halfWidthM; m <= WORLD.halfWidthM; m += 5) {
+    const { px } = worldToScene(m, 0);
+    ctx.beginPath(); ctx.moveTo(px, 0); ctx.lineTo(px, H); ctx.stroke();
+  }
+  for (let m = -SCENE_VIEW.rearM; m <= WORLD.forwardM; m += 5) {
+    const { py } = worldToScene(0, m);
+    ctx.beginPath(); ctx.moveTo(0, py); ctx.lineTo(W, py); ctx.stroke();
+  }
+  ctx.restore();
+
+  // Lane band (the road surface)
+  const laneHalf = (WORLD.laneCount * WORLD.laneWidthM) / 2;
+  const a = worldToScene(-laneHalf, -SCENE_VIEW.rearM);
+  const b = worldToScene( laneHalf, WORLD.forwardM);
+  ctx.save();
+  
+  // Draw asphalt background
+  const roadGradient = ctx.createLinearGradient(0, a.py, 0, b.py);
+  roadGradient.addColorStop(0, '#1a1b26');
+  roadGradient.addColorStop(1, '#0f111a');
+  ctx.fillStyle = roadGradient;
+  ctx.fillRect(a.px, b.py, b.px - a.px, a.py - b.py);
+  
+  // Draw shoulders
+  ctx.fillStyle = '#24283b';
+  ctx.fillRect(a.px - 10, b.py, 10, a.py - b.py); // Left shoulder
+  ctx.fillRect(b.px, b.py, 10, a.py - b.py);      // Right shoulder
+
+  // Lane stripes
+  ctx.strokeStyle = '#e2e8f0';
+  ctx.lineWidth = 2;
+  ctx.setLineDash([12, 12]);
+  for (let l = 1; l < WORLD.laneCount; l++) {
+    const x = -laneHalf + l * WORLD.laneWidthM;
+    const t = worldToScene(x, 0);
+    const tt = worldToScene(x, WORLD.forwardM);
+    // Add movement to stripes in top-down view
+    const offset = (EGO.travelM * SC_H / WORLD.forwardM) % 24;
+    ctx.lineDashOffset = -offset;
+    ctx.beginPath(); ctx.moveTo(t.px, t.py); ctx.lineTo(tt.px, tt.py); ctx.stroke();
+  }
+  ctx.setLineDash([]);
+  // Edges
+  ctx.strokeStyle = '#8b5cf6';
+  ctx.shadowColor = '#8b5cf6';
+  ctx.shadowBlur = 8;
+  ctx.beginPath(); ctx.moveTo(a.px, b.py); ctx.lineTo(a.px, a.py); ctx.stroke();
+  ctx.strokeStyle = '#ec4899';
+  ctx.shadowColor = '#ec4899';
+  ctx.beginPath(); ctx.moveTo(b.px, b.py); ctx.lineTo(b.px, a.py); ctx.stroke();
+  ctx.restore();
+
+  // Camera FOV cone
+  ctx.save();
+  const ego = worldToScene(EGO.xM, 0);
+  const half = fovHalfRad();
+  const farLeft  = worldToScene(EGO.xM - Math.tan(half) * WORLD.forwardM, WORLD.forwardM);
+  const farRight = worldToScene(EGO.xM + Math.tan(half) * WORLD.forwardM, WORLD.forwardM);
+  const fov = ctx.createLinearGradient(0, ego.py, 0, farLeft.py);
+  fov.addColorStop(0, 'rgba(34,211,238,0.18)');
+  fov.addColorStop(1, 'rgba(34,211,238,0)');
+  ctx.fillStyle = fov;
+  ctx.beginPath();
+  ctx.moveTo(ego.px, ego.py);
+  ctx.lineTo(farLeft.px, farLeft.py);
+  ctx.lineTo(farRight.px, farRight.py);
+  ctx.closePath();
+  ctx.fill();
+  ctx.strokeStyle = 'rgba(34,211,238,0.45)';
+  ctx.lineWidth = 1;
+  ctx.setLineDash([4, 4]);
+  ctx.beginPath();
+  ctx.moveTo(ego.px, ego.py); ctx.lineTo(farLeft.px, farLeft.py);
+  ctx.moveTo(ego.px, ego.py); ctx.lineTo(farRight.px, farRight.py);
+  ctx.stroke();
+  ctx.setLineDash([]);
+  ctx.restore();
+
+  // LiDAR ray
+  ctx.save();
+  ctx.strokeStyle = 'rgba(244,63,94,0.9)';
+  ctx.shadowColor = '#f43f5e';
+  ctx.shadowBlur = 8;
+  ctx.lineWidth = 1.5;
+  const lidEnd = worldToScene(EGO.xM, lidar.distM != null ? lidar.distM : WORLD.lidarRangeM);
+  ctx.beginPath();
+  ctx.moveTo(ego.px, ego.py);
+  ctx.lineTo(lidEnd.px, lidEnd.py);
+  ctx.stroke();
+  if (lidar.distM != null) {
+    ctx.fillStyle = '#fff';
+    ctx.beginPath();
+    ctx.arc(lidEnd.px, lidEnd.py, 4, 0, Math.PI * 2);
+    ctx.fill();
+  }
+  ctx.restore();
+
+  // Range rings (every 10 ft)
+  ctx.save();
+  ctx.strokeStyle = 'rgba(34,211,238,0.18)';
+  ctx.font = '9px ui-monospace, monospace';
+  ctx.fillStyle = 'rgba(34,211,238,0.45)';
+  ctx.lineWidth = 1;
+  for (let m = 10; m <= WORLD.forwardM; m += 10) {
+    const p = worldToScene(0, m);
+    ctx.beginPath();
+    ctx.ellipse(ego.px, ego.py, (b.px - a.px) * 0.42, ego.py - p.py, 0, Math.PI, 2 * Math.PI);
+    ctx.stroke();
+    ctx.fillText(`${m} ft`, ego.px + 6, p.py + 3);
+  }
+  ctx.restore();
+
+  // Props
+  for (const p of props) {
+    const cls = CLASSES[p.type];
+    const sp = worldToScene(p.xM, p.yM);
+    const { pxW, pxH } = scenePropSize(p);
+    const cy = sp.py - pxH / 2; // sp.py is bottom edge, cy is center
+    ctx.save();
+    ctx.shadowColor = cls.color;
+    ctx.shadowBlur = 10;
+    ctx.fillStyle = cls.color;
+    ctx.globalAlpha = 0.85;
+
+    if (p.type === 'car') {
+      const palette = CAR_PALETTE[(p.color | 0) % CAR_PALETTE.length];
+      drawSceneVehicle(ctx, { px: sp.px, py: cy }, pxW, pxH, palette);
+    } else if (p.type === 'stop') {
+      ctx.beginPath();
+      const r = Math.max(pxW, pxH) / 1.8;
+      for (let i = 0; i < 8; i++) {
+        const ang = (i / 8) * Math.PI * 2 + Math.PI / 8;
+        const px = sp.px + Math.cos(ang) * r;
+        const py = cy + Math.sin(ang) * r;
+        if (i === 0) ctx.moveTo(px, py); else ctx.lineTo(px, py);
+      }
+      ctx.closePath();
+      ctx.fill();
+      ctx.fillStyle = '#fff';
+      ctx.font = `bold ${Math.floor(r * 0.9)}px ui-monospace, monospace`;
+      ctx.textAlign = 'center';
+      ctx.fillText('S', sp.px, cy + r * 0.32);
+    } else if (p.type === 'light') {
+      const w = pxW, h = pxH;
+      ctx.fillRect(sp.px - w / 2, cy - h / 2, w, h);
+      const bulbR = w * 0.28;
+      const colors = { red: '#f43f5e', yellow: '#facc15', green: '#34d399' };
+      const states = ['red', 'yellow', 'green'];
+      for (let i = 0; i < 3; i++) {
+        ctx.fillStyle = p.light === states[i] ? colors[states[i]] : '#1a0e2e';
+        ctx.beginPath();
+        ctx.arc(sp.px, cy - h / 2 + h * (i + 1) / 4, bulbR, 0, Math.PI * 2);
+        ctx.fill();
+      }
+    } else if (p.type === 'ped') {
+      ctx.beginPath();
+      ctx.arc(sp.px, cy - pxH / 2, pxW / 2, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.fillRect(sp.px - pxW / 4, cy - pxH / 2, pxW / 2, pxH);
+    }
+    ctx.restore();
+
+    // Hover/drag highlight + selection ring for in-FOV
+    const detected = inFov(p);
+    ctx.save();
+    ctx.strokeStyle = detected ? cls.color : 'rgba(148,163,184,0.4)';
+    ctx.lineWidth = detected ? 2 : 1;
+    ctx.setLineDash(detected ? [] : [3, 3]);
+    ctx.strokeRect(sp.px - pxW / 2 - 4, sp.py - pxH - 4, pxW + 8, pxH + 8);
+    ctx.restore();
+
+    // ID label
+    ctx.fillStyle = 'rgba(229,231,235,0.7)';
+    ctx.font = '9px ui-monospace, monospace';
+    ctx.textAlign = 'left';
+    const dist = Math.hypot(p.xM, p.yM);
+    ctx.fillText(`${cls.name} · ${dist.toFixed(1)}ft`, sp.px + pxW / 2 + 6, cy - 2);
+    if (p.type === 'light') {
+      ctx.fillText(`(click to toggle: ${p.light})`, sp.px + pxW / 2 + 6, cy + 10);
+    }
+  }
+
+  // Ego car (front bumper at y=0 — distances are measured from here)
+  ctx.save();
+  const egoW = (WORLD.carWidthM / (2 * SCENE_VIEW.halfWidthM)) * SC_W;
+  const totalY = SCENE_VIEW.forwardM + SCENE_VIEW.rearM;
+  const egoH = (16 / totalY) * SC_H;
+  // Front bumper at ego.py (y=0). Car body extends behind (below) it.
+  // We center it at ego.py + egoH/2 so its top edge aligns with y=0.
+  drawSceneVehicle(ctx, { px: ego.px, py: ego.py + egoH * 0.5 }, egoW, egoH, CAR_PALETTE[8], true);
+  ctx.fillStyle = '#22d3ee';
+  ctx.font = '9px ui-monospace, monospace';
+  ctx.textAlign = 'center';
+  ctx.fillText(`EGO · ${(EGO.speedMps * 0.681818).toFixed(0)} mph`, ego.px, ego.py + egoH + 12);
+  ctx.restore();
+
+  // Spawning ghost
+  if (spawning && mouseScene.in) {
+    const cls = CLASSES[spawning.type];
+    ctx.save();
+    ctx.globalAlpha = 0.5;
+    ctx.fillStyle = cls.color;
+    ctx.shadowColor = cls.color;
+    ctx.shadowBlur = 12;
+    ctx.beginPath();
+    ctx.arc(mouseScene.x, mouseScene.y, 14, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillStyle = '#06031a';
+    ctx.font = '10px ui-monospace, monospace';
+    ctx.textAlign = 'center';
+    ctx.fillText(cls.name, mouseScene.x, mouseScene.y + 4);
+    ctx.restore();
+  }
+}
+
+/* ── Sparkline (distance history) ──────────────────────────── */
+const distHistory = [];
+function pushDist(d) {
+  distHistory.push(d == null ? null : d);
+  while (distHistory.length > 120) distHistory.shift();
+}
+function renderSpark() {
+  const ctx = sparkCtx;
+  ctx.clearRect(0, 0, SP_W, SP_H);
+  ctx.strokeStyle = 'rgba(148,163,184,0.18)';
+  ctx.beginPath();
+  ctx.moveTo(0, SP_H * 0.5); ctx.lineTo(SP_W, SP_H * 0.5);
+  ctx.stroke();
+
+  ctx.beginPath();
+  ctx.strokeStyle = '#22d3ee';
+  ctx.lineWidth = 1.5;
+  ctx.shadowColor = '#22d3ee';
+  ctx.shadowBlur = 6;
+  let started = false;
+  for (let i = 0; i < distHistory.length; i++) {
+    const v = distHistory[i];
+    const x = (i / 120) * SP_W;
+    if (v == null) { started = false; continue; }
+    const y = SP_H - (v / WORLD.lidarRangeM) * SP_H;
+    if (!started) { ctx.moveTo(x, y); started = true; }
+    else ctx.lineTo(x, y);
+  }
+  ctx.stroke();
+}
+
+/* ── Telemetry update ──────────────────────────────────────── */
+function renderTelemetry(detections, lidar, decision) {
+  // Distance
+  if (lidar.distM == null) {
+    distVal.innerHTML = `—<span class="unit">ft</span>`;
+    distState.textContent = 'NO RETURN';
+    distState.style.color = '#94a3b8';
+  } else {
+    distVal.innerHTML = `${lidar.distM.toFixed(2)}<span class="unit">ft</span>`;
+    distState.textContent = lidar.distM < 6 ? 'CLOSE' : (lidar.distM < 20 ? 'NEAR' : 'FAR');
+    distState.style.color = lidar.distM < 6 ? '#f43f5e' : (lidar.distM < 20 ? '#facc15' : '#34d399');
+  }
+
+  // Detection list
+  if (detections.length === 0) {
+    detList.innerHTML = `<div class="small" style="opacity:0.5;">No objects in FOV — drag a prop into the lane.</div>`;
+  } else {
+    detList.innerHTML = detections.map(d => `
+      <div class="det" style="border-left-color:${d.color};">
+        <div class="swatch" style="background:${d.color};"></div>
+        <div>${d.class}</div>
+        <div class="dist">${d.distM.toFixed(2)} ft</div>
+        <div class="conf">${(d.conf * 100).toFixed(0)}%</div>
+      </div>
+    `).join('');
+  }
+
+  // Decision
+  decisionVal.textContent = decision.state;
+  decisionVal.style.color = decision.color;
+  decisionVal.style.textShadow = `0 0 12px ${decision.color}88`;
+  decisionReason.textContent = decision.reason;
+  ttcVal.textContent = (_approachMs > 0.4 && lidar.distM != null) ? `${(lidar.distM / _approachMs).toFixed(1)} s` : '—';
+}
+
+/* ── UART packet emit (visual only) ────────────────────────── */
+let _packetCount = 0, _lastPktSec = 0, _pktSecCount = 0;
+function emitPacket(detections, lidar) {
+  _packetCount++;
+  _pktSecCount++;
+  const now = performance.now() / 1000;
+  if (now - _lastPktSec > 1) {
+    txRateEl.textContent = _pktSecCount;
+    _pktSecCount = 0;
+    _lastPktSec = now;
+  }
+  const dft = lidar.distM == null ? 0xFFFF : Math.min(0xFFFF, Math.round(lidar.distM * 100));
+  lastPacketEl.textContent = `0xAA ${dft.toString(16).padStart(4,'0')} n=${detections.length}`;
+}
+
+/* ── Mouse / touch input on scene ──────────────────────────── */
+function pick(px, py) {
+  for (let i = props.length - 1; i >= 0; i--) {
+    const p = props[i];
+    const sp = worldToScene(p.xM, p.yM);
+    const { pxW, pxH } = scenePropSize(p);
+    if (px >= sp.px - pxW / 2 - 4 && px <= sp.px + pxW / 2 + 4 &&
+        py >= sp.py - pxH - 4 && py <= sp.py + 4) {
+      return p;
+    }
+  }
+  return null;
+}
+
+function getScenePos(ev) {
+  const r = scene.getBoundingClientRect();
+  const isTouch = ev.touches && ev.touches[0];
+  const cx = isTouch ? ev.touches[0].clientX : ev.clientX;
+  const cy = isTouch ? ev.touches[0].clientY : ev.clientY;
+  return { x: cx - r.left, y: cy - r.top };
+}
+
+scene.addEventListener('mousedown', onDown);
+scene.addEventListener('mousemove', onMove);
+window.addEventListener('mouseup', onUp);
+scene.addEventListener('mouseleave', () => { mouseScene.in = false; });
+scene.addEventListener('mouseenter', () => { mouseScene.in = true; });
+scene.addEventListener('touchstart', onDown, { passive: false });
+scene.addEventListener('touchmove',  onMove, { passive: false });
+window.addEventListener('touchend', onUp);
+
+scene.addEventListener('click', (ev) => {
+  if (dragging || spawning) return;
+  const pos = getScenePos(ev);
+  const hit = pick(pos.x, pos.y);
+  if (!hit) return;
+  if (hit.type === 'light') {
+    hit.light = hit.light === 'red' ? 'yellow' : (hit.light === 'yellow' ? 'green' : 'red');
+  } else if (hit.type === 'car') {
+    hit.color = ((hit.color | 0) + 1) % CAR_PALETTE.length;
+  }
+});
+
+function onDown(ev) {
+  ev.preventDefault();
+  const pos = getScenePos(ev);
+  mouseScene.x = pos.x; mouseScene.y = pos.y; mouseScene.in = true;
+  if (spawning) return; // toolbar drag in progress
+  const hit = pick(pos.x, pos.y);
+  if (hit) {
+    const sp = worldToScene(hit.xM, hit.yM);
+    dragging = { prop: hit, offX: pos.x - sp.px, offY: pos.y - sp.py };
+  }
+}
+function onMove(ev) {
+  const pos = getScenePos(ev);
+  mouseScene.x = pos.x; mouseScene.y = pos.y;
+  if (dragging) {
+    const w = sceneToWorld(pos.x - dragging.offX, pos.y - dragging.offY);
+    dragging.prop.xM = Math.max(-WORLD.halfWidthM + 0.2, Math.min(WORLD.halfWidthM - 0.2, w.xM));
+    dragging.prop.yM = Math.max(0.3, Math.min(WORLD.forwardM - 0.3, w.yM));
+  }
+}
+let _carColorCounter = 1;
+function onUp(ev) {
+  if (spawning && mouseScene.in) {
+    const w = sceneToWorld(mouseScene.x, mouseScene.y);
+    const newProp = { id: nextId++, type: spawning.type, xM: w.xM, yM: Math.max(3, w.yM) };
+    if (spawning.type === 'light') newProp.light = 'red';
+    if (spawning.type === 'car') newProp.color = (_carColorCounter++) % CAR_PALETTE.length;
+    props.push(newProp);
+  }
+  spawning = null;
+  dragging = null;
+}
+
+/* Toolbar — click to spawn at default forward position; or drag */
+document.querySelectorAll('.tool[data-spawn]').forEach(btn => {
+  btn.addEventListener('mousedown', (e) => {
+    spawning = { type: btn.dataset.spawn };
+  });
+  btn.addEventListener('touchstart', (e) => {
+    e.preventDefault();
+    spawning = { type: btn.dataset.spawn };
+  }, { passive: false });
+  btn.addEventListener('click', (e) => {
+    if (!spawning) return;
+    // If the user just clicked (no drag), drop into the lane at a reasonable spot
+    const newProp = { id: nextId++, type: spawning.type, xM: 0, yM: 30 };
+    if (spawning.type === 'light') newProp.light = 'red';
+    if (spawning.type === 'car') newProp.color = (_carColorCounter++) % CAR_PALETTE.length;
+    if (!props.find(p => Math.abs(p.xM - newProp.xM) < 0.3 && Math.abs(p.yM - newProp.yM) < 0.5)) {
+      props.push(newProp);
+    }
+    spawning = null;
+  });
+});
+document.getElementById('clearBtn').addEventListener('click', () => { props = []; });
+
+function setDriveControl(control, active) {
+  if (!(control in driveKeys)) return;
+  driveKeys[control] = active;
+  document.querySelectorAll(`.drive-btn[data-drive="${control}"]`).forEach(btn => {
+    btn.classList.toggle('is-active', active);
+  });
+}
+
+const keyToDrive = {
+  ArrowLeft: 'left',
+  a: 'left',
+  A: 'left',
+  ArrowRight: 'right',
+  d: 'right',
+  D: 'right',
+  ArrowUp: 'up',
+  w: 'up',
+  W: 'up',
+  ArrowDown: 'down',
+  s: 'down',
+  S: 'down',
+};
+
+window.addEventListener('keydown', (ev) => {
+  const control = keyToDrive[ev.key];
+  if (!control) return;
+  ev.preventDefault();
+  setDriveControl(control, true);
+});
+window.addEventListener('keyup', (ev) => {
+  const control = keyToDrive[ev.key];
+  if (!control) return;
+  ev.preventDefault();
+  setDriveControl(control, false);
+});
+window.addEventListener('blur', () => {
+  Object.keys(driveKeys).forEach(key => setDriveControl(key, false));
+});
+document.querySelectorAll('.drive-btn[data-drive]').forEach(btn => {
+  const control = btn.dataset.drive;
+  const activate = (ev) => {
+    ev.preventDefault();
+    setDriveControl(control, true);
+  };
+  const deactivate = (ev) => {
+    ev.preventDefault();
+    setDriveControl(control, false);
+  };
+  btn.addEventListener('pointerdown', activate);
+  btn.addEventListener('pointerup', deactivate);
+  btn.addEventListener('pointercancel', deactivate);
+  btn.addEventListener('pointerleave', deactivate);
+});
+
+function updateEgo(dt) {
+  if (driveKeys.up) {
+    EGO.speedMps = Math.min(EGO.maxSpeedMps, EGO.speedMps + EGO.accelMps2 * dt);
+  } else if (driveKeys.down) {
+    EGO.speedMps = Math.max(0, EGO.speedMps - EGO.brakeMps2 * dt);
+  } else {
+    EGO.speedMps = Math.max(0, EGO.speedMps - EGO.dragMps2 * dt);
+  }
+
+  const steer = (driveKeys.right ? 1 : 0) - (driveKeys.left ? 1 : 0);
+  const lateralLimit = WORLD.roadHalfM - WORLD.carWidthM / 2;
+  EGO.xM = Math.max(-lateralLimit, Math.min(lateralLimit, EGO.xM + steer * EGO.steerMps * dt));
+
+  if (EGO.speedMps > 0) {
+    const travel = EGO.speedMps * dt;
+    EGO.travelM += travel;
+    for (const p of props) p.yM -= travel;
+  }
+}
+
+/* ── Main loop ─────────────────────────────────────────────── */
+let lastT = performance.now();
+let frames = 0, fpsLastT = lastT, fps = 0;
+
+function loop(now) {
+  const dt = Math.min(0.05, (now - lastT) / 1000);
+  lastT = now;
+  frames++;
+  if (now - fpsLastT > 500) {
+    fps = Math.round((frames * 1000) / (now - fpsLastT));
+    fpsEl.textContent = `${fps} fps`;
+    frames = 0;
+    fpsLastT = now;
+  }
+
+  updateEgo(dt || 0.016);
+
+  const detections = detectAll();
+  const lidar = lidarReading();
+  const decision = makeDecision(detections, lidar, dt || 0.016);
+
+  pushDist(lidar.distM);
+
+  renderHUD(detections, lidar);
+  renderScene(detections, lidar);
+  renderSpark();
+  renderTelemetry(detections, lidar, decision);
+  emitPacket(detections, lidar);
+
+  requestAnimationFrame(loop);
+}
+requestAnimationFrame(loop);
+
+/* ── Theme sync (parent portfolio) ─────────────────────────── */
+window.addEventListener('message', (e) => {
+  if (e.data && e.data.type === 'theme-change') {
+    document.documentElement.style.colorScheme = e.data.mode;
+  }
+});
+</script>
+</body>
+</html>

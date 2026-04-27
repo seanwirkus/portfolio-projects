@@ -3,731 +3,611 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Orbital Editor Embed</title>
+    <title>Orbital Editor</title>
+    <link rel="icon" type="image/svg+xml" href="../favicon.svg">
     <style>
         :root {
+            --bg-base: #04100d;
             --bg: #071b16;
-            --panel: rgba(255, 255, 255, 0.05);
-            --border: rgba(255, 255, 255, 0.08);
+            --bg-grad-1: rgba(16, 185, 129, 0.20);
+            --bg-grad-2: rgba(59, 130, 246, 0.18);
+            --panel: rgba(10, 22, 19, 0.72);
+            --panel-solid: #0c1e1a;
+            --border: rgba(255, 255, 255, 0.10);
+            --border-strong: rgba(255, 255, 255, 0.18);
             --text: #edf8f4;
             --muted: #9dc6ba;
-            --green: #10b981;
-            --teal: #14b8a6;
-            --blue: #3b82f6;
-            --amber: #f59e0b;
+            --accent: #6ee7b7;
+            --accent-bg: linear-gradient(135deg, #10b981, #14b8a6);
+            --accent-soft: rgba(16, 185, 129, 0.16);
+            --accent-border: rgba(16, 185, 129, 0.45);
+            --danger-soft: rgba(239, 68, 68, 0.14);
+            --danger-border: rgba(239, 68, 68, 0.5);
+            --danger: #fca5a5;
+        }
+        [data-theme="midnight"] {
+            --bg-base: #050714; --bg: #0b0f1f;
+            --bg-grad-1: rgba(99, 102, 241, 0.22); --bg-grad-2: rgba(168, 85, 247, 0.18);
+            --panel: rgba(13, 16, 36, 0.72); --panel-solid: #11142b;
+            --text: #e7e9ff; --muted: #a5acd6;
+            --accent: #c4b5fd; --accent-bg: linear-gradient(135deg, #818cf8, #a855f7);
+            --accent-soft: rgba(129,140,248,0.18); --accent-border: rgba(129,140,248,0.5);
+        }
+        [data-theme="sunset"] {
+            --bg-base: #170608; --bg: #1f0d10;
+            --bg-grad-1: rgba(249, 115, 22, 0.22); --bg-grad-2: rgba(236, 72, 153, 0.18);
+            --panel: rgba(33, 13, 16, 0.72); --panel-solid: #2a1115;
+            --text: #ffeede; --muted: #e9b6a3;
+            --accent: #fdba74; --accent-bg: linear-gradient(135deg, #f97316, #ec4899);
+            --accent-soft: rgba(249,115,22,0.18); --accent-border: rgba(249,115,22,0.5);
+        }
+        [data-theme="light"] {
+            --bg-base: #ffffff; --bg: #f4f7f5;
+            --bg-grad-1: rgba(16, 185, 129, 0.16); --bg-grad-2: rgba(59, 130, 246, 0.12);
+            --panel: rgba(255, 255, 255, 0.78); --panel-solid: #ffffff;
+            --border: rgba(15, 23, 42, 0.10); --border-strong: rgba(15, 23, 42, 0.18);
+            --text: #0f172a; --muted: #475569;
+            --accent: #047857; --accent-bg: linear-gradient(135deg, #10b981, #0ea5e9);
+            --accent-soft: rgba(16, 185, 129, 0.12); --accent-border: rgba(16, 185, 129, 0.5);
         }
 
-        * {
-            box-sizing: border-box;
-        }
-
-        html,
-        body {
-            margin: 0;
-            width: 100%;
-            height: 100%;
-            overflow: hidden;
-            background:
-                radial-gradient(circle at top left, rgba(16, 185, 129, 0.2), transparent 26%),
-                radial-gradient(circle at bottom right, rgba(59, 130, 246, 0.18), transparent 28%),
-                linear-gradient(180deg, #04100d 0%, var(--bg) 100%);
+        * { box-sizing: border-box; }
+        html, body {
+            margin: 0; width: 100%; height: 100%; overflow: hidden;
             color: var(--text);
             font-family: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+            background:
+                radial-gradient(circle at 12% 8%, var(--bg-grad-1), transparent 32%),
+                radial-gradient(circle at 88% 92%, var(--bg-grad-2), transparent 34%),
+                linear-gradient(180deg, var(--bg-base) 0%, var(--bg) 100%);
         }
 
-        body {
-            padding: 16px;
+        /* ===== Top status bar ===== */
+        .topbar {
+            position: fixed;
+            top: 0; left: 0; right: 0;
+            height: 56px;
+            display: flex; align-items: center; justify-content: space-between;
+            padding: 0 20px;
+            z-index: 20;
+            pointer-events: none;
+        }
+        .topbar > * { pointer-events: auto; }
+        .brand {
+            display: flex; align-items: center; gap: 12px;
+        }
+        .brand-mark {
+            width: 30px; height: 30px; border-radius: 9px;
+            background: var(--accent-bg);
+            display: flex; align-items: center; justify-content: center;
+            box-shadow: 0 6px 18px rgba(16, 185, 129, .35);
+        }
+        .brand-mark svg { width: 16px; height: 16px; color: #04100d; }
+        .brand-text { display: flex; flex-direction: column; line-height: 1; }
+        .brand-name { font-size: 0.95rem; font-weight: 600; letter-spacing: -0.01em; }
+        .brand-sub {
+            font-size: 0.65rem; color: var(--muted);
+            text-transform: uppercase; letter-spacing: 0.18em; margin-top: 4px;
+        }
+        .top-actions { display: flex; align-items: center; gap: 8px; }
+        .badge {
+            display: inline-flex; align-items: center; gap: 6px;
+            padding: 6px 12px;
+            border-radius: 999px;
+            border: 1px solid var(--accent-border);
+            background: var(--accent-soft);
+            color: var(--accent);
+            font-size: 0.74rem;
+            letter-spacing: 0.04em;
+        }
+        .badge-dot {
+            width: 6px; height: 6px; border-radius: 50%;
+            background: currentColor;
+            box-shadow: 0 0 8px currentColor;
         }
 
-        .app {
-            width: 100%;
-            height: 100%;
-            display: grid;
-            grid-template-columns: 316px minmax(0, 1fr);
-            gap: 16px;
-        }
-
-        .panel {
-            border-radius: 28px;
+        /* ===== Canvas (Ketcher iframe) ===== */
+        .canvas-wrap {
+            position: fixed;
+            top: 56px; left: 16px; right: 16px; bottom: 16px;
+            border-radius: 22px;
+            overflow: hidden;
             border: 1px solid var(--border);
+            background: #fff;
+            box-shadow: 0 24px 60px rgba(0,0,0,0.32);
+        }
+        iframe#ketcher {
+            width: 100%; height: 100%; border: 0; display: block;
+        }
+
+        /* ===== Floating dock (bottom-right control cluster) ===== */
+        .dock {
+            position: fixed;
+            right: 32px; bottom: 32px;
+            width: 312px;
+            max-height: calc(100vh - 100px);
+            display: flex; flex-direction: column;
+            border-radius: 20px;
+            border: 1px solid var(--border-strong);
             background: var(--panel);
-            backdrop-filter: blur(18px);
+            backdrop-filter: blur(22px) saturate(1.2);
+            -webkit-backdrop-filter: blur(22px) saturate(1.2);
+            box-shadow: 0 24px 60px rgba(0, 0, 0, 0.45);
+            z-index: 30;
+            overflow: hidden;
+            transform-origin: bottom right;
+            transition: transform .25s ease, opacity .2s ease;
+        }
+        .dock.hidden {
+            transform: scale(0.85) translateY(20px);
+            opacity: 0;
+            pointer-events: none;
+        }
+        .dock.collapsed .dock-body,
+        .dock.collapsed .settings-panel { display: none; }
+        .dock.collapsed { max-height: none; }
+        .fab {
+            position: fixed;
+            right: 32px; bottom: 32px;
+            width: 52px; height: 52px;
+            border-radius: 50%;
+            border: 1px solid var(--border-strong);
+            background: var(--panel);
+            backdrop-filter: blur(22px) saturate(1.2);
+            -webkit-backdrop-filter: blur(22px) saturate(1.2);
+            color: var(--accent);
+            cursor: pointer;
+            display: none;
+            align-items: center; justify-content: center;
+            box-shadow: 0 16px 40px rgba(0, 0, 0, 0.4);
+            z-index: 30;
+            transition: transform .15s ease, background .15s ease;
+        }
+        .fab.show { display: inline-flex; }
+        .fab:hover { transform: translateY(-2px); background: var(--accent-soft); }
+        .fab svg { width: 22px; height: 22px; }
+        .dock-head {
+            display: flex; align-items: center; justify-content: space-between;
+            padding: 14px 16px;
+            border-bottom: 1px solid var(--border);
+        }
+        .dock-title {
+            font-size: 0.7rem;
+            text-transform: uppercase;
+            letter-spacing: 0.18em;
+            color: var(--muted);
+            font-weight: 500;
+        }
+        .icon-btn {
+            width: 30px; height: 30px;
+            display: inline-flex; align-items: center; justify-content: center;
+            border-radius: 9px;
+            border: 1px solid var(--border);
+            background: rgba(255,255,255,0.04);
+            color: var(--text);
+            cursor: pointer;
+            transition: all .15s ease;
+        }
+        .icon-btn:hover { background: var(--accent-soft); border-color: var(--accent-border); color: var(--accent); }
+        .icon-btn.active { background: var(--accent-soft); border-color: var(--accent-border); color: var(--accent); }
+        .icon-btn svg { width: 15px; height: 15px; }
+
+        .dock-body {
+            padding: 14px 16px 16px;
+            overflow-y: auto;
+            display: flex; flex-direction: column; gap: 16px;
+        }
+        .dock-body::-webkit-scrollbar { width: 6px; }
+        .dock-body::-webkit-scrollbar-thumb { background: rgba(255,255,255,.10); border-radius: 999px; }
+
+        .section-label {
+            font-size: 0.65rem;
+            text-transform: uppercase;
+            letter-spacing: 0.18em;
+            color: var(--muted);
+            margin: 0 0 8px;
         }
 
-        .sidebar {
-            padding: 22px;
+        .stat-row {
             display: grid;
-            grid-template-rows: auto auto auto auto 1fr auto;
-            gap: 14px;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
         }
-
-        .eyebrow {
-            font-size: 0.78rem;
+        .stat {
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 10px 12px;
+            background: rgba(255,255,255,0.03);
+        }
+        .stat-label {
+            font-size: 0.62rem;
             text-transform: uppercase;
             letter-spacing: 0.16em;
             color: var(--muted);
         }
-
-        h1 {
-            margin: 0.35rem 0 0;
-            font-size: 2rem;
-            line-height: 1;
-            letter-spacing: -0.05em;
-        }
-
-        .subtitle {
-            margin: 0.6rem 0 0;
-            color: var(--muted);
-            font-size: 0.94rem;
-            line-height: 1.7;
-        }
-
-        .sidebar-card {
-            padding: 14px;
-            border-radius: 18px;
-            background: rgba(255, 255, 255, 0.04);
-            border: 1px solid rgba(255, 255, 255, 0.06);
-        }
-
-        .sidebar-card span {
+        .stat-value {
             display: block;
-            color: var(--muted);
-            font-size: 0.72rem;
-            text-transform: uppercase;
-            letter-spacing: 0.12em;
+            margin-top: 4px;
+            font-size: 1.3rem;
+            font-weight: 600;
+            font-variant-numeric: tabular-nums;
+            letter-spacing: -0.02em;
+        }
+        .smiles-box {
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 10px 12px;
+            background: rgba(255,255,255,0.03);
+        }
+        .smiles-box .stat-value {
+            font-size: 0.82rem;
+            font-family: "SF Mono", ui-monospace, Menlo, monospace;
+            color: var(--accent);
+            word-break: break-all;
+            line-height: 1.4;
+            font-weight: 500;
         }
 
-        .sidebar-card strong {
-            display: block;
-            margin-top: 0.35rem;
-            font-size: 1.02rem;
-        }
-
-        .stats-grid {
+        .preset-grid {
             display: grid;
-            grid-template-columns: repeat(2, minmax(0, 1fr));
-            gap: 10px;
+            grid-template-columns: 1fr 1fr;
+            gap: 6px;
         }
-
-        .button-group,
-        .chip-group {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 8px;
-            margin-top: 10px;
-        }
-
-        .tool,
-        .chip,
-        button {
-            border: 0;
+        .preset {
+            border: 1px solid var(--border);
+            background: rgba(255,255,255,0.03);
+            color: var(--text);
+            border-radius: 10px;
+            padding: 8px 10px;
+            text-align: left;
             cursor: pointer;
-            border-radius: 999px;
-            padding: 0.62rem 0.85rem;
-            font: inherit;
-            color: #fff;
-            background: rgba(255, 255, 255, 0.08);
-            border: 1px solid transparent;
-            transition: transform 0.18s ease, background 0.18s ease, border-color 0.18s ease;
-        }
-
-        .tool:hover,
-        .chip:hover,
-        button:hover {
-            transform: translateY(-1px);
-            background: rgba(255, 255, 255, 0.14);
-        }
-
-        .tool.active,
-        .chip.active {
-            background: rgba(16, 185, 129, 0.18);
-            border-color: rgba(16, 185, 129, 0.45);
-            box-shadow: 0 0 20px rgba(16, 185, 129, 0.18);
-        }
-
-        .stage {
-            display: grid;
-            grid-template-rows: auto auto 1fr auto;
-            overflow: hidden;
-            min-height: 0;
-        }
-
-        .stage-header,
-        .stage-toolbar,
-        .stage-footer {
-            padding: 16px 18px;
-            display: flex;
-            justify-content: space-between;
-            gap: 1rem;
-            align-items: center;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.06);
-        }
-
-        .stage-toolbar {
-            flex-wrap: wrap;
-        }
-
-        .stage-footer {
-            border-top: 1px solid rgba(255, 255, 255, 0.06);
-            border-bottom: 0;
-            font-size: 0.9rem;
-            color: var(--muted);
-        }
-
-        .badge {
-            padding: 0.45rem 0.78rem;
-            border-radius: 999px;
-            background: rgba(16, 185, 129, 0.14);
-            border: 1px solid rgba(16, 185, 129, 0.3);
-            color: #bbf7d0;
+            font-family: inherit;
             font-size: 0.8rem;
+            font-weight: 500;
+            display: flex; flex-direction: column; gap: 2px;
+            transition: all .15s ease;
         }
-
-        .canvas-wrap {
-            position: relative;
-            min-height: 0;
-            padding: 16px 18px;
-            display: grid;
-        }
-
-        #editor {
-            width: 100%;
-            height: 100%;
-            min-height: 0;
-            border-radius: 24px;
-            background:
-                linear-gradient(180deg, rgba(255,255,255,0.05), transparent 16%),
-                radial-gradient(circle at center, rgba(16,185,129,0.04), transparent 38%),
-                #f8fffc;
-            border: 1px solid rgba(255, 255, 255, 0.06);
-        }
-
-        .legend {
-            display: flex;
-            gap: 8px;
-            flex-wrap: wrap;
-        }
-
-        .legend-pill {
-            display: inline-flex;
-            align-items: center;
-            gap: 0.45rem;
-            padding: 0.45rem 0.7rem;
-            border-radius: 999px;
-            background: rgba(255, 255, 255, 0.06);
+        .preset small {
+            font-size: 0.66rem;
             color: var(--muted);
-            font-size: 0.84rem;
+            font-family: "SF Mono", ui-monospace, Menlo, monospace;
+            font-weight: 400;
         }
-
-        .legend-pill::before {
-            content: "";
-            width: 0.65rem;
-            height: 0.65rem;
-            border-radius: 999px;
-            background: currentColor;
-            opacity: 0.75;
+        .preset:hover {
+            background: var(--accent-soft);
+            border-color: var(--accent-border);
+            transform: translateY(-1px);
         }
+        .preset.wide { grid-column: 1 / -1; }
 
-        .legend-pill.nitrogen { color: #3050f8; }
-        .legend-pill.oxygen { color: #ff0d0d; }
-        .legend-pill.sulfur { color: #c4b500; }
-        .legend-pill.carbon { color: #444; }
-
-        body.preview-mode .app {
-            grid-template-columns: 248px minmax(0, 1fr);
+        .btn-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 6px;
         }
-
-        body.preview-mode .sidebar {
-            padding: 18px;
-            gap: 10px;
+        .btn {
+            background: rgba(255,255,255,0.04);
+            color: var(--text);
+            border: 1px solid var(--border);
+            padding: 9px 10px;
+            border-radius: 10px;
+            font-size: 0.8rem;
+            font-weight: 500;
+            cursor: pointer;
+            font-family: inherit;
+            transition: all .15s ease;
+            display: inline-flex; align-items: center; justify-content: center; gap: 6px;
         }
-
-        body.preview-mode .sidebar-card:last-of-type,
-        body.preview-mode #preset-glycine {
-            display: none;
+        .btn:hover {
+            background: var(--accent-soft);
+            border-color: var(--accent-border);
         }
-
-        @media (max-width: 920px) {
-            body {
-                padding: 10px;
-            }
-
-            .app {
-                grid-template-columns: 1fr;
-                grid-template-rows: auto 1fr;
-            }
-
-            .sidebar {
-                grid-template-rows: auto auto auto auto auto;
-            }
-
-            .canvas-wrap {
-                min-height: 560px;
-            }
+        .btn.primary {
+            background: var(--accent-bg);
+            border-color: transparent;
+            color: #04100d;
+            font-weight: 600;
         }
-
-        @media (max-width: 700px) {
-            .button-group,
-            .chip-group {
-                display: grid;
-                grid-template-columns: 1fr 1fr;
-            }
-
-            .tool,
-            .chip,
-            button {
-                min-height: 46px;
-            }
-
-            .stage-header,
-            .stage-toolbar,
-            .stage-footer {
-                flex-direction: column;
-                align-items: flex-start;
-            }
-
-            .canvas-wrap {
-                min-height: 420px;
-                padding: 12px;
-            }
-
-        body[data-theme-mode="light"] {
-            --bg: #f8fafc;
-            --panel: rgba(255, 255, 255, 0.82);
-            --border: rgba(15, 23, 42, 0.12);
-            --text: #0f172a;
-            --muted: #475569;
-            color-scheme: light;
+        .btn.primary:hover { filter: brightness(1.08); transform: translateY(-1px); }
+        .btn.danger { color: var(--muted); }
+        .btn.danger:hover {
+            background: var(--danger-soft);
+            border-color: var(--danger-border);
+            color: var(--danger);
         }
+        .btn svg { width: 13px; height: 13px; }
+        .btn.full { grid-column: 1 / -1; }
 
-        body[data-theme-mode="light"] {
-            background:
-                radial-gradient(circle at top left, rgba(16, 185, 129, 0.1), transparent 26%),
-                radial-gradient(circle at bottom right, rgba(59, 130, 246, 0.08), transparent 28%),
-                linear-gradient(180deg, #f1f5f9 0%, var(--bg) 100%);
+        /* ===== Settings panel (slide-over inside dock) ===== */
+        .settings-panel {
+            position: absolute;
+            inset: 0;
+            background: var(--panel-solid);
+            display: flex; flex-direction: column;
+            transform: translateX(100%);
+            transition: transform .25s ease;
+            z-index: 5;
         }
-
-        body[data-theme-mode="light"] button,
-        body[data-theme-mode="light"] .chip,
-        body[data-theme-mode="light"] .tool {
-            background: rgba(15, 23, 42, 0.05);
-            border-color: rgba(15, 23, 42, 0.1);
-            color: #0f172a;
+        .settings-panel.open { transform: translateX(0); }
+        .theme-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 6px;
         }
-
-        body[data-theme-mode="light"] .sidebar-card {
-            background: rgba(15, 23, 42, 0.03);
-            border-color: rgba(15, 23, 42, 0.06);
+        .theme-opt {
+            display: flex; align-items: center; gap: 8px;
+            padding: 9px 10px;
+            border-radius: 10px;
+            border: 1px solid var(--border);
+            background: rgba(255,255,255,0.03);
+            color: var(--text);
+            font-size: 0.8rem;
+            font-family: inherit;
+            cursor: pointer;
+            transition: all .15s ease;
         }
+        .theme-opt:hover { border-color: var(--accent-border); }
+        .theme-opt.active { border-color: var(--accent-border); background: var(--accent-soft); color: var(--accent); }
+        .swatch {
+            width: 14px; height: 14px; border-radius: 50%;
+            border: 1px solid rgba(255,255,255,0.2);
+            flex-shrink: 0;
+        }
+        .swatch.forest { background: linear-gradient(135deg, #10b981, #3b82f6); }
+        .swatch.midnight { background: linear-gradient(135deg, #818cf8, #a855f7); }
+        .swatch.sunset { background: linear-gradient(135deg, #f97316, #ec4899); }
+        .swatch.light { background: linear-gradient(135deg, #f4f7f5, #cbd5e1); }
 
-        body[data-theme-mode="light"] .legend-pill {
-            background: rgba(15, 23, 42, 0.05);
-            color: #475569;
+        /* ===== Mobile ===== */
+        @media (max-width: 720px) {
+            .canvas-wrap { left: 8px; right: 8px; bottom: 8px; top: 52px; border-radius: 16px; }
+            .dock { right: 8px; bottom: 8px; left: 8px; width: auto; max-height: 50vh; }
+            .topbar { padding: 0 12px; height: 52px; }
         }
     </style>
-    <script>
-        // Theme Sync Logic
-        const syncTheme = (mode) => {
-            document.body.dataset.themeMode = mode;
-            document.documentElement.style.colorScheme = mode;
-        };
-
-        window.addEventListener('message', (e) => {
-            if (e.data.type === 'theme-change') {
-                syncTheme(e.data.mode);
-            }
-        });
-
-        // Initial check for parent theme if possible
-        try {
-            if (window.parent && window.parent.document.body.dataset.themeMode) {
-                syncTheme(window.parent.document.body.dataset.themeMode);
-            }
-        } catch (e) {}
-    </script>
 </head>
 <body>
-    <div class="app">
-        <aside class="panel sidebar">
-            <div>
-                <div class="eyebrow">Chemical synthesis planner</div>
-                <h1>Orbital</h1>
-                <p class="subtitle">Live editor built on the project’s own molecule model, drawing tools, and renderer. Place atoms, draw bonds, erase structures, and auto-organize the current scaffold.</p>
+    <header class="topbar">
+        <div class="brand">
+            <div class="brand-mark">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">
+                    <circle cx="12" cy="12" r="2.5"/>
+                    <ellipse cx="12" cy="12" rx="9" ry="3.5"/>
+                    <ellipse cx="12" cy="12" rx="9" ry="3.5" transform="rotate(60 12 12)"/>
+                    <ellipse cx="12" cy="12" rx="9" ry="3.5" transform="rotate(-60 12 12)"/>
+                </svg>
             </div>
+            <div class="brand-text">
+                <div class="brand-name">Orbital</div>
+                <div class="brand-sub">Synthesis Planner</div>
+            </div>
+        </div>
+        <div class="top-actions">
+            <div class="badge" id="status"><span class="badge-dot"></span><span id="status-text">Loading…</span></div>
+        </div>
+    </header>
 
-            <div class="stats-grid">
-                <div class="sidebar-card">
-                    <span>Formula</span>
-                    <strong id="formula">-</strong>
+    <main class="canvas-wrap">
+        <iframe id="ketcher" src="../Orbital/ketcher/index.html" title="Orbital structure editor"></iframe>
+    </main>
+
+    <aside class="dock" id="dock">
+        <div class="dock-head">
+            <span class="dock-title" id="dock-title">Controls</span>
+            <div style="display:flex; gap:6px;">
+            <button class="icon-btn" id="settings-toggle" aria-label="Settings">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09a1.65 1.65 0 0 0-1-1.51 1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09a1.65 1.65 0 0 0 1.51-1 1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+            </button>
+            <button class="icon-btn" id="dock-hide" aria-label="Hide controls">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+            </button>
+            </div>
+        </div>
+
+        <div class="dock-body">
+            <section>
+                <div class="section-label">Live structure</div>
+                <div class="stat-row">
+                    <div class="stat">
+                        <div class="stat-label">Atoms</div>
+                        <span class="stat-value" id="atom-count">0</span>
+                    </div>
+                    <div class="stat">
+                        <div class="stat-label">Bonds</div>
+                        <span class="stat-value" id="bond-count">0</span>
+                    </div>
                 </div>
-                <div class="sidebar-card">
-                    <span>Molecular weight</span>
-                    <strong id="weight">0.00</strong>
+                <div class="smiles-box" style="margin-top: 8px;">
+                    <div class="stat-label">SMILES</div>
+                    <span class="stat-value" id="smiles">—</span>
                 </div>
-                <div class="sidebar-card">
-                    <span>Atoms</span>
-                    <strong id="atom-count">0</strong>
+            </section>
+
+            <section>
+                <div class="section-label">Presets</div>
+                <div class="preset-grid">
+                    <button class="preset" data-smiles="CCO">Ethanol<small>CCO</small></button>
+                    <button class="preset" data-smiles="c1ccccc1">Benzene<small>c1ccccc1</small></button>
+                    <button class="preset" data-smiles="NCC(=O)O">Glycine<small>NCC(=O)O</small></button>
+                    <button class="preset" data-smiles="CC(=O)Oc1ccccc1C(=O)O">Aspirin<small>aspirin</small></button>
+                    <button class="preset wide" data-smiles="CN1C=NC2=C1C(=O)N(C(=O)N2C)C">Caffeine<small>CN1C=NC2=C1C(=O)N(C(=O)N2C)C</small></button>
                 </div>
-                <div class="sidebar-card">
-                    <span>Bonds</span>
-                    <strong id="bond-count">0</strong>
+            </section>
+
+            <section>
+                <div class="section-label">Export</div>
+                <div class="btn-row">
+                    <button class="btn primary" id="copy-smiles">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+                        Copy SMILES
+                    </button>
+                    <button class="btn" id="download-mol">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                        MOL file
+                    </button>
+                    <button class="btn danger full" id="clear">Clear canvas</button>
                 </div>
-            </div>
+            </section>
+        </div>
 
-            <div class="sidebar-card">
-                <span>Tools</span>
-                <div class="button-group" id="tool-buttons">
-                    <button class="tool active" data-tool="atom">Atom</button>
-                    <button class="tool" data-tool="bond">Bond</button>
-                    <button class="tool" data-tool="erase">Erase</button>
-                </div>
+        <div class="settings-panel" id="settings-panel">
+            <div class="dock-head">
+                <span class="dock-title">Settings</span>
+                <button class="icon-btn" id="settings-close" aria-label="Close settings">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                </button>
             </div>
-
-            <div class="sidebar-card">
-                <span>Elements</span>
-                <div class="chip-group" id="element-buttons">
-                    <button class="chip active" data-element="C">Carbon</button>
-                    <button class="chip" data-element="N">Nitrogen</button>
-                    <button class="chip" data-element="O">Oxygen</button>
-                    <button class="chip" data-element="S">Sulfur</button>
-                    <button class="chip" data-element="Cl">Chlorine</button>
-                </div>
+            <div class="dock-body">
+                <section>
+                    <div class="section-label">Theme</div>
+                    <div class="theme-grid">
+                        <button class="theme-opt" data-theme="forest"><span class="swatch forest"></span>Forest</button>
+                        <button class="theme-opt" data-theme="midnight"><span class="swatch midnight"></span>Midnight</button>
+                        <button class="theme-opt" data-theme="sunset"><span class="swatch sunset"></span>Sunset</button>
+                        <button class="theme-opt" data-theme="light"><span class="swatch light"></span>Light</button>
+                    </div>
+                </section>
             </div>
+        </div>
+    </aside>
 
-            <div class="sidebar-card">
-                <span>Presets</span>
-                <div class="button-group">
-                    <button id="preset-ethanol">Ethanol</button>
-                    <button id="preset-benzene">Benzene</button>
-                    <button id="preset-glycine">Glycine</button>
-                </div>
-            </div>
+    <button class="fab" id="dock-show" aria-label="Show controls">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+    </button>
 
-            <div class="button-group">
-                <button id="organize">Auto organize</button>
-                <button id="clear">Clear canvas</button>
-            </div>
-        </aside>
-
-        <section class="panel stage">
-            <div class="stage-header">
-                <strong id="tool-readout">Atom tool · Carbon</strong>
-                <div class="badge" id="status">Ready to draw</div>
-            </div>
-
-            <div class="stage-toolbar">
-                <div class="legend">
-                    <div class="legend-pill carbon">Carbon</div>
-                    <div class="legend-pill nitrogen">Nitrogen</div>
-                    <div class="legend-pill oxygen">Oxygen</div>
-                    <div class="legend-pill sulfur">Sulfur</div>
-                </div>
-                <div class="button-group" id="bond-buttons">
-                    <button class="chip active" data-order="1">Single</button>
-                    <button class="chip" data-order="2">Double</button>
-                    <button class="chip" data-order="3">Triple</button>
-                </div>
-            </div>
-
-            <div class="canvas-wrap">
-                <canvas id="editor" aria-label="Orbital molecule editor"></canvas>
-            </div>
-
-            <div class="stage-footer">
-                Click to place atoms. Switch to bond mode to connect atoms or create chains. Auto organize reflows the current graph into a cleaner layout.
-            </div>
-        </section>
-    </div>
-
-    <script src="../Orbital/src/js/elements.js"></script>
-    <script src="../Orbital/src/js/core/Molecule.js"></script>
-    <script src="../Orbital/src/js/rendering/renderer-v2.js"></script>
-    <script src="../Orbital/src/js/tools/base-tool.js"></script>
-    <script src="../Orbital/src/js/tools/atom-tool.js"></script>
-    <script src="../Orbital/src/js/tools/bond-tool.js"></script>
-    <script src="../Orbital/src/js/tools/erase-tool.js"></script>
     <script>
-        const previewMode = new URLSearchParams(window.location.search).get("mode") === "preview";
-        if (previewMode) {
-            document.body.classList.add("preview-mode");
-        }
-
-        const canvas = document.getElementById("editor");
-        const renderer = new RendererV2(canvas);
-        const atomTool = new AtomTool();
-        const bondTool = new BondTool();
-        const eraseTool = new EraseTool();
-
-        const state = {
-            molecule: new Molecule(),
-            currentTool: "atom",
-            currentElement: "C",
-            bondOrder: 1,
-            isBonding: false
-        };
-
-        const formulaEl = document.getElementById("formula");
-        const weightEl = document.getElementById("weight");
-        const atomCountEl = document.getElementById("atom-count");
-        const bondCountEl = document.getElementById("bond-count");
-        const toolReadoutEl = document.getElementById("tool-readout");
-        const statusEl = document.getElementById("status");
-
-        const presetData = {
-            ethanol: {
-                atoms: [
-                    { id: "atom_0", element: "C", position: { x: 270, y: 280 } },
-                    { id: "atom_1", element: "C", position: { x: 380, y: 280 } },
-                    { id: "atom_2", element: "O", position: { x: 490, y: 240 } }
-                ],
-                bonds: [
-                    { id: "bond_0", atom1: "atom_0", atom2: "atom_1", order: 1 },
-                    { id: "bond_1", atom1: "atom_1", atom2: "atom_2", order: 1 }
-                ]
-            },
-            benzene: {
-                atoms: [
-                    { id: "atom_0", element: "C", position: { x: 330, y: 180 } },
-                    { id: "atom_1", element: "C", position: { x: 430, y: 240 } },
-                    { id: "atom_2", element: "C", position: { x: 430, y: 360 } },
-                    { id: "atom_3", element: "C", position: { x: 330, y: 420 } },
-                    { id: "atom_4", element: "C", position: { x: 230, y: 360 } },
-                    { id: "atom_5", element: "C", position: { x: 230, y: 240 } }
-                ],
-                bonds: [
-                    { id: "bond_0", atom1: "atom_0", atom2: "atom_1", order: 2 },
-                    { id: "bond_1", atom1: "atom_1", atom2: "atom_2", order: 1 },
-                    { id: "bond_2", atom1: "atom_2", atom2: "atom_3", order: 2 },
-                    { id: "bond_3", atom1: "atom_3", atom2: "atom_4", order: 1 },
-                    { id: "bond_4", atom1: "atom_4", atom2: "atom_5", order: 2 },
-                    { id: "bond_5", atom1: "atom_5", atom2: "atom_0", order: 1 }
-                ]
-            },
-            glycine: {
-                atoms: [
-                    { id: "atom_0", element: "N", position: { x: 220, y: 300 } },
-                    { id: "atom_1", element: "C", position: { x: 330, y: 300 } },
-                    { id: "atom_2", element: "C", position: { x: 440, y: 300 } },
-                    { id: "atom_3", element: "O", position: { x: 540, y: 240 } },
-                    { id: "atom_4", element: "O", position: { x: 540, y: 360 } }
-                ],
-                bonds: [
-                    { id: "bond_0", atom1: "atom_0", atom2: "atom_1", order: 1 },
-                    { id: "bond_1", atom1: "atom_1", atom2: "atom_2", order: 1 },
-                    { id: "bond_2", atom1: "atom_2", atom2: "atom_3", order: 2 },
-                    { id: "bond_3", atom1: "atom_2", atom2: "atom_4", order: 1 }
-                ]
-            }
-        };
-
-        function updateTooling() {
-            atomTool.setElement(state.currentElement);
-            bondTool.setBondOrder(state.bondOrder);
-            toolReadoutEl.textContent = `${capitalize(state.currentTool)} tool · ${labelForElement(state.currentElement)}${state.currentTool === "bond" ? ` · ${bondLabel(state.bondOrder)}` : ""}`;
-        }
-
-        function capitalize(value) {
-            return value.charAt(0).toUpperCase() + value.slice(1);
-        }
-
-        function labelForElement(element) {
-            const names = { C: "Carbon", N: "Nitrogen", O: "Oxygen", S: "Sulfur", Cl: "Chlorine" };
-            return names[element] || element;
-        }
-
-        function bondLabel(order) {
-            return order === 1 ? "Single bond" : order === 2 ? "Double bond" : "Triple bond";
-        }
-
-        function getPos(event) {
-            const rect = canvas.getBoundingClientRect();
-            return {
-                x: event.clientX - rect.left,
-                y: event.clientY - rect.top
-            };
-        }
-
-        function loadPreset(name) {
-            state.molecule = Molecule.fromArray(presetData[name]);
-            statusEl.textContent = `${capitalize(name)} loaded`;
-            render();
-        }
-
-        function render() {
-            const atoms = Array.from(state.molecule.atoms.values());
-            const bonds = Array.from(state.molecule.bonds.values());
-            renderer.render(state.molecule, { showImplicitH: false });
-
-            formulaEl.textContent = state.molecule.metadata.formula || "-";
-            weightEl.textContent = state.molecule.metadata.molecularWeight.toFixed(2);
-            atomCountEl.textContent = atoms.length;
-            bondCountEl.textContent = bonds.length;
-            updateTooling();
-        }
-
-        function setPreview(event) {
-            const pos = getPos(event);
-            const hoverAtom = atomTool.getAtomAtPosition(pos.x, pos.y, state.molecule, 24);
-            const hoverBond = !hoverAtom ? bondTool.getBondAtPosition(pos.x, pos.y, state.molecule, 10) : null;
-
-            if (state.currentTool === "atom") {
-                renderer.setPreviewState({
-                    previewAtom: { x: pos.x, y: pos.y, element: state.currentElement },
-                    previewBond: null,
-                    hoverAtom,
-                    hoverBond
-                });
-            } else if (state.currentTool === "bond" && bondTool.bondStartAtom) {
-                renderer.setPreviewState({
-                    previewAtom: null,
-                    previewBond: {
-                        from: bondTool.bondStartAtom,
-                        to: { x: pos.x, y: pos.y },
-                        order: state.bondOrder
-                    },
-                    hoverAtom,
-                    hoverBond
-                });
-            } else {
-                renderer.setPreviewState({
-                    previewAtom: null,
-                    previewBond: null,
-                    hoverAtom,
-                    hoverBond
-                });
-            }
-
-            renderer.render(state.molecule, { showImplicitH: false });
-        }
-
-        canvas.addEventListener("pointermove", event => {
-            setPreview(event);
-        });
-
-        canvas.addEventListener("pointerleave", () => {
-            renderer.setPreviewState({ previewAtom: null, previewBond: null, hoverAtom: null, hoverBond: null });
-            renderer.render(state.molecule, { showImplicitH: false });
-        });
-
-        canvas.addEventListener("click", event => {
-            const pos = getPos(event);
-            if (state.currentTool === "atom") {
-                state.molecule = atomTool.onClick(pos.x, pos.y, state.molecule, renderer);
-                statusEl.textContent = `${labelForElement(state.currentElement)} atom placed`;
-            } else if (state.currentTool === "erase") {
-                state.molecule = eraseTool.onClick(pos.x, pos.y, state.molecule, renderer);
-                statusEl.textContent = "Erase pass applied";
-            }
-            render();
-        });
-
-        canvas.addEventListener("pointerdown", event => {
-            if (state.currentTool !== "bond") return;
-            const pos = getPos(event);
-            state.molecule = bondTool.onMouseDown(pos.x, pos.y, state.molecule, renderer);
-            statusEl.textContent = "Bond anchor selected";
-            render();
-        });
-
-        canvas.addEventListener("pointerup", event => {
-            if (state.currentTool !== "bond") return;
-            const pos = getPos(event);
-            state.molecule = bondTool.onMouseUp(pos.x, pos.y, state.molecule, renderer);
-            renderer.setPreviewState({ previewBond: null });
-            statusEl.textContent = "Bond route updated";
-            render();
-        });
-
-        document.getElementById("tool-buttons").addEventListener("click", event => {
-            const target = event.target.closest("[data-tool]");
-            if (!target) return;
-            state.currentTool = target.dataset.tool;
-            document.querySelectorAll("#tool-buttons [data-tool]").forEach(button => button.classList.toggle("active", button === target));
-            statusEl.textContent = `${capitalize(state.currentTool)} tool active`;
-            updateTooling();
-        });
-
-        document.getElementById("element-buttons").addEventListener("click", event => {
-            const target = event.target.closest("[data-element]");
-            if (!target) return;
-            state.currentElement = target.dataset.element;
-            document.querySelectorAll("#element-buttons [data-element]").forEach(button => button.classList.toggle("active", button === target));
-            statusEl.textContent = `${labelForElement(state.currentElement)} selected`;
-            updateTooling();
-        });
-
-        document.getElementById("bond-buttons").addEventListener("click", event => {
-            const target = event.target.closest("[data-order]");
-            if (!target) return;
-            state.bondOrder = Number(target.dataset.order);
-            document.querySelectorAll("#bond-buttons [data-order]").forEach(button => button.classList.toggle("active", button === target));
-            statusEl.textContent = `${bondLabel(state.bondOrder)} ready`;
-            updateTooling();
-        });
-
-        document.getElementById("clear").addEventListener("click", () => {
-            state.molecule = new Molecule();
-            statusEl.textContent = "Canvas cleared";
-            render();
-        });
-
-        document.getElementById("preset-ethanol").addEventListener("click", () => loadPreset("ethanol"));
-        document.getElementById("preset-benzene").addEventListener("click", () => loadPreset("benzene"));
-        document.getElementById("preset-glycine").addEventListener("click", () => loadPreset("glycine"));
-
-        document.getElementById("organize").addEventListener("click", () => {
-            const atoms = Array.from(state.molecule.atoms.values());
-            if (!atoms.length) return;
-
-            const rect = canvas.getBoundingClientRect();
-            const centerX = rect.width / 2;
-            const centerY = rect.height / 2;
-            const adjacency = new Map(atoms.map(atom => [atom.id, []]));
-            Array.from(state.molecule.bonds.values()).forEach(bond => {
-                adjacency.get(bond.atom1)?.push(bond.atom2);
-                adjacency.get(bond.atom2)?.push(bond.atom1);
+        // ===== Theme =====
+        const THEME_KEY = 'orbital-theme';
+        function applyTheme(name) {
+            if (name === 'forest') document.documentElement.removeAttribute('data-theme');
+            else document.documentElement.setAttribute('data-theme', name);
+            document.querySelectorAll('.theme-opt').forEach(b => {
+                b.classList.toggle('active', b.dataset.theme === name);
             });
+            try { localStorage.setItem(THEME_KEY, name); } catch (e) {}
+        }
+        applyTheme(localStorage.getItem(THEME_KEY) || 'forest');
+        document.querySelectorAll('.theme-opt').forEach(b => {
+            b.addEventListener('click', () => applyTheme(b.dataset.theme));
+        });
 
-            const visited = new Set();
-            const levels = [];
-            const queue = [{ id: atoms[0].id, depth: 0 }];
+        // ===== Settings panel =====
+        const settingsPanel = document.getElementById('settings-panel');
+        const settingsToggle = document.getElementById('settings-toggle');
+        const settingsClose = document.getElementById('settings-close');
+        const dockTitle = document.getElementById('dock-title');
+        function openSettings() {
+            settingsPanel.classList.add('open');
+            settingsToggle.classList.add('active');
+        }
+        function closeSettings() {
+            settingsPanel.classList.remove('open');
+            settingsToggle.classList.remove('active');
+        }
+        settingsToggle.addEventListener('click', () => {
+            settingsPanel.classList.contains('open') ? closeSettings() : openSettings();
+        });
+        settingsClose.addEventListener('click', closeSettings);
 
-            while (queue.length) {
-                const current = queue.shift();
-                if (visited.has(current.id)) continue;
-                visited.add(current.id);
-                if (!levels[current.depth]) levels[current.depth] = [];
-                levels[current.depth].push(current.id);
-                (adjacency.get(current.id) || []).forEach(id => {
-                    if (!visited.has(id)) queue.push({ id, depth: current.depth + 1 });
-                });
-            }
+        // ===== Dock visibility =====
+        const DOCK_KEY = 'orbital-dock-hidden';
+        const dock = document.getElementById('dock');
+        const dockHide = document.getElementById('dock-hide');
+        const dockShow = document.getElementById('dock-show');
+        function setDockHidden(hidden) {
+            dock.classList.toggle('hidden', hidden);
+            dockShow.classList.toggle('show', hidden);
+            try { localStorage.setItem(DOCK_KEY, hidden ? '1' : '0'); } catch (e) {}
+        }
+        dockHide.addEventListener('click', () => { closeSettings(); setDockHidden(true); });
+        dockShow.addEventListener('click', () => setDockHidden(false));
+        setDockHidden(localStorage.getItem(DOCK_KEY) === '1');
 
-            atoms.forEach(atom => {
-                if (!visited.has(atom.id)) {
-                    if (!levels[levels.length]) levels[levels.length] = [];
-                    levels[levels.length].push(atom.id);
+        // ===== Ketcher integration =====
+        const iframe = document.getElementById('ketcher');
+        const statusText = document.getElementById('status-text');
+        const smilesEl = document.getElementById('smiles');
+        const atomEl = document.getElementById('atom-count');
+        const bondEl = document.getElementById('bond-count');
+
+        function ketcher() {
+            try { return iframe.contentWindow && iframe.contentWindow.ketcher; }
+            catch (e) { return null; }
+        }
+
+        async function refresh() {
+            const k = ketcher();
+            if (!k) return;
+            try {
+                const smi = await k.getSmiles();
+                smilesEl.textContent = smi || '—';
+                const struct = k.editor && k.editor.struct ? k.editor.struct() : null;
+                if (struct) {
+                    atomEl.textContent = struct.atoms ? struct.atoms.size : 0;
+                    bondEl.textContent = struct.bonds ? struct.bonds.size : 0;
                 }
-            });
+            } catch (e) {}
+        }
 
-            const cloned = state.molecule.clone();
-            levels.forEach((level, depth) => {
-                const y = centerY + (depth - (levels.length - 1) / 2) * 110;
-                level.forEach((id, index) => {
-                    const x = centerX + (index - (level.length - 1) / 2) * 120;
-                    const atom = cloned.atoms.get(id);
-                    if (atom) {
-                        atom.position = { x, y };
-                    }
-                });
-            });
+        let readyTries = 0;
+        const readyTimer = setInterval(() => {
+            const k = ketcher();
+            readyTries++;
+            if (k && typeof k.getSmiles === 'function') {
+                clearInterval(readyTimer);
+                statusText.textContent = 'Ready';
+                if (k.editor && k.editor.event && k.editor.event.change) {
+                    k.editor.event.change.add(refresh);
+                }
+                refresh();
+            } else if (readyTries > 80) {
+                clearInterval(readyTimer);
+                statusText.textContent = 'Editor unavailable';
+            }
+        }, 250);
 
-            state.molecule = cloned;
-            statusEl.textContent = "Graph organized";
-            render();
+        document.querySelectorAll('[data-smiles]').forEach(btn => {
+            btn.addEventListener('click', async () => {
+                const k = ketcher();
+                if (!k) return;
+                try { await k.setMolecule(btn.dataset.smiles); refresh(); }
+                catch (e) {}
+            });
         });
 
-        loadPreset("benzene");
+        document.getElementById('clear').addEventListener('click', async () => {
+            const k = ketcher();
+            if (!k) return;
+            try { await k.setMolecule(''); refresh(); } catch (e) {}
+        });
+
+        document.getElementById('copy-smiles').addEventListener('click', async () => {
+            const k = ketcher();
+            if (!k) return;
+            try {
+                const smi = await k.getSmiles();
+                await navigator.clipboard.writeText(smi || '');
+                statusText.textContent = 'SMILES copied';
+                setTimeout(() => statusText.textContent = 'Ready', 1400);
+            } catch (e) {}
+        });
+
+        document.getElementById('download-mol').addEventListener('click', async () => {
+            const k = ketcher();
+            if (!k) return;
+            try {
+                const mol = await k.getMolfile();
+                const blob = new Blob([mol], { type: 'chemical/x-mdl-molfile' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = 'orbital-molecule.mol';
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+            } catch (e) {}
+        });
     </script>
 </body>
 </html>

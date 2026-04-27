@@ -14,73 +14,34 @@
     <style>
         /* ── PreCalc App Styles ── */
         .project-page {
-            --bg-surface: #2d1b4e;
-            --bg-card: #1f1137;
-            --border-color: #8b5cf6;
-            --accent-1: #fbbf24;
+            --bg-surface: #1e113a;
+            --bg-card: #150a28;
+            --border-color: rgba(139, 92, 246, 0.4);
+            --border-highlight: rgba(139, 92, 246, 0.8);
+            --accent-1: #3b82f6;
             --accent-2: #ec4899;
+            --accent-glow: rgba(59, 130, 246, 0.5);
             --text-main: #fdf8ff;
-            --text-muted: #d8b4fe;
-        }
-        
-        .luca-mega-banner {
-            background: linear-gradient(135deg, #ec4899, #8b5cf6, #3b82f6);
-            background-size: 200% 200%;
-            animation: gradientShift 5s ease infinite;
-            padding: 4rem 2rem;
-            border-radius: 30px;
-            text-align: center;
-            box-shadow: 0 20px 50px rgba(139, 92, 246, 0.4);
-            margin: 3rem 0;
-            border: 4px solid rgba(255, 255, 255, 0.2);
-            position: relative;
-            overflow: hidden;
-        }
-        .luca-mega-banner::after {
-            content: '';
-            position: absolute;
-            inset: 0;
-            background: url('data:image/svg+xml;utf8,<svg width="40" height="40" viewBox="0 0 40 40" xmlns="http://www.w3.org/2000/svg"><circle cx="20" cy="20" r="2" fill="rgba(255,255,255,0.2)"/></svg>');
-        }
-        @keyframes gradientShift {
-            0% { background-position: 0% 50%; }
-            50% { background-position: 100% 50%; }
-            100% { background-position: 0% 50%; }
-        }
-        .luca-mega-banner h1 {
-            font-family: 'Outfit', sans-serif;
-            font-size: clamp(3rem, 8vw, 6rem);
-            font-weight: 900;
-            color: #fff;
-            margin: 0;
-            text-shadow: 4px 4px 0px rgba(0,0,0,0.2);
-            transform: rotate(-2deg);
-            position: relative;
-            z-index: 2;
-        }
-        .luca-mega-banner p {
-            font-size: 1.5rem;
-            color: #ffedd5;
-            font-weight: 600;
-            margin-top: 1rem;
-            position: relative;
-            z-index: 2;
-            letter-spacing: 2px;
+            --text-muted: #c4b5fd;
+            --radius-xl: 24px;
+            --radius-lg: 16px;
+            --radius-md: 8px;
         }
 
         .pc-app {
-            background:
-                linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0)),
-                var(--bg-surface);
+            background: linear-gradient(145deg, rgba(30, 17, 58, 0.7), rgba(20, 10, 40, 0.9));
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
             border: 1px solid var(--border-color);
             border-radius: var(--radius-xl);
             overflow: hidden;
             margin-top: 2rem;
-            box-shadow: 0 30px 80px rgba(2, 6, 23, 0.28);
+            box-shadow: 0 40px 100px rgba(0, 0, 0, 0.5), inset 0 1px 1px rgba(255, 255, 255, 0.1);
         }
         .pc-nav {
             display: flex;
             gap: 0;
+            background: rgba(10, 5, 20, 0.5);
             border-bottom: 1px solid var(--border-color);
             overflow-x: auto;
             scrollbar-width: none;
@@ -88,38 +49,44 @@
         .pc-nav::-webkit-scrollbar { display: none; }
         .pc-nav-btn {
             flex: 1;
-            min-width: 120px;
-            padding: 14px 18px;
+            min-width: 140px;
+            padding: 18px 24px;
             background: none;
             border: none;
             color: var(--text-muted);
             font-family: 'Outfit', sans-serif;
-            font-size: 0.85rem;
-            font-weight: 500;
+            font-size: 0.95rem;
+            font-weight: 600;
             cursor: pointer;
-            border-bottom: 2px solid transparent;
-            transition: all 0.25s ease;
+            border-bottom: 3px solid transparent;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
             white-space: nowrap;
+            letter-spacing: 0.05em;
         }
-        .pc-nav-btn:hover { color: var(--text-main); background: rgba(255,255,255,0.03); }
+        .pc-nav-btn:hover { 
+            color: var(--text-main); 
+            background: rgba(255,255,255,0.05); 
+        }
         .pc-nav-btn.active {
-            color: var(--accent-1);
+            color: #fff;
             border-bottom-color: var(--accent-1);
-            background: rgba(59, 130, 246, 0.06);
+            background: linear-gradient(to top, rgba(59, 130, 246, 0.15), transparent);
+            text-shadow: 0 0 10px var(--accent-glow);
         }
-        .pc-panel { display: none; padding: clamp(1.2rem, 2.5vw, 2rem); }
+        .pc-panel { display: none; padding: clamp(1.5rem, 3vw, 2.5rem); }
         .pc-panel.active {
             display: block;
-            animation: pcPanelFade 0.28s ease;
+            animation: pcPanelFade 0.35s ease-out forwards;
         }
 
         /* Canvas + controls */
         .pc-canvas-wrap {
-            background: #0a0a0c;
+            background: rgba(0, 0, 0, 0.35);
             border-radius: var(--radius-lg);
             border: 1px solid var(--border-color);
             overflow: hidden;
             position: relative;
+            box-shadow: inset 0 4px 15px rgba(0,0,0,0.6);
         }
         .pc-canvas-wrap canvas {
             display: block;
@@ -129,32 +96,42 @@
         .pc-controls {
             display: flex;
             flex-wrap: wrap;
-            gap: 10px;
-            margin-top: 1rem;
+            gap: 15px;
+            margin-top: 1.5rem;
             align-items: center;
         }
         .pc-controls label {
             color: var(--text-muted);
-            font-size: 0.82rem;
+            font-size: 0.9rem;
             font-family: 'Inter', sans-serif;
+            font-weight: 500;
         }
         .pc-controls input[type="range"] {
             accent-color: var(--accent-1);
-            width: 130px;
+            width: 140px;
+            height: 6px;
+            border-radius: 3px;
+            background: rgba(255,255,255,0.1);
         }
         .pc-controls select, .pc-controls button {
-            background: var(--bg-card);
+            background: rgba(255,255,255,0.06);
             color: var(--text-main);
             border: 1px solid var(--border-color);
             border-radius: var(--radius-md);
-            padding: 6px 14px;
+            padding: 8px 16px;
             font-family: 'Inter', sans-serif;
-            font-size: 0.82rem;
+            font-size: 0.88rem;
+            font-weight: 500;
             cursor: pointer;
-            transition: background 0.2s;
+            transition: all 0.25s ease;
+            backdrop-filter: blur(4px);
         }
-        .pc-controls button:hover { background: var(--bg-surface-hover); }
-        .pc-controls select:focus, .pc-controls button:focus { outline: 1px solid var(--accent-1); }
+        .pc-controls button:hover, .pc-controls select:hover { 
+            background: rgba(59, 130, 246, 0.15); 
+            border-color: var(--accent-1);
+            box-shadow: 0 0 12px var(--accent-glow);
+        }
+        .pc-controls select:focus, .pc-controls button:focus { outline: none; border-color: #fff; }
 
         /* Explanation card */
         .pc-explain {
@@ -434,15 +411,10 @@
             <h1 class="project-page-title">PreCalc Lab</h1>
             <p class="project-summary">
                 An interactive pre-calculus study tool with live graphing, a unit circle explorer, and practice quizzes.
-                Built to help Luca lock down the fundamentals before calculus.
+                Master the fundamentals of functions, trigonometry, and limits before diving into calculus.
             </p>
             <div class="project-callout"><strong>Study tool:</strong> Graph functions, explore the unit circle, and test yourself — all running live in the browser.</div>
         </header>
-
-        <div class="luca-mega-banner section-animate">
-            <h1>HEY LUCA! 🚀</h1>
-            <p>LET'S CRUSH SOME PRECALC!</p>
-        </div>
 
         <section class="pc-intro-grid section-animate" aria-label="Pre-calculus study map">
             <article class="pc-focus">

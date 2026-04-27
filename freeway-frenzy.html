@@ -153,6 +153,54 @@
             </div>
         </section>
 
+        <section class="project-stage-card section-animate">
+            <div class="project-stage-bar">
+                <div class="project-stage-label">Real-World Application — Vision Lab</div>
+                <div class="project-stage-actions">
+                    <a class="project-inline-link" href="freeway-frenzy-app/vision-lab.html" target="_blank" rel="noreferrer">Open full simulator</a>
+                </div>
+            </div>
+            <div class="project-stage-insights">
+                <article class="project-stage-insight">
+                    <span>From game to driver-assist</span>
+                    <strong>Same two-MCU split, real sensors</strong>
+                    <p>The C3 stops reading a joystick and starts fusing a camera + TFmini-S LiDAR; the S3 stops rendering traffic and starts rendering a Tesla-style perception HUD over the same UART link.</p>
+                </article>
+                <article class="project-stage-insight">
+                    <span>Sensor stack</span>
+                    <strong>Camera + 1000Hz ToF LiDAR</strong>
+                    <p>TFmini-S returns single-point distance from 0.1–12&nbsp;m; the camera classifies cars, stop signs, signals, and pedestrians. The simulator models both before any flashing happens.</p>
+                </article>
+                <article class="project-stage-insight">
+                    <span>Why simulate first</span>
+                    <strong>Lock the UART data contract</strong>
+                    <p>The packet format the sim emits — distance plus a detection list — becomes the exact UART payload between C3 and S3 once we move to hardware.</p>
+                </article>
+            </div>
+            <div class="project-frame-shell project-frame-shell--preview ff-desktop-frame" style="--frame-height:680px; --frame-ratio:1024 / 640;">
+                <iframe
+                    class="project-frame"
+                    src="embeds/preview-shell.html?src=/freeway-frenzy-app/vision-lab.html&amp;width=1024&amp;height=640&amp;accent=22d3ee&amp;label=Vision%20Lab%20simulator&amp;sizeLabel=1024%20%C3%97%20640&amp;allow=autoplay"
+                    title="FreewayFrenzy — Vision Lab simulator"
+                    loading="lazy"
+                    scrolling="no"
+                ></iframe>
+            </div>
+            <div class="project-frame-shell ff-mobile-frame" style="aspect-ratio: 9 / 16; max-height: 80vh;">
+                <iframe
+                    class="project-frame"
+                    src="freeway-frenzy-app/vision-lab.html"
+                    title="FreewayFrenzy — Vision Lab mobile"
+                    loading="lazy"
+                    allow="autoplay"
+                    style="width:100%; height:100%; border:none; border-radius: 0 0 12px 12px;"
+                ></iframe>
+            </div>
+            <div class="project-stage-note">
+                Drag cars, stop signs, signals, or pedestrians into the lane. The left HUD is what the S3 would draw; the right scene is what the camera + LiDAR see. The footer telemetry is the live UART payload.
+            </div>
+        </section>
+
         <section class="project-meta-grid section-animate">
             <article class="project-meta-card">
                 <h3>Built With</h3>

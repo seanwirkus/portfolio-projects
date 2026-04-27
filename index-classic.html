@@ -1,0 +1,1091 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sean | Software Engineer & Biomedical Developer</title>
+    <meta name="description" content="Portfolio of a UC San Diego student and Full Stack Software Engineer building biomedical software, embedded systems, and tech visualization tools.">
+    <meta property="og:title" content="Sean | Software Engineer & Biomedical Developer">
+    <meta property="og:description" content="UC San Diego &middot; Full Stack &middot; Embedded Systems &middot; Healthcare Software">
+    <meta property="og:image" content="coverimage.webp" data-theme-content-dark="coverimage.webp" data-theme-content-light="coverimage-light.webp">
+    <meta property="og:type" content="website">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="Sean | Software Engineer & Biomedical Developer">
+    <meta name="twitter:image" content="coverimage.webp" data-theme-content-dark="coverimage.webp" data-theme-content-light="coverimage-light.webp">
+
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <link rel="preload" as="image" href="coverimage.webp">
+    <link rel="preload" as="image" href="coverimage-light.webp">
+    
+    <link rel="stylesheet" href="style.css">
+    <link rel="icon" type="image/svg+xml" href="favicon.svg">
+</head>
+<body>
+    <!-- Custom Cursor -->
+    <div class="cursor-dot"></div>
+    <div class="cursor-outline"></div>
+
+    <!-- Background Elements -->
+    <div class="bg-gradient bg-gradient-1"></div>
+    <div class="bg-gradient bg-gradient-2"></div>
+    <div class="bg-noise"></div>
+
+    <nav class="navbar">
+        <div class="nav-content">
+            <div class="logo magnetic">S.</div>
+            <ul class="nav-links">
+                <li><a href="#about" class="magnetic">About</a></li>
+                <li><a href="#skills" class="magnetic">Skills</a></li>
+                <li><a href="#experience" class="magnetic">Experience</a></li>
+                <li><a href="#projects" class="magnetic">Projects</a></li>
+                <li><a href="#ideas" class="magnetic">Ideas</a></li>
+                <li><a href="#education" class="magnetic">Education</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <main class="container">
+        <!-- Hero Section -->
+        <section id="about" class="hero section-animate">
+            <div class="hero-backdrop-grid" aria-hidden="true"></div>
+            <div class="hero-ambient hero-ambient-1" aria-hidden="true"></div>
+            <div class="hero-ambient hero-ambient-2" aria-hidden="true"></div>
+            <div class="hero-spotlight" aria-hidden="true"></div>
+            <div class="hero-layout">
+                <div class="hero-content">
+                    <div class="hero-badge">
+                        <span class="badge-dot"></span>
+                        Available for Full-time roles
+                    </div>
+                    <h1 class="hero-title">Engineering at the <br>Intersection of <span>Health & Tech</span></h1>
+                    <div class="hero-roles" aria-label="Rotating roles">
+                        <span class="hero-role-static">I build&nbsp;</span>
+                        <span class="hero-role-typed" id="typed-role"></span><span class="typed-cursor">|</span>
+                    </div>
+                    <p class="hero-desc">
+                        UC San Diego Human Biology student and software engineer building clinical interfaces, embedded device software, and interaction-heavy tools that feel polished in motion, not just in screenshots.
+                    </p>
+                    <div class="hero-chips">
+                        <span class="hero-chip"><span class="chip-dot" style="--dot-color: var(--accent-3)"></span>Clinical UX + Data</span>
+                        <span class="hero-chip"><span class="chip-dot" style="--dot-color: var(--accent-1)"></span>Embedded Systems</span>
+                        <span class="hero-chip"><span class="chip-dot" style="--dot-color: #f59e0b"></span>Interactive Simulators</span>
+                        <span class="hero-chip"><span class="chip-dot" style="--dot-color: var(--accent-2)"></span>Product Story + Brand Systems</span>
+                    </div>
+                    <div class="hero-actions">
+                        <a href="#projects" class="btn btn-primary magnetic">
+                            <span class="hero-cta-copy">
+                                <span class="hero-cta-kicker">Featured</span>
+                                <span class="hero-cta-label">View My Work</span>
+                            </span>
+                            <span class="hero-cta-icon" aria-hidden="true">↗</span>
+                        </a>
+                        <a href="#ideas" class="btn btn-secondary magnetic">
+                            <span class="hero-cta-copy">
+                                <span class="hero-cta-kicker">Strategy</span>
+                                <span class="hero-cta-label">Ideas / Vision</span>
+                            </span>
+                            <span class="hero-cta-icon" aria-hidden="true">→</span>
+                        </a>
+                    </div>
+                    <div class="hero-metrics hero-glass-card">
+                        <article class="hero-metric">
+                            <span>Focus</span>
+                            <strong>Clinical product UI and technical systems</strong>
+                        </article>
+                        <article class="hero-metric">
+                            <span>Recent work</span>
+                            <strong>Simulators, device surfaces, and health apps</strong>
+                        </article>
+                        <article class="hero-metric">
+                            <span>Approach</span>
+                            <strong>Prototype fast, then refine layout, motion, and behavior</strong>
+                        </article>
+                    </div>
+                </div>
+                <div class="hero-visual tilt-elem" id="hero-visual">
+                    <canvas id="hero-particles" class="hero-particles-canvas"></canvas>
+                    <div class="hero-visual-shell hero-glass-card">
+                        <div class="hero-image-wrapper">
+                            <img src="coverimage.webp" alt="Sean portrait cover" class="hero-img" data-theme-src-dark="coverimage.webp" data-theme-src-light="coverimage-light.webp">
+                            <div class="image-glow"></div>
+                        </div>
+                        <div class="hero-visual-footer">
+                            <span class="hero-visual-eyebrow">Biomedical interfaces + software</span>
+                            <p>Interactive product work across clinical UX, embedded systems, and live prototype builds.</p>
+                            <div class="hero-visual-meta" aria-label="Primary areas">
+                                <span>Clinical UX</span>
+                                <span>Embedded UI</span>
+                                <span>Live sims</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="hero-orbit-ring ring-1"></div>
+                    <div class="hero-orbit-ring ring-2"></div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Skills Section -->
+        <section id="skills" class="skills-section section-animate">
+            <h2 class="section-title">Technical Expertise</h2>
+            <div class="skills-grid" tabindex="0" aria-label="Technical expertise categories">
+                <div class="skill-category slide-up tilt-elem" style="--delay: 1;">
+                    <h3>Languages</h3>
+                    <div class="skill-tags">
+                        <span class="tag">C/C++</span>
+                        <span class="tag">Swift</span>
+                        <span class="tag">JavaScript / HTML / CSS</span>
+                        <span class="tag">Python</span>
+                        <span class="tag">Lua</span>
+                    </div>
+                </div>
+                <div class="skill-category slide-up tilt-elem" style="--delay: 2;">
+                    <h3>Frameworks & APIs</h3>
+                    <div class="skill-tags">
+                        <span class="tag">React & Vite</span>
+                        <span class="tag">SwiftUI & AppKit</span>
+                        <span class="tag">FreeRTOS</span>
+                        <span class="tag">LVGL</span>
+                        <span class="tag">CloudKit</span>
+                        <span class="tag">Web MIDI</span>
+                    </div>
+                </div>
+                <div class="skill-category slide-up tilt-elem" style="--delay: 3;">
+                    <h3>Hardware & Embedded</h3>
+                    <div class="skill-tags">
+                        <span class="tag">ESP32 / Microcontrollers</span>
+                        <span class="tag">PCB Design</span>
+                        <span class="tag">I2C / Serial</span>
+                        <span class="tag">KiCad</span>
+                        <span class="tag">CAD</span>
+                    </div>
+                </div>
+                <div class="skill-category slide-up tilt-elem" style="--delay: 4;">
+                    <h3>Biomedical & Science</h3>
+                    <div class="skill-tags">
+                        <span class="tag">Scientific Visualization</span>
+                        <span class="tag">Medical Device Software</span>
+                        <span class="tag">Clinical Data Parsing</span>
+                        <span class="tag">HIPAA Compliance</span>
+                        <span class="tag">Physiology Modeling</span>
+                    </div>
+                </div>
+                <div class="skill-category slide-up tilt-elem" style="--delay: 5;">
+                    <h3>Design & UX</h3>
+                    <div class="skill-tags">
+                        <span class="tag">UI/UX Design</span>
+                        <span class="tag">Product Design</span>
+                        <span class="tag">Figma</span>
+                        <span class="tag">Design Systems</span>
+                        <span class="tag">ADA Accessibility</span>
+                        <span class="tag">Webflow</span>
+                    </div>
+                </div>
+                <div class="skill-category slide-up tilt-elem" style="--delay: 6;">
+                    <h3>Tools & Operations</h3>
+                    <div class="skill-tags">
+                        <span class="tag">Git / Version Control</span>
+                        <span class="tag">macOS Virtualization</span>
+                        <span class="tag">Agile Methodology</span>
+                        <span class="tag">System Integrations</span>
+                        <span class="tag">Audio Engineering</span>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Projects Section -->
+        <section id="projects" class="projects-section section-animate">
+            <h2 class="section-title">Featured Projects</h2>
+            <div class="projects-grid">
+                <article class="project-card slide-up tilt-elem" style="--delay: 1; cursor: pointer;" onclick="window.location.href='pocket-scholar.html'">
+                    <div class="project-image-placeholder ps-bg">
+                        <div class="ps-card-scene" aria-hidden="true">
+                            <div class="ps-pocket ps-pocket-tl"></div>
+                            <div class="ps-pocket ps-pocket-tm"></div>
+                            <div class="ps-pocket ps-pocket-tr"></div>
+                            <div class="ps-pocket ps-pocket-bl"></div>
+                            <div class="ps-pocket ps-pocket-bm"></div>
+                            <div class="ps-pocket ps-pocket-br"></div>
+                            <div class="ps-diamond ps-diamond-left"></div>
+                            <div class="ps-diamond ps-diamond-right"></div>
+                            <div class="ps-cue-path"></div>
+                            <div class="ps-object-path"></div>
+                            <div class="ps-ghost-ball"></div>
+                            <div class="ps-power-ring"></div>
+                            <div class="ps-impact-glow"></div>
+                            <div class="ps-cue-shadow"></div>
+                            <div class="ps-cue-stick"></div>
+                            <div class="ps-ball ps-ball--cue">
+                                <span class="ps-ball-core"></span>
+                            </div>
+                            <div class="ps-ball ps-ball--one">
+                                <span class="ps-ball-core"></span>
+                                <span class="ps-ball-mark">1</span>
+                            </div>
+                            <div class="ps-ball ps-ball--two ps-ball--stripe">
+                                <span class="ps-ball-core"></span>
+                                <span class="ps-ball-mark">10</span>
+                            </div>
+                            <div class="ps-ball ps-ball--eight">
+                                <span class="ps-ball-core"></span>
+                                <span class="ps-ball-mark">8</span>
+                            </div>
+                            <div class="ps-ball ps-ball--three">
+                                <span class="ps-ball-core"></span>
+                                <span class="ps-ball-mark">3</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="project-info">
+                        <span class="project-role">Physics & Interactive Dev</span>
+                        <h3 class="project-title">Pocket Scholar</h3>
+                        <p class="project-desc">Physics-based Interactive Billiards</p>
+                        <div class="project-tags"><span class="ptag">Javascript</span><span class="ptag">Canvas</span><span class="ptag">Physics</span></div>
+                    </div>
+                </article>
+
+                <article class="project-card slide-up tilt-elem" style="--delay: 2; cursor: pointer;" onclick="window.location.href='carplay-dashboard.html'">
+                    <div class="project-image-placeholder carplay-bg">
+                        <div class="cp-mini-dash">
+                            <div class="cp-mini-top">
+                                <div class="cp-speed-box">
+                                    <span class="cp-speed-num mph-value">42</span>
+                                    <span class="cp-speed-unit">MPH</span>
+                                </div>
+                                <div class="cp-nav-pill">
+                                    <span class="cp-turn-arrow">↰</span>
+                                    <span class="cp-nav-dist">0.8 mi</span>
+                                </div>
+                            </div>
+                            <div class="cp-mini-map">
+                                <div class="cp-map-road cp-mr-h"></div>
+                                <div class="cp-map-road cp-mr-v"></div>
+                                <div class="cp-map-dot"></div>
+                                <div class="cp-map-route"></div>
+                            </div>
+                            <div class="cp-mini-media">
+                                <div class="cp-media-art"></div>
+                                <div class="cp-media-bar">
+                                    <div class="cp-media-fill"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="project-info">
+                        <span class="project-role">Embedded UI Developer</span>
+                        <h3 class="project-title">CarPlay Dashboard</h3>
+                        <p class="project-desc">Embedded Automotive Display UI</p>
+                        <div class="project-tags"><span class="ptag">C/C++</span><span class="ptag">ESP32</span><span class="ptag">LVGL</span></div>
+                    </div>
+                </article>
+
+                <article class="project-card slide-up tilt-elem" style="--delay: 3; cursor: pointer;" onclick="window.location.href='notchill.html'">
+                    <div class="project-image-placeholder notchill-bg">
+                        <div class="notch-shape">
+                            <div class="notch-pill"></div>
+                            <div class="notch-media-bar"></div>
+                        </div>
+                    </div>
+                    <div class="project-info">
+                        <span class="project-role">macOS / Swift Developer</span>
+                        <h3 class="project-title">Notchill</h3>
+                        <p class="project-desc">Dynamic Island-Style Notch Utility for Mac</p>
+                        <div class="project-tags"><span class="ptag">Swift</span><span class="ptag">AppKit</span><span class="ptag">NSPanel</span></div>
+                    </div>
+                </article>
+
+                <article class="project-card slide-up tilt-elem" style="--delay: 4; cursor: pointer;" onclick="window.location.href='power-analysis.html'">
+                    <div class="project-image-placeholder powertool-bg">
+                        <div class="pat-mini">
+                            <div class="pat-head">
+                                <span class="pat-dot"></span>
+                                <span class="pat-dot"></span>
+                                <span class="pat-dot"></span>
+                            </div>
+                            <div class="pat-chart">
+                                <div class="pat-axis"></div>
+                                <div class="pat-line"></div>
+                            </div>
+                            <div class="pat-bars">
+                                <div class="pat-bar b1"></div>
+                                <div class="pat-bar b2"></div>
+                                <div class="pat-bar b3"></div>
+                                <div class="pat-bar b4"></div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="project-info">
+                        <span class="project-role">Data & Stats Tooling</span>
+                        <h3 class="project-title">Power Analysis Tool</h3>
+                        <p class="project-desc">Interactive Power, Effect, and Sample Size Explorer</p>
+                        <div class="project-tags"><span class="ptag">JavaScript</span><span class="ptag">Plotly</span><span class="ptag">Statistics</span></div>
+                    </div>
+                </article>
+
+                <article class="project-card slide-up tilt-elem" style="--delay: 5; cursor: pointer;" onclick="window.location.href='orbital.html'">
+                    <div class="project-image-placeholder orbital-bg">
+                        <div class="molecule">
+                            <div class="atom a1"></div><div class="atom a2"></div><div class="atom a3"></div>
+                            <div class="bond b1"></div><div class="bond b2"></div>
+                        </div>
+                    </div>
+                    <div class="project-info">
+                        <span class="project-role">Full Stack Developer</span>
+                        <h3 class="project-title">Orbital</h3>
+                        <p class="project-desc">Chemical Synthesis Pathway Planner</p>
+                        <div class="project-tags"><span class="ptag">React</span><span class="ptag">Python</span><span class="ptag">Chemistry</span></div>
+                    </div>
+                </article>
+
+                <article class="project-card slide-up tilt-elem" style="--delay: 6; cursor: pointer;" onclick="window.location.href='ucsdrad.html'">
+                    <div class="project-image-placeholder radiology-bg">
+                        <div class="rad-ui">
+                            <div class="rad-cross"></div>
+                            <div class="rad-scan-line"></div>
+                        </div>
+                    </div>
+                    <div class="project-info">
+                        <span class="project-role">Web Developer</span>
+                        <h3 class="project-title">UCSD Radiology</h3>
+                        <p class="project-desc">Department Website for UCSD School of Medicine</p>
+                        <div class="project-tags"><span class="ptag">HTML/CSS</span><span class="ptag">Webflow</span><span class="ptag">ADA</span></div>
+                    </div>
+                </article>
+
+                <article class="project-card slide-up tilt-elem" style="--delay: 7; cursor: pointer;" onclick="window.location.href='ekg-wiggers.html'">
+                    <div class="project-image-placeholder ekg-bg">
+                        <svg class="ekg-trace" viewBox="0 0 200 100" preserveAspectRatio="xMidYMid meet" style="padding: 10px;">
+                            <polyline points="0,50 30,50 40,40 50,50 60,50 70,80 80,10 90,60 100,50 120,50 135,35 150,50 200,50" fill="none" stroke="#10b981" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
+                    </div>
+                    <div class="project-info">
+                        <span class="project-role">Software Engineer</span>
+                        <h3 class="project-title">CardioCycle Explorer</h3>
+                        <p class="project-desc">Interactive Cardiac Cycle Visualizer</p>
+                        <div class="project-tags"><span class="ptag">JavaScript</span><span class="ptag">SVG</span><span class="ptag">Physiology</span></div>
+                    </div>
+                </article>
+
+                <article class="project-card slide-up tilt-elem" style="--delay: 8; cursor: pointer;" onclick="window.location.href='pianoviz.html'">
+                    <div class="project-image-placeholder pianoviz-bg">
+                        <div class="keys-container">
+                            <div class="k key-w"></div><div class="k key-b kb1"></div>
+                            <div class="k key-w"></div><div class="k key-b kb2"></div>
+                            <div class="k key-w"></div><div class="k key-b kb3"></div>
+                            <div class="k key-w"></div>
+                        </div>
+                    </div>
+                    <div class="project-info">
+                        <span class="project-role">Audio Tooling Developer</span>
+                        <h3 class="project-title">PianoViz</h3>
+                        <p class="project-desc">MIDI Visualizer + Logic Pro Companion</p>
+                        <div class="project-tags"><span class="ptag">React</span><span class="ptag">Web MIDI</span><span class="ptag">Vite</span></div>
+                    </div>
+                </article>
+
+                <article class="project-card slide-up tilt-elem" style="--delay: 9; cursor: pointer;" onclick="window.location.href='dct.html'">
+                    <div class="project-image-placeholder dct-bg">
+                        <div class="dct-warehouse">
+                            <div class="dct-box dct-b1"></div>
+                            <div class="dct-box dct-b2"></div>
+                            <div class="dct-box dct-b3"></div>
+                            <div class="dct-conveyor"></div>
+                        </div>
+                    </div>
+                    <div class="project-info">
+                        <span class="project-role">Game Developer</span>
+                        <h3 class="project-title">Delivery Center Tycoon</h3>
+                        <p class="project-desc">Roblox Logistics & Warehouse Simulator</p>
+                        <div class="project-tags"><span class="ptag">Lua</span><span class="ptag">Rojo</span><span class="ptag">React</span></div>
+                    </div>
+                </article>
+
+                <article class="project-card slide-up tilt-elem" style="--delay: 10; cursor: pointer;" onclick="window.location.href='esp32-car.html'">
+                    <div class="project-image-placeholder esp32car-bg">
+                        <div class="esp-pcb">
+                            <div class="esp-chip">
+                                <span>ESP32</span>
+                            </div>
+                            <div class="esp-trace t1"></div>
+                            <div class="esp-trace t2"></div>
+                            <div class="esp-trace t3"></div>
+                            <div class="esp-pin-row top">
+                                <div class="esp-pin"></div><div class="esp-pin"></div><div class="esp-pin"></div><div class="esp-pin"></div><div class="esp-pin"></div>
+                            </div>
+                            <div class="esp-pin-row bottom">
+                                <div class="esp-pin"></div><div class="esp-pin"></div><div class="esp-pin"></div><div class="esp-pin"></div><div class="esp-pin"></div>
+                            </div>
+                            <div class="esp-sensor">
+                                <div class="esp-sensor-eye"></div>
+                                <div class="esp-sensor-eye"></div>
+                            </div>
+                            <div class="esp-signal-wave"></div>
+                        </div>
+                    </div>
+                    <div class="project-info">
+                        <span class="project-role">Embedded Systems Developer</span>
+                        <h3 class="project-title">ESP32-CAR</h3>
+                        <p class="project-desc">Camera-Equipped RC Car with Sensor Array</p>
+                        <div class="project-tags"><span class="ptag">C/C++</span><span class="ptag">ESP32-CAM</span><span class="ptag">I2C</span></div>
+                    </div>
+                </article>
+
+                <article class="project-card slide-up tilt-elem" style="--delay: 11; cursor: pointer;" onclick="window.location.href='miso.html'">
+                    <div class="project-image-placeholder miso-bg">
+                        <div class="miso-ui">
+                            <div class="miso-window">
+                                <div class="miso-dots"><span></span><span></span><span></span></div>
+                                <div class="miso-vm-icon">&#9654;</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="project-info">
+                        <span class="project-role">macOS / Swift Developer</span>
+                        <h3 class="project-title">miSO</h3>
+                        <p class="project-desc">macOS Virtual Machine Manager</p>
+                        <div class="project-tags"><span class="ptag">Swift</span><span class="ptag">SwiftUI</span><span class="ptag">Virtualization</span></div>
+                    </div>
+                </article>
+
+                <article class="project-card slide-up tilt-elem" style="--delay: 12; cursor: pointer;" onclick="window.location.href='freeway-frenzy.html'">
+                    <div class="project-image-placeholder freeway-bg">
+                        <div class="fw-scene">
+                            <div class="fw-shoulder fw-shoulder-l"></div>
+                            <div class="fw-road-surface">
+                                <div class="fw-edge fw-edge-l"></div>
+                                <div class="fw-lane-mark fm1"></div>
+                                <div class="fw-lane-mark fm2"></div>
+                                <div class="fw-lane-mark fm3"></div>
+                                <div class="fw-lane-mark fm4"></div>
+                                <div class="fw-edge fw-edge-r"></div>
+                                <div class="fw-obs fw-obs-side1"></div>
+                                <div class="fw-obs fw-obs-side2"></div>
+                                <div class="fw-obs fw-obs-crash"></div>
+                                <div class="fw-player-car">
+                                    <div class="fw-pc-roof"></div>
+                                    <div class="fw-pc-wind"></div>
+                                    <div class="fw-pc-hl fw-pc-hl-l"></div>
+                                    <div class="fw-pc-hl fw-pc-hl-r"></div>
+                                    <div class="fw-pc-tl fw-pc-tl-l"></div>
+                                    <div class="fw-pc-tl fw-pc-tl-r"></div>
+                                </div>
+                                <div class="fw-crash-flash"></div>
+                                <div class="fw-debris fw-d1"></div>
+                                <div class="fw-debris fw-d2"></div>
+                                <div class="fw-debris fw-d3"></div>
+                                <div class="fw-debris fw-d4"></div>
+                                <div class="fw-debris fw-d5"></div>
+                                <div class="fw-debris fw-d6"></div>
+                            </div>
+                            <div class="fw-shoulder fw-shoulder-r"></div>
+                            <div class="fw-hud">SCORE: 142</div>
+                            <div class="fw-hud-go">GAME OVER</div>
+                        </div>
+                    </div>
+                    <div class="project-info">
+                        <span class="project-role">Embedded Systems Developer</span>
+                        <h3 class="project-title">FreewayFrenzy</h3>
+                        <p class="project-desc">Distributed Embedded Driving Game</p>
+                        <div class="project-tags"><span class="ptag">C/C++</span><span class="ptag">ESP32</span><span class="ptag">FreeRTOS</span></div>
+                    </div>
+                </article>
+
+                <article class="project-card slide-up tilt-elem" style="--delay: 13; cursor: pointer;" onclick="window.location.href='supasesh.html'">
+                    <div class="project-image-placeholder supasesh-bg">
+                        <div class="supa-app-ui">
+                            <div class="supa-header"><div class="supa-dot"></div><div class="supa-dot"></div><div class="supa-dot"></div></div>
+                            <div class="supa-card">
+                                <div class="supa-bar sb1"></div>
+                                <div class="supa-bar sb2"></div>
+                                <div class="supa-bar sb3"></div>
+                            </div>
+                            <div class="supa-stats">
+                                <div class="supa-stat"></div>
+                                <div class="supa-stat"></div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="project-info">
+                        <span class="project-role">iOS / Swift Developer</span>
+                        <h3 class="project-title">SupaSesh</h3>
+                        <p class="project-desc">Multi-Platform Session Tracking App</p>
+                        <div class="project-tags"><span class="ptag">Swift</span><span class="ptag">SwiftUI</span><span class="ptag">CloudKit</span></div>
+                    </div>
+                </article>
+
+                <article class="project-card slide-up tilt-elem" style="--delay: 14; cursor: pointer;" onclick="window.location.href='signalscope.html'">
+                    <div class="project-image-placeholder signalscope-bg">
+                        <div class="sig-mini">
+                            <div class="sig-mini-screen">
+                                <div class="sig-mini-head">
+                                    <span class="sig-mini-dot"></span>
+                                    <span class="sig-mini-dot"></span>
+                                    <span class="sig-mini-dot"></span>
+                                </div>
+                                <div class="sig-mini-chart sig-mini-chart--ecg"></div>
+                                <div class="sig-mini-chart sig-mini-chart--resp"></div>
+                                <div class="sig-mini-kpis">
+                                    <div class="sig-mini-kpi"><span>HR</span><strong>74</strong></div>
+                                    <div class="sig-mini-kpi"><span>SpO₂</span><strong>98%</strong></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="project-info">
+                        <span class="project-role">Concept Prototype</span>
+                        <h3 class="project-title">SignalScope</h3>
+                        <p class="project-desc">Wearable Biosignal Review Console</p>
+                        <div class="project-tags"><span class="ptag">React</span><span class="ptag">WebRTC</span><span class="ptag">D3</span></div>
+                    </div>
+                </article>
+
+                <article class="project-card slide-up tilt-elem" style="--delay: 15; cursor: pointer;" onclick="window.location.href='doseflow.html'">
+                    <div class="project-image-placeholder doseflow-bg">
+                        <div class="dose-mini">
+                            <div class="dose-mini-bag"></div>
+                            <div class="dose-mini-line"></div>
+                            <div class="dose-mini-panel">
+                                <div class="dose-mini-alert"></div>
+                                <div class="dose-mini-row dose-mini-row--one"></div>
+                                <div class="dose-mini-row dose-mini-row--two"></div>
+                                <div class="dose-mini-row dose-mini-row--three"></div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="project-info">
+                        <span class="project-role">Concept Prototype</span>
+                        <h3 class="project-title">DoseFlow</h3>
+                        <p class="project-desc">Medication & Infusion Workflow Console</p>
+                        <div class="project-tags"><span class="ptag">TypeScript</span><span class="ptag">FHIR</span><span class="ptag">Design Systems</span></div>
+                    </div>
+                </article>
+
+                <article class="project-card slide-up tilt-elem" style="--delay: 16; cursor: pointer;" onclick="window.location.href='atlasfold.html'">
+                    <div class="project-image-placeholder atlasfold-bg">
+                        <div class="atlas-mini">
+                            <div class="atlas-mini-core">
+                                <div class="atlas-mini-slice ams1"></div>
+                                <div class="atlas-mini-slice ams2"></div>
+                                <div class="atlas-mini-slice ams3"></div>
+                            </div>
+                            <div class="atlas-mini-orbit"></div>
+                            <div class="atlas-mini-sidebar">
+                                <div class="atlas-mini-chip"></div>
+                                <div class="atlas-mini-chip"></div>
+                                <div class="atlas-mini-chip"></div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="project-info">
+                        <span class="project-role">Concept Prototype</span>
+                        <h3 class="project-title">AtlasFold</h3>
+                        <p class="project-desc">3D Anatomy Study Workspace</p>
+                        <div class="project-tags"><span class="ptag">Three.js</span><span class="ptag">WebGL</span><span class="ptag">Education</span></div>
+                    </div>
+                </article>
+
+                <article class="project-card slide-up tilt-elem" style="--delay: 17; cursor: pointer;" onclick="window.location.href='the-cell.html'">
+                    <div class="project-image-placeholder cellstudy-bg">
+                        <div class="cellstudy-mini" aria-hidden="true">
+                            <div class="cellstudy-orb"></div>
+                            <div class="cellstudy-nucleus"></div>
+                            <div class="cellstudy-mito cellstudy-mito--one"></div>
+                            <div class="cellstudy-mito cellstudy-mito--two"></div>
+                            <div class="cellstudy-dna"></div>
+                            <div class="cellstudy-signal cellstudy-signal--one"></div>
+                            <div class="cellstudy-signal cellstudy-signal--two"></div>
+                            <div class="cellstudy-chip cellstudy-chip--one">Transport</div>
+                            <div class="cellstudy-chip cellstudy-chip--two">Genes</div>
+                            <div class="cellstudy-chip cellstudy-chip--three">ATP</div>
+                        </div>
+                    </div>
+                    <div class="project-info">
+                        <span class="project-role">Interactive Study Build</span>
+                        <h3 class="project-title">The Cell</h3>
+                        <p class="project-desc">BILD 1 Study Simulators Built From The Syllabus</p>
+                        <div class="project-tags"><span class="ptag">Biology</span><span class="ptag">Education</span><span class="ptag">Simulation</span></div>
+                    </div>
+                </article>
+
+                <article class="project-card slide-up tilt-elem" style="--delay: 18; cursor: pointer;" onclick="window.location.href='dna-bases.html'">
+                    <div class="project-image-placeholder dnabases-bg">
+                        <div class="dnabases-mini" aria-hidden="true">
+                            <div class="dnabases-grid">
+                                <span class="dnabases-letter dnabases-letter--a">A</span>
+                                <span class="dnabases-letter dnabases-letter--t">T</span>
+                                <span class="dnabases-letter dnabases-letter--g">G</span>
+                                <span class="dnabases-letter dnabases-letter--c">C</span>
+                            </div>
+                            <div class="dnabases-hbond-line">
+                                <span class="dnabases-pair">A=T</span>
+                                <span class="dnabases-pair">G≡C</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="project-info">
+                        <span class="project-role">Interactive Study Build</span>
+                        <h3 class="project-title">DNA Base Memorizer</h3>
+                        <p class="project-desc">Nucleobase Structure & H-Bond Identification Trainer</p>
+                        <div class="project-tags"><span class="ptag">Biochemistry</span><span class="ptag">Canvas</span><span class="ptag">Education</span></div>
+                    </div>
+                </article>
+
+                <article class="project-card slide-up tilt-elem" style="--delay: 19; cursor: pointer;" onclick="window.location.href='dna-molecule-builder.html'">
+                    <div class="project-image-placeholder dnamol-bg">
+                        <div class="dnamol-mini" aria-hidden="true">
+                            <div class="dnamol-backbone">
+                                <span class="dnamol-phosphate dnamol-phosphate--one"></span>
+                                <span class="dnamol-sugar dnamol-sugar--one"></span>
+                                <span class="dnamol-phosphate dnamol-phosphate--two"></span>
+                                <span class="dnamol-sugar dnamol-sugar--two"></span>
+                                <span class="dnamol-phosphate dnamol-phosphate--three"></span>
+                            </div>
+                            <span class="dnamol-base dnamol-base--a">A</span>
+                            <span class="dnamol-base dnamol-base--g">G</span>
+                            <span class="dnamol-base dnamol-base--t">T</span>
+                            <span class="dnamol-caption">3'→5' phosphodiester</span>
+                        </div>
+                    </div>
+                    <div class="project-info">
+                        <span class="project-role">Interactive Study Build</span>
+                        <h3 class="project-title">Phosphodiester Lab</h3>
+                        <p class="project-desc">Sugar-Phosphate Backbone & DNA Polymer Builder</p>
+                        <div class="project-tags"><span class="ptag">React</span><span class="ptag">Biochemistry</span><span class="ptag">Education</span></div>
+                    </div>
+                </article>
+
+                <article class="project-card slide-up tilt-elem" style="--delay: 20; cursor: pointer;" onclick="window.location.href='dna-replication.html'">
+                    <div class="project-image-placeholder dnarepl-bg">
+                        <div class="dnarepl-mini" aria-hidden="true">
+                            <div class="dnarepl-fork">
+                                <div class="dnarepl-strand dnarepl-strand--parent"></div>
+                                <div class="dnarepl-strand dnarepl-strand--leading"></div>
+                                <div class="dnarepl-strand dnarepl-strand--lagging">
+                                    <span class="dnarepl-frag"></span>
+                                    <span class="dnarepl-frag"></span>
+                                    <span class="dnarepl-frag"></span>
+                                </div>
+                            </div>
+                            <div class="dnarepl-labels">
+                                <span class="dnarepl-label dnarepl-label--enz">Pol III</span>
+                                <span class="dnarepl-label dnarepl-label--enz2">Helicase</span>
+                                <span class="dnarepl-label dnarepl-label--enz3">Ligase</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="project-info">
+                        <span class="project-role">Interactive Study Build</span>
+                        <h3 class="project-title">DNA Replication Study</h3>
+                        <p class="project-desc">Replication Fork Enzymes, Bonds & Concept Trainer</p>
+                        <div class="project-tags"><span class="ptag">Biochemistry</span><span class="ptag">Canvas</span><span class="ptag">Education</span></div>
+                    </div>
+                </article>
+
+                <article class="project-card slide-up tilt-elem" style="--delay: 21; cursor: pointer;" onclick="window.location.href='precalc.html'">
+                    <div class="project-image-placeholder precalc-bg">
+                        <div class="precalc-mini" aria-hidden="true">
+                            <div class="precalc-grid"></div>
+                            <svg class="precalc-wave" viewBox="0 0 240 160" fill="none" aria-hidden="true">
+                                <path d="M24 82 H216" class="precalc-axis" />
+                                <path d="M118 22 V142" class="precalc-axis" />
+                                <path d="M24 86 C36 64 48 48 60 48 C72 48 84 64 96 86 C108 108 120 124 132 124 C144 124 156 108 168 86 C180 64 192 48 204 48 C208 48 212 52 216 58" class="precalc-curve" />
+                            </svg>
+                            <div class="precalc-circle">
+                                <span class="precalc-radius"></span>
+                                <span class="precalc-point"></span>
+                            </div>
+                            <span class="precalc-chip precalc-chip--one">sin(x)</span>
+                            <span class="precalc-chip precalc-chip--two">&pi;/4</span>
+                            <span class="precalc-chip precalc-chip--three">a(x-h)+k</span>
+                        </div>
+                    </div>
+                    <div class="project-info">
+                        <span class="project-role">Interactive Study Build</span>
+                        <h3 class="project-title">PreCalc Lab</h3>
+                        <p class="project-desc">Graphing, trig, and quiz drills built as a pre-calc study companion.</p>
+                        <div class="project-tags"><span class="ptag">Math</span><span class="ptag">Education</span><span class="ptag">Visualization</span></div>
+                    </div>
+                </article>
+
+                <article class="project-card slide-up tilt-elem" style="--delay: 21; cursor: pointer;" onclick="window.location.href='circuit-lab.html'">
+                    <div class="project-image-placeholder circuit-lab-bg">
+                        <div class="circuit-lab-mini" aria-hidden="true">
+                            <div class="ccl-grid"></div>
+                            <div class="ccl-wires">
+                                <svg class="ccl-wires-svg" viewBox="0 0 240 120" fill="none" aria-hidden="true">
+                                    <!-- Left loop top -->
+                                    <path d="M30 60 L30 20 L100 20" class="ccl-wseg ccl-wseg--cyan" />
+                                    <!-- Right loop top -->
+                                    <path d="M130 20 L200 20 L200 35" class="ccl-wseg ccl-wseg--green" />
+                                    <!-- Right loop bottom -->
+                                    <path d="M200 75 L200 100 L30 100 L30 80" class="ccl-wseg ccl-wseg--purple" />
+                                    <!-- Middle cross branch with resistor -->
+                                    <path d="M115 100 L115 85" class="ccl-wseg ccl-wseg--purple" />
+                                    <path d="M115 55 L115 60 L200 60" class="ccl-wseg ccl-wseg--cyan" />
+                                </svg>
+                            </div>
+                            <!-- Components -->
+                            <div class="ccl-batt" style="left: 2px; top: 56px; transform: rotate(-90deg);">
+                                <span class="ccl-batt-neg">−</span>
+                                <span class="ccl-batt-pp">9V</span>
+                                <span class="ccl-batt-pos">+</span>
+                            </div>
+                            <div class="ccl-res" style="left: 115px; top: 20px;">10kΩ</div>
+                            <div class="ccl-led" style="left: 200px; top: 55px;">
+                                <span class="ccl-led-bulb"></span>
+                                <span class="ccl-led-txt">LED</span>
+                            </div>
+                            <div class="ccl-res ccl-res--purple" style="left: 115px; top: 70px; transform: translate(-50%, -50%) rotate(90deg);">220Ω</div>
+                            <div class="ccl-gnd" style="left: 20px; top: 104px;">GND</div>
+                            
+                            <!-- Junction nodes -->
+                            <div class="ccl-node" style="left: 30px; top: 100px;"></div>
+                            <div class="ccl-node" style="left: 115px; top: 100px;"></div>
+                            <div class="ccl-node" style="left: 200px; top: 60px;"></div>
+                            
+                            <!-- Animated Signal -->
+                            <div class="ccl-signal" style="--path-len: 200px; --anim-dur: 3s; top: 16px; left: 30px;"></div>
+                        </div>
+                    </div>
+                    <div class="project-info">
+                        <span class="project-role">Web Simulation & Systems</span>
+                        <h3 class="project-title">Circuit Lab</h3>
+                        <p class="project-desc">Modular Schematic & DC Network Solver</p>
+                        <div class="project-tags"><span class="ptag">React</span><span class="ptag">MNA</span><span class="ptag">Education</span></div>
+                    </div>
+                </article>
+
+            </div>
+        </section>
+
+        <section id="ideas" class="ideas-section section-animate">
+            <div class="ideas-shell">
+                <div class="ideas-header">
+                    <div class="ideas-copy slide-up" style="--delay: 1;">
+                        <span class="ideas-eyebrow">PR, marketing, product, and brand direction</span>
+                        <h2 class="section-title">Ideas / Vision</h2>
+                        <p class="ideas-intro">
+                            I like building the thing around the interface too: the hook, the launch angle, the before-and-after story, and the visual world that makes the bet feel real before it ships.
+                        </p>
+                    </div>
+                    <aside class="ideas-summary slide-up" style="--delay: 2;">
+                        <span class="ideas-summary__label">What I bring to creative teams</span>
+                        <ul class="ideas-summary__list">
+                            <li>Translate dense products into crisp hooks, launch angles, and creator-ready narratives.</li>
+                            <li>Bridge concept, prototype, and messaging so teams can pitch something visible instead of abstract.</li>
+                            <li>Bring taste, systems thinking, and product instinct to PR, marketing, and brand work.</li>
+                        </ul>
+                        <div class="ideas-role-pills" aria-label="Target roles">
+                            <span>PR Storytelling</span>
+                            <span>Product Marketing</span>
+                            <span>Brand Design</span>
+                            <span>Creative Vision</span>
+                        </div>
+                    </aside>
+                </div>
+
+                <div class="ideas-lanes slide-up" style="--delay: 2.4;">
+                    <article class="ideas-lane">
+                        <span class="ideas-lane__index">01</span>
+                        <h3>PR + Community</h3>
+                        <p>Ambassador kits, creator prompts, and launch stories people can repost without sounding scripted.</p>
+                    </article>
+                    <article class="ideas-lane">
+                        <span class="ideas-lane__index">02</span>
+                        <h3>Product Marketing</h3>
+                        <p>Before-and-after narratives, proof points, and demo scripting that make the value land fast.</p>
+                    </article>
+                    <article class="ideas-lane">
+                        <span class="ideas-lane__index">03</span>
+                        <h3>Brand Design</h3>
+                        <p>Visual systems, motion cues, and campaign direction that give the product an actual point of view.</p>
+                    </article>
+                    <article class="ideas-lane">
+                        <span class="ideas-lane__index">04</span>
+                        <h3>Vision + Product</h3>
+                        <p>Concept prototypes and future-state stories that help teams align around something concrete.</p>
+                    </article>
+                </div>
+
+                <div class="ideas-feed">
+                    <div class="ideas-feed__intro slide-up" style="--delay: 2.8;">
+                        <span class="ideas-feed__eyebrow">Scroll through the signal feed</span>
+                        <p>Same job, four beats: shape the hook, show the shift, build the world, then package the rollout.</p>
+                    </div>
+
+                    <div class="ideas-feed__layout">
+                        <div class="ideas-feed__visual">
+                            <div class="ideas-feed__screen" data-ideas-feed-screen data-ideas-theme="hook">
+                                <div class="ideas-byte-rain" data-byte-rain aria-hidden="true"></div>
+                                <div class="ideas-feed__screen-noise" aria-hidden="true"></div>
+
+                                <div class="ideas-feed__hud">
+                                    <div class="ideas-feed__hud-main">
+                                        <span class="ideas-feed__kicker" data-ideas-panel-kicker>01 Launch hook</span>
+                                        <h3 class="ideas-feed__title" data-ideas-panel-title>Give the idea a line people can repeat.</h3>
+                                        <p class="ideas-feed__summary" data-ideas-panel-summary>Turn the concept into a crisp angle before anyone argues about features.</p>
+                                    </div>
+
+                                    <ul class="ideas-feed__line-list" aria-label="Signal log">
+                                        <li data-ideas-panel-line>ANGLE//one sentence &gt; clear value</li>
+                                        <li data-ideas-panel-line>HOOK//before -&gt; after</li>
+                                        <li data-ideas-panel-line>RECALL//creator-safe wording</li>
+                                    </ul>
+
+                                    <div class="ideas-feed__footer">
+                                        <span data-ideas-panel-theme>Signal: Hook</span>
+                                        <span data-ideas-panel-status>Active beat 1 / 4</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="ideas-feed__steps">
+                            <article class="ideas-step is-active" data-ideas-step data-ideas-theme="hook" data-panel-kicker="01 Launch hook" data-panel-title="Give the idea a line people can repeat." data-panel-summary="Turn the concept into a crisp angle before anyone argues about features." data-panel-lines="ANGLE//one sentence > clear value|HOOK//before -> after|RECALL//creator-safe wording" data-panel-theme="Signal: Hook" data-panel-status="Active beat 1 / 4">
+                                <span class="ideas-step__index">01</span>
+                                <div class="ideas-step__copy">
+                                    <span class="ideas-step__eyebrow">Hook architecture</span>
+                                    <h3>Distill the bet before the deck gets noisy.</h3>
+                                    <p>Write the line, the launch angle, and the simple shift people should remember after one pass.</p>
+                                    <div class="ideas-step__tags">
+                                        <span>Hook writing</span>
+                                        <span>Launch angle</span>
+                                        <span>Recall</span>
+                                    </div>
+                                </div>
+                            </article>
+
+                            <article class="ideas-step" data-ideas-step data-ideas-theme="demo" data-panel-kicker="02 Show the shift" data-panel-title="Make the abstract feel visible." data-panel-summary="Build a prototype, scene, or walkthrough so the story has proof instead of adjectives." data-panel-lines="PROOF//show the state change|FLOW//walkthrough > feature dump|SCENE//demo beats > vague promise" data-panel-theme="Signal: Demo" data-panel-status="Active beat 2 / 4">
+                                <span class="ideas-step__index">02</span>
+                                <div class="ideas-step__copy">
+                                    <span class="ideas-step__eyebrow">Demo logic</span>
+                                    <h3>Give the story something real to point at.</h3>
+                                    <p>Make the idea visible through interaction, sequence, and before-and-after contrast instead of abstract positioning alone.</p>
+                                    <div class="ideas-step__tags">
+                                        <span>Prototype</span>
+                                        <span>Demo scripting</span>
+                                        <span>Reveal</span>
+                                    </div>
+                                </div>
+                            </article>
+
+                            <article class="ideas-step" data-ideas-step data-ideas-theme="world" data-panel-kicker="03 Build the world" data-panel-title="Give the product a visual atmosphere." data-panel-summary="Shape the motion, tone, and campaign direction so the thing feels like it belongs to a specific world." data-panel-lines="WORLD//specific > generic|TONE//motion cues > mood board|SYSTEM//campaign surfaces stay coherent" data-panel-theme="Signal: World" data-panel-status="Active beat 3 / 4">
+                                <span class="ideas-step__index">03</span>
+                                <div class="ideas-step__copy">
+                                    <span class="ideas-step__eyebrow">Worldbuilding</span>
+                                    <h3>Make it feel like more than just a feature drop.</h3>
+                                    <p>Use visual systems, motion, and campaign framing to give the product a setting, a mood, and a recognizable identity.</p>
+                                    <div class="ideas-step__tags">
+                                        <span>Art direction</span>
+                                        <span>Motion</span>
+                                        <span>Campaign system</span>
+                                    </div>
+                                </div>
+                            </article>
+
+                            <article class="ideas-step" data-ideas-step data-ideas-theme="rollout" data-panel-kicker="04 Package the rollout" data-panel-title="Turn the concept into a launch kit." data-panel-summary="Package the story so internal teams, PR, and creators can all share the same bet without rewriting it." data-panel-lines="KIT//talking points + assets|DROP//internal + public alignment|SPREAD//shareable beats > one monologue" data-panel-theme="Signal: Rollout" data-panel-status="Active beat 4 / 4">
+                                <span class="ideas-step__index">04</span>
+                                <div class="ideas-step__copy">
+                                    <span class="ideas-step__eyebrow">Rollout system</span>
+                                    <h3>Package the bet for launch, not just presentation.</h3>
+                                    <p>Build the shareable kit: talking points, creator prompts, launch copy, and the version of the story that travels across teams.</p>
+                                    <div class="ideas-step__tags">
+                                        <span>Launch kit</span>
+                                        <span>PR</span>
+                                        <span>Creator prompts</span>
+                                    </div>
+                                </div>
+                            </article>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Experience Section -->
+        <section id="experience" class="experience-section section-animate">
+            <h2 class="section-title">Work Experience</h2>
+            <div class="timeline">
+                
+                <div class="timeline-item slide-up" style="--delay: 1;">
+                    <div class="timeline-dot"></div>
+                    <div class="timeline-content">
+                        <div class="timeline-header">
+                            <div>
+                                <h3>Web Developer</h3>
+                                <h4>UC San Diego Health</h4>
+                            </div>
+                            <span class="timeline-date">Feb 2024 - Feb 2026<br><small>San Diego, CA</small></span>
+                        </div>
+                        <p>Developed and maintained accessible, user friendly web content for UC San Diego Health. Supported digital experiences that improved access to healthcare information for patients and care teams. Coordinated website updates, organized content, and helped manage projects to keep online resources clear, functional, and aligned with healthcare communication needs.</p>
+                    </div>
+                </div>
+
+                <div class="timeline-item slide-up" style="--delay: 2;">
+                    <div class="timeline-dot"></div>
+                    <div class="timeline-content">
+                        <div class="timeline-header">
+                            <div>
+                                <h3>Lead Medical Assistant</h3>
+                                <h4>Senta Medical Clinic</h4>
+                            </div>
+                            <span class="timeline-date">Feb 2021 - Jan 2026<br><small>San Diego, CA</small></span>
+                        </div>
+                        <p>Manage and maintain patient medical records ensuring HIPAA compliance. Assist physicians with examinations, vital signs, and routine procedures. Administer medications and injections as directed. Educate patients on medication use, nutrition, and care plans. Train and supervise medical assistants.</p>
+                    </div>
+                </div>
+
+                <div class="timeline-item slide-up" style="--delay: 3;">
+                    <div class="timeline-dot"></div>
+                    <div class="timeline-content">
+                        <div class="timeline-header">
+                            <div>
+                                <h3>Lead UX/UI Designer & Developer</h3>
+                                <h4>DizzyDoctor Systems</h4>
+                            </div>
+                            <span class="timeline-date">Mar 2019 - Feb 2024<br><small>San Diego, CA</small></span>
+                        </div>
+                        <p>Led design and development of healthcare digital solutions for vertigo diagnosis. Built real-time vertigo recording system pairing mobile app with custom goggles for eye movement capture. Implemented HIPAA-compliant security and designed patient/physician interfaces. Collaborated with medical experts to integrate clinical insights into diagnostic tools.</p>
+                    </div>
+                </div>
+
+                <div class="timeline-item slide-up" style="--delay: 4;">
+                    <div class="timeline-dot"></div>
+                    <div class="timeline-content">
+                        <div class="timeline-header">
+                            <div>
+                                <h3>Web Developer / Project Manager</h3>
+                                <h4>Ian Purcell M.D., Ph.D</h4>
+                            </div>
+                            <span class="timeline-date">Feb 2021 - Feb 2022<br><small>San Diego, CA</small></span>
+                        </div>
+                        <p>Developed and managed a patient facing website for a neurologist specializing in dizziness, vertigo, BPPV, and balance disorders. Improved site structure, content presentation, and usability to make clinical information easier for patients to access and understand.</p>
+                    </div>
+                </div>
+
+                <div class="timeline-item slide-up" style="--delay: 5;">
+                    <div class="timeline-dot"></div>
+                    <div class="timeline-content">
+                        <div class="timeline-header">
+                            <div>
+                                <h3>Web Developer</h3>
+                                <h4>Alimination Inc.</h4>
+                            </div>
+                            <span class="timeline-date">Jan 2020 - Jan 2022<br><small>San Diego, CA</small></span>
+                        </div>
+                        <p>Built and maintained web pages and digital content using front end development tools and best practices. Supported responsive design, content updates, and usability improvements across web experiences.</p>
+                    </div>
+                </div>
+
+            </div>
+        </section>
+
+        <!-- Education Section -->
+        <section id="education" class="education-section section-animate">
+            <h2 class="section-title">Education</h2>
+            <div class="education-grid">
+                
+                <div class="education-card slide-up tilt-elem" style="--delay: 1;">
+                    <div class="edu-icon">🎓</div>
+                    <h3>University of California San Diego</h3>
+                    <p class="edu-degree">Bachelor's, Human Biology</p>
+                    <p class="edu-details">John Muir College • Expected June 2026 (Senior)</p>
+                    <div class="edu-courses">
+                        <span class="tag tag-small">Human Physiology</span>
+                        <span class="tag tag-small">General Chemistry</span>
+                        <span class="tag tag-small">Organic Chemistry</span>
+                        <a href="the-cell.html" class="tag tag-small tag-link magnetic">The Cell</a>
+                    </div>
+                </div>
+
+                <div class="education-card slide-up tilt-elem" style="--delay: 2;">
+                    <div class="edu-icon">💻</div>
+                    <h3>San Diego Mesa College</h3>
+                    <p class="edu-degree">Associate's, Web Development</p>
+                    <p class="edu-details">Cumulative GPA: 3.95</p>
+                    <div class="edu-courses">
+                        <span class="tag tag-small">User-centered design</span>
+                        <span class="tag tag-small">Responsive development</span>
+                        <span class="tag tag-small">ADA accessibility</span>
+                    </div>
+                </div>
+
+            </div>
+        </section>
+
+        <footer class="site-footer">
+            <div class="site-footer__glow site-footer__glow--one" aria-hidden="true"></div>
+            <div class="site-footer__glow site-footer__glow--two" aria-hidden="true"></div>
+            <div class="site-footer__inner">
+                <div class="site-footer__lead">
+                    <span class="site-footer__eyebrow">Software engineering + biomedical product work</span>
+                    <h2>Built to feel interactive, readable, and useful beyond the mockup stage.</h2>
+                    <p>Clinical interfaces, embedded UI, technical visualizers, and study tools that turn dense systems into something people can actually explore.</p>
+                </div>
+                <div class="site-footer__actions">
+                    <a href="#projects" class="site-footer__link">Featured Work</a>
+                    <a href="#ideas" class="site-footer__link">Ideas / Vision</a>
+                    <a href="#experience" class="site-footer__link">Experience</a>
+                    <a href="the-cell.html" class="site-footer__link">The Cell Study Hub</a>
+                    <a href="https://github.com/seanwirkus" target="_blank" rel="noreferrer" class="site-footer__link">GitHub</a>
+                </div>
+                <div class="site-footer__meta">
+                    <article class="site-footer__card">
+                        <span>Current lane</span>
+                        <strong>Biomedical UI + interactive systems</strong>
+                    </article>
+                    <article class="site-footer__card">
+                        <span>Built in</span>
+                        <strong>San Diego / UC San Diego</strong>
+                    </article>
+                    <article class="site-footer__card">
+                        <span>Right now</span>
+                        <strong>Prototypes, simulators, and product surfaces</strong>
+                    </article>
+                </div>
+                <div class="site-footer__bottom">
+                    <span>© 2026 Sean. All rights reserved.</span>
+                    <a href="#about" class="site-footer__backtop">Back to top</a>
+                </div>
+            </div>
+        </footer>
+
+    </main>
+
+    <!-- Mobile scroll progress bar -->
+    <div class="m-progress" aria-hidden="true"><span class="m-progress__fill"></span></div>
+
+    <!-- Mobile bottom tab navigation -->
+    <nav class="m-tabbar" aria-label="Mobile navigation">
+        <a href="#about" class="m-tab" data-target="about" aria-label="Intro">
+            <svg class="m-tab__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 10.5L12 4l9 6.5"/><path d="M5 9.5V20h14V9.5"/></svg>
+            <span class="m-tab__label">Home</span>
+        </a>
+        <a href="#skills" class="m-tab" data-target="skills" aria-label="Skills">
+            <svg class="m-tab__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h16"/><path d="M4 12h10"/><path d="M4 17h16"/><circle cx="18" cy="12" r="1.8"/></svg>
+            <span class="m-tab__label">Skills</span>
+        </a>
+        <a href="#projects" class="m-tab m-tab--primary" data-target="projects" aria-label="Projects">
+            <span class="m-tab__orb" aria-hidden="true">
+                <svg class="m-tab__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l9 5-9 5-9-5 9-5z"/><path d="M3 13l9 5 9-5"/></svg>
+            </span>
+            <span class="m-tab__label">Work</span>
+        </a>
+        <a href="#experience" class="m-tab" data-target="experience" aria-label="Experience">
+            <svg class="m-tab__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>
+            <span class="m-tab__label">Story</span>
+        </a>
+        <a href="#education" class="m-tab" data-target="education" aria-label="Education">
+            <svg class="m-tab__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-4 9 4-9 4-9-4z"/><path d="M7 11v5c0 1.5 2.2 3 5 3s5-1.5 5-3v-5"/></svg>
+            <span class="m-tab__label">Edu</span>
+        </a>
+        <span class="m-tab__indicator" aria-hidden="true"></span>
+    </nav>
+
+    <script src="script.js"></script>
+</body>
+</html>
