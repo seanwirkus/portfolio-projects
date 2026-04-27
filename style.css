@@ -2871,7 +2871,7 @@ body[data-theme-mode="light"] .ideas-feed__screen {
 @keyframes rotateMol { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
 @keyframes pulseAtom { 0% { box-shadow: 0 0 10px #10b981; } 100% { box-shadow: 0 0 25px #34d399; } }
 
-/* Pocket Scholar Styles */
+/* Pool project styles */
 .ps-bg {
     background:
         radial-gradient(circle at 24% 18%, rgba(16, 185, 129, 0.2), transparent 34%),

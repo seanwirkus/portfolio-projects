@@ -20,8 +20,8 @@
             --bg: #07090e;
             --bg-2: #0c1220;
             --ink: #ffffff;
-            --ink-soft: #c8cfdc;
-            --ink-mute: #8e96a8;
+            --ink-soft: #e2e8f0;
+            --ink-mute: #a6adbe;
             --accent: #6ee7b7;
             --accent-2: #818cf8;
             --accent-3: #fb923c;
@@ -146,13 +146,13 @@
             display: inline-flex; align-items: center; gap: 10px;
             flex-wrap: wrap;
             max-width: min(100%, 36rem);
-            font-size: 0.74rem;
+            font-size: 0.85rem;
             text-transform: uppercase;
             letter-spacing: 0.22em;
             line-height: 1.45;
             color: #d8deea;
             margin-bottom: 28px;
-            padding: 8px 14px;
+            padding: 8px 16px;
             border-radius: 999px;
             background: rgba(7, 9, 14, 0.55);
             border: 1px solid rgba(255, 255, 255, 0.1);
@@ -623,19 +623,21 @@
         .pcard {
             position: relative;
             border-radius: 22px;
-            border: 1px solid var(--line);
-            background: linear-gradient(145deg, rgba(255,255,255,0.05), rgba(255,255,255,0.01));
+            border: 1px solid rgba(255,255,255,0.12);
+            background: linear-gradient(145deg, rgba(20,24,36,0.95), rgba(12,14,24,0.95));
+            backdrop-filter: blur(12px);
             display: flex; flex-direction: column;
             min-height: 360px;
             cursor: pointer;
             overflow: hidden;
             transform-style: preserve-3d;
-            transition: border-color .25s, transform .15s ease-out;
+            transition: border-color .3s ease, transform .2s cubic-bezier(0.175, 0.885, 0.32, 1.275), box-shadow .3s ease;
             will-change: transform;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.4);
         }
         .pcard.is-scroll-focus {
-            border-color: rgba(110,231,183,0.36);
-            box-shadow: 0 18px 48px rgba(0,0,0,0.28), 0 0 0 1px rgba(110,231,183,0.08);
+            border-color: rgba(110,231,183,0.45);
+            box-shadow: 0 24px 54px rgba(0,0,0,0.4), 0 0 0 1px rgba(110,231,183,0.12);
         }
         .pcard.is-scroll-focus .pcard-cover {
             filter: saturate(1.12) brightness(1.04);
@@ -644,14 +646,18 @@
             content: '';
             position: absolute;
             inset: 0;
-            background: radial-gradient(600px circle at var(--mx, 50%) var(--my, 50%), rgba(110,231,183,0.12), transparent 40%);
+            background: radial-gradient(700px circle at var(--mx, 50%) var(--my, 50%), rgba(110,231,183,0.22), transparent 40%);
             opacity: 0;
-            transition: opacity .3s;
+            transition: opacity .4s ease;
             pointer-events: none;
             z-index: 3;
+            mix-blend-mode: overlay;
         }
         .pcard:hover::before { opacity: 1; }
-        .pcard:hover { border-color: rgba(110,231,183,0.35); }
+        .pcard:hover { 
+            border-color: rgba(110,231,183,0.45); 
+            box-shadow: 0 16px 42px rgba(0,0,0,0.5), 0 0 0 1px rgba(110,231,183,0.15);
+        }
         .pcard-cover {
             position: relative;
             height: 210px;
@@ -702,49 +708,57 @@
             .pcard.featured .pcard-title { font-size: 2rem; }
         }
         .pcard-body {
-            padding: 22px 24px 22px;
+            padding: 32px 34px 32px;
             display: flex; flex-direction: column;
             flex: 1;
+            background: linear-gradient(to top, rgba(8,10,18,0.98), rgba(12,14,24,0.6) 60%);
+            border-top: 1px solid rgba(255,255,255,0.06);
+            transform: translateZ(20px);
         }
         .pcard-num {
             font-family: Fraunces, serif;
-            font-size: 0.78rem;
-            color: var(--ink-mute);
-            letter-spacing: 0.08em;
+            font-size: 0.85rem;
+            color: var(--ink-soft);
+            letter-spacing: 0.1em;
+            transform: translateZ(10px);
         }
         .pcard-role {
-            margin-top: 12px;
-            font-size: 0.68rem;
-            line-height: 1.25;
+            margin-top: 14px;
+            font-size: 0.72rem;
+            line-height: 1.3;
             text-transform: uppercase;
-            letter-spacing: 0.14em;
+            letter-spacing: 0.16em;
             color: var(--accent);
             font-weight: 700;
+            transform: translateZ(15px);
         }
         .pcard-title {
             font-family: Fraunces, serif;
-            font-weight: 500;
-            font-size: 1.6rem;
-            line-height: 1.1;
-            letter-spacing: -0.02em;
-            margin: 10px 0 10px;
+            font-weight: 600;
+            font-size: 1.75rem;
+            line-height: 1.15;
+            letter-spacing: -0.015em;
+            margin: 12px 0 12px;
             color: #ffffff;
             overflow-wrap: break-word;
             hyphens: none;
+            transform: translateZ(25px);
         }
-        .pcard.featured .pcard-title { font-size: clamp(1.8rem, 3vw, 2.4rem); }
+        .pcard.featured .pcard-title { font-size: clamp(2rem, 3.5vw, 2.8rem); }
         .pcard-desc {
-            color: #cdd4e2;
-            font-size: 0.9rem;
+            color: #e2e8f0;
+            font-size: 1.05rem;
             line-height: 1.6;
-            margin-bottom: 16px;
+            margin-bottom: 20px;
             overflow-wrap: break-word;
+            transform: translateZ(18px);
         }
         .pcard-tags {
             display: flex;
             flex-wrap: wrap;
             gap: 6px;
             margin: 0 0 18px;
+            transform: translateZ(25px);
         }
         .ptag {
             border: 1px solid rgba(110,231,183,0.16);
@@ -764,6 +778,7 @@
             letter-spacing: 0.18em;
             color: var(--ink-mute);
             margin-top: auto;
+            transform: translateZ(10px);
         }
         .pcard-arrow {
             width: 30px; height: 30px;
@@ -953,17 +968,17 @@
     <div class="smooth-wrap" id="smooth">
 
         <section class="hero" id="top">
-            <span class="hero-eyebrow reveal">Available · UC San Diego · Full-stack</span>
+            <span class="hero-eyebrow reveal">Available · UC San Diego · Builder</span>
             <h1 class="hero-title">
-                <span class="w"><em>Software</em></span>
-                <span class="w hero-title__phrase">that makes</span>
-                <span class="w hero-title__phrase">complex systems</span>
-                <span class="w hero-title__phrase"><em>feel clear.</em></span>
+                <span class="w"><em>Crafting</em></span>
+                <span class="w hero-title__phrase">tools that</span>
+                <span class="w hero-title__phrase">bring complex ideas</span>
+                <span class="w hero-title__phrase"><em>to life.</em></span>
             </h1>
             <div class="hero-meta">
-                <div class="hero-meta-item"><span class="k">Focus</span><span class="v">Clinical product UI &amp; technical systems</span></div>
-                <div class="hero-meta-item"><span class="k">Recent</span><span class="v">Simulators, device surfaces, health apps</span></div>
-                <div class="hero-meta-item"><span class="k">Stack</span><span class="v">React, Three.js, Embedded C, Python</span></div>
+                <div class="hero-meta-item"><span class="k">Focus</span><span class="v">Interactive systems &amp; tangible prototypes</span></div>
+                <div class="hero-meta-item"><span class="k">Recent</span><span class="v">Simulators, hardware experiments, visual apps</span></div>
+                <div class="hero-meta-item"><span class="k">Skills</span><span class="v">Software, UI/UX, Embedded C, Prototyping</span></div>
             </div>
             <div class="scroll-hint">Scroll<span class="line"></span></div>
         </section>
@@ -974,14 +989,14 @@
 
         <section class="marquee" aria-hidden="true">
             <div class="marquee-track" id="marquee">
-                <span>biomedical interfaces</span>
-                <span>embedded systems</span>
-                <span>interactive simulators</span>
-                <span>clinical UX</span>
-                <span>biomedical interfaces</span>
-                <span>embedded systems</span>
-                <span>interactive simulators</span>
-                <span>clinical UX</span>
+                <span>interactive experiences</span>
+                <span>hardware prototypes</span>
+                <span>digital tools</span>
+                <span>creative engineering</span>
+                <span>interactive experiences</span>
+                <span>hardware prototypes</span>
+                <span>digital tools</span>
+                <span>creative engineering</span>
             </div>
         </section>
 
@@ -989,35 +1004,35 @@
             <div>
                 <div class="about-label">About</div>
                 <p class="about-text reveal">
-                    Human Biology at UCSD, software engineering everywhere else. I build <em>clinical interfaces</em>, embedded device software, and interaction-heavy tools that feel polished in motion — not just in screenshots.
+                    Studying Human Biology at UCSD, building everywhere else. I create <em>interactive tools</em>, embedded hardware prototypes, and digital experiences that feel polished in motion — merging science, design, and engineering.
                 </p>
             </div>
             <div class="about-side">
                 <div class="about-pill reveal">Prototype fast, refine layout, motion &amp; behavior</div>
-                <div class="about-pill reveal">Comfort across product UI &amp; firmware</div>
-                <div class="about-pill reveal">Bias toward shipping interactive demos</div>
+                <div class="about-pill reveal">Comfort bridging the digital and physical</div>
+                <div class="about-pill reveal">Bias toward shipping interactive experiences</div>
             </div>
         </section>
 
         <section class="impact" id="impact">
             <div class="impact-copy">
-                <div class="impact-kicker reveal">Next role</div>
-                <h2 class="impact-title reveal">Build software with <em>real-world consequence.</em></h2>
+                <div class="impact-kicker reveal">Direction</div>
+                <h2 class="impact-title reveal">Build things with <em>real impact.</em></h2>
                 <p class="impact-lead reveal">
-                    I am aiming for teams working on health, science, education, infrastructure, or tools that make expert work easier. The thread across my projects is simple: take hard systems and make them usable, visual, and trustworthy.
+                    I am driven by curiosity and a desire to build things that matter. Whether it's a physical device, a visual simulator, or an interactive learning tool, I take hard problems and turn them into intuitive experiences.
                 </p>
                 <div class="impact-lanes">
                     <article class="impact-lane reveal">
-                        <strong>Clinical + scientific tools</strong>
-                        <span>Interfaces for clinicians, researchers, students, and operators where accuracy and speed matter.</span>
+                        <strong>Interactive learning</strong>
+                        <span>Creating visual tools that let people play with biology, hardware, and logic.</span>
                     </article>
                     <article class="impact-lane reveal">
-                        <strong>Simulation as explanation</strong>
-                        <span>Interactive models that turn biology, hardware, stats, and systems into things people can test.</span>
+                        <strong>Hardware experiments</strong>
+                        <span>Bringing code into the physical world, exploring boundaries between software and sensors.</span>
                     </article>
                     <article class="impact-lane reveal">
-                        <strong>Hardware-aware products</strong>
-                        <span>Full-stack UI that still respects devices, sensors, firmware, constraints, and real-world use.</span>
+                        <strong>Creative engineering</strong>
+                        <span>Taking an idea from a paper sketch to a polished, living prototype that feels great to use.</span>
                     </article>
                 </div>
             </div>
@@ -1722,7 +1737,6 @@
         customElements.define('classic-cover', ClassicCover);
 
         const projects = [
-            { title: 'Pocket Scholar', desc: 'Physics-based Interactive Billiards', role: 'Physics & Interactive Dev', tag: 'Game', href: 'pocket-scholar.html', cover: 'pocket', tags: ['Javascript', 'Canvas', 'Physics'] },
             { title: 'CarPlay Dashboard', desc: 'Embedded Automotive Display UI', role: 'Embedded UI Developer', tag: 'Embedded UI', href: 'carplay-dashboard.html', cover: 'carplay', tags: ['C/C++', 'ESP32', 'LVGL'] },
             { title: 'Notchill', desc: 'Dynamic Island-Style Notch Utility for Mac', role: 'macOS / Swift Developer', tag: 'macOS', href: 'notchill.html', cover: 'notchill', tags: ['Swift', 'AppKit', 'NSPanel'] },
             { title: 'Power Analysis Tool', desc: 'Interactive Power, Effect, and Sample Size Explorer', role: 'Data & Stats Tooling', tag: 'Stats', href: 'power-analysis.html', cover: 'power', tags: ['JavaScript', 'Plotly', 'Statistics'] },
@@ -1779,11 +1793,21 @@
                 const y = e.clientY - r.top;
                 a.style.setProperty('--mx', x + 'px');
                 a.style.setProperty('--my', y + 'px');
-                const rx = ((y / r.height) - 0.5) * -8;
-                const ry = ((x / r.width) - 0.5) * 10;
-                a.style.transform = `perspective(900px) rotateX(${rx}deg) rotateY(${ry}deg) translateZ(6px)`;
+                const rx = ((y / r.height) - 0.5) * -12;
+                const ry = ((x / r.width) - 0.5) * 14;
+                a.style.transform = `perspective(1000px) rotateX(${rx}deg) rotateY(${ry}deg) scale3d(1.02, 1.02, 1.02) translateZ(10px)`;
+                
+                // Add a slight parallax shift to the cover content if present
+                const cover = a.querySelector('.classic-cover-host');
+                if (cover) {
+                    cover.style.transform = `scale(1.08) translateX(${ry * -0.5}px) translateY(${rx * 0.5}px)`;
+                }
             });
-            a.addEventListener('mouseleave', () => { a.style.transform = ''; });
+            a.addEventListener('mouseleave', () => { 
+                a.style.transform = ''; 
+                const cover = a.querySelector('.classic-cover-host');
+                if (cover) cover.style.transform = '';
+            });
         });
 
         /* ============== CUSTOM CURSOR ============== */
