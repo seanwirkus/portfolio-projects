@@ -13,6 +13,17 @@ const scene = document.getElementById('scene');
 const hudCtx   = hud.getContext('2d');
 const sceneCtx = scene.getContext('2d');
 
+/* ── Theme: toggled by the day/night button in the UI ─────── */
+let DARK_MODE = false;
+const THEME = {
+  get sky()    { return DARK_MODE ? '#020617'  : '#bae6fd'; },
+  get ground() { return DARK_MODE ? '#0a0420'  : '#b7e4c7'; },
+  get road()   { return DARK_MODE ? '#0d0628'  : '#5a6475'; },
+  get horizon(){ return DARK_MODE ? '#22d3ee'  : '#0891b2'; },
+  get sceneBg(){ return DARK_MODE ? '#111827'  : '#b7e4c7'; },
+  get sceneRoad(){ return DARK_MODE ? '#1e293b' : '#64748b'; },
+};
+
 const fpsEl = document.getElementById('hudFps');
 const distVal = document.getElementById('distVal');
 const distState = document.getElementById('distState');
@@ -443,6 +454,23 @@ function makeDecision(detections, lidar, dt) {
   if (yellow) return { state: 'CAUTION', reason: `Yellow signal · ${yellow.distM.toFixed(1)} ft`, color: '#facc15' };
 
   return { state: 'CLEAR', reason: 'No hazards detected.', color: '#34d399' };
+}
+
+/* Translate active scenario+stage into the headline decision label.
+   Called from the main loop *after* updateScenario() so the HUD shows
+   the highest-priority Apollo state when a scenario is active. */
+function decisionFromScenario(fallback) {
+  const s = SCENARIO_MGR.active;
+  if (!s || s.id === 'LANE_FOLLOW') return fallback;
+  const def = SCENARIO_DEFS[s.id] || {};
+  const labelMap = {
+    STOP_SIGN_UNPROTECTED:   { PRE_STOP: 'APPROACH STOP', STOP: 'HELD · STOP', CREEP: 'CREEPING', INTERSECTION_CRUISE: 'CLEARING INT.' },
+    TRAFFIC_LIGHT_PROTECTED: { APPROACH: 'APPROACH SIGNAL', STOP: 'HELD · RED', CRUISE: 'GREEN · GO' },
+    EMERGENCY_PULL_OVER:     { APPROACH: 'EMER. APPROACH', SLOW_DOWN: 'EMER. SLOW', STANDBY: 'EMER. STANDBY' },
+    YIELD_SIGN:              { SOFT_YIELD: 'YIELD' },
+  };
+  const state = (labelMap[s.id] && labelMap[s.id][s.stage]) || s.stage;
+  return { state, reason: `Apollo scenario · ${s.id.replace(/_/g, ' ').toLowerCase()} / ${s.stage.toLowerCase()}`, color: def.color || fallback.color };
 }
 let _lastLidar = null;
 let _approachMs = 0;
@@ -1017,14 +1045,11 @@ function drawHudEgoForeground(ctx, W, H) {
   // Anchor the ego car flush with the bottom of the screen to create a solid "blind area"
   const groundY = H + 24; 
 
-  // Make the ego car proportionate size to the actual 3D road projection of its size
-  // Calculate its exact pixel footprint at the very front of the hood (near plane)
-  const leftP = hudGroundPoint(-WORLD.carWidthM / 2, 0.1);
-  const rightP = hudGroundPoint(WORLD.carWidthM / 2, 0.1);
-  const projectedW = rightP.x - leftP.x;
-  
-  // Lock car width to exactly its geometric footprint on the road
-  const carW = isFinite(projectedW) && projectedW > 0 ? projectedW : W * 0.15;
+  // Use a fixed HUD-space size for the ego car icon.
+  // Projecting at the near-plane (yM=0.1) generates ~36 000 px — absurdly large.
+  // Instead anchor the visual size as a fraction of the canvas width, matching
+  // what Tesla's perception HUD actually shows.
+  const carW = Math.round(W * 0.21);
   const carH = carW * 0.45;
   const topY = groundY - carH;
 
@@ -1362,8 +1387,8 @@ function renderHUD(detections, lidar) {
   const ROAD_NEAR_M = 0.1;
   const ROAD_FAR_M = WORLD.forwardM;
 
-  // Sky — flat, light, daytime
-  ctx.fillStyle = '#bae6fd'; // soft blue daytime sky
+  // Sky
+  ctx.fillStyle = THEME.sky;
   ctx.fillRect(0, 0, W, HORIZON_Y);
 
   // Minimal horizon line for light theme
@@ -1392,9 +1417,9 @@ function renderHUD(detections, lidar) {
   }
   // The horizon line itself — bright cyan with glow
   ctx.globalAlpha = 1;
-  ctx.shadowBlur = 14;
-  ctx.shadowColor = '#22d3ee';
-  ctx.strokeStyle = '#22d3ee';
+  ctx.shadowBlur = 10;
+  ctx.shadowColor = THEME.horizon;
+  ctx.strokeStyle = THEME.horizon;
   ctx.lineWidth = 1.6;
   ctx.beginPath();
   ctx.moveTo(0, HORIZON_Y);
@@ -1404,19 +1429,20 @@ function renderHUD(detections, lidar) {
 
   // Compass / heading reticle on the horizon
   ctx.save();
-  ctx.fillStyle = 'rgba(34,211,238,0.7)';
+  ctx.fillStyle = THEME.horizon;
+  ctx.globalAlpha = 0.85;
   ctx.font = '9px ui-monospace, Menlo, monospace';
   ctx.textAlign = 'center';
   ctx.fillText('▼ N', W / 2, HORIZON_Y - 14);
   ctx.restore();
 
-  // Ground — grassy daytime
-  ctx.fillStyle = '#b7e4c7';
+  // Ground
+  ctx.fillStyle = THEME.ground;
   ctx.fillRect(0, HORIZON_Y, W, H - HORIZON_Y);
 
-  // Road plane — projected from fixed foot coordinates, not hand-tuned screen points.
+  // Road plane
   ctx.save();
-  drawProjectedRoadBand(ctx, ROAD_NEAR_M, ROAD_FAR_M, '#64748b');
+  drawProjectedRoadBand(ctx, ROAD_NEAR_M, ROAD_FAR_M, THEME.road);
 
   // Neon road edges in real lane geometry.
   ctx.lineCap = 'round';
@@ -1737,8 +1763,8 @@ function renderScene(detections, lidar) {
   const ctx = sceneCtx;
   const W = SC_W, H = SC_H;
 
-  // Background - Grass/Daytime
-  ctx.fillStyle = '#b7e4c7'; // soft green grass
+  // Background
+  ctx.fillStyle = THEME.sceneBg;
   ctx.fillRect(0, 0, W, H);
 
   // Grid (5 ft squares)
@@ -1755,32 +1781,35 @@ function renderScene(detections, lidar) {
   }
   ctx.restore();
 
-  // Draw some trees/bushes passing by in the grass
+  // Draw trees/bushes — only outside the road+shoulder band.
+  // Hash on stable integer slot IDs (not the floating-point m offset) so trees
+  // never flicker — each slot has a fixed identity regardless of EGO.travelM.
   ctx.save();
   const treeSpacing = 25;
-  for (let l = -WORLD.halfWidthM; l <= WORLD.halfWidthM; l += 5) {
-    for (let m = -SCENE_VIEW.rearM - (EGO.travelM % treeSpacing); m <= WORLD.forwardM; m += treeSpacing) {
-       // Only place trees outside the shoulders
-       if (Math.abs(l) > WORLD.halfWidthM - 15) {
-         // rough hash for deterministic pseudo-random trees
-         let h = Math.sin(l * 12.9898 + (m + EGO.travelM) * 78.233) * 43758.5453;
-         h = h - Math.floor(h);
-         if (h > 0.4) {
-           const { px, py } = worldToScene(l, m);
-           ctx.fillStyle = h > 0.7 ? '#059669' : '#10b981'; // dark green / emerald
-           ctx.beginPath();
-           ctx.arc(px, py, 6 + h * 8, 0, Math.PI * 2);
-           ctx.fill();
-           ctx.strokeStyle = '#047857';
-           ctx.lineWidth = 2;
-           ctx.stroke();
-         }
-       }
+  const roadEdgeM = (WORLD.laneCount * WORLD.laneWidthM) / 2 + WORLD.shoulderM + 1.5;
+  const firstSlot = Math.floor((-SCENE_VIEW.rearM + EGO.travelM) / treeSpacing) - 1;
+  const lastSlot  = Math.ceil((WORLD.forwardM   + EGO.travelM) / treeSpacing) + 1;
+  for (let l = -WORLD.halfWidthM; l <= WORLD.halfWidthM; l += 4) {
+    if (Math.abs(l) < roadEdgeM) continue;
+    for (let slot = firstSlot; slot <= lastSlot; slot++) {
+      // Stable hash keyed on (l, slot) — never changes between frames
+      let h = Math.sin(l * 12.9898 + slot * 78.233) * 43758.5453;
+      h = h - Math.floor(h);
+      if (h > 0.4) {
+        // Convert absolute slot back to scene-relative world position
+        const mWorld = slot * treeSpacing - EGO.travelM;
+        const { px, py } = worldToScene(l, mWorld);
+        ctx.fillStyle = h > 0.7 ? '#059669' : '#10b981';
+        ctx.beginPath();
+        ctx.arc(px, py, 5 + h * 8, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.strokeStyle = '#047857';
+        ctx.lineWidth = 1.5;
+        ctx.stroke();
+      }
     }
   }
   ctx.restore();
-
-  // Lane band (the road surface)
   const laneHalf = (WORLD.laneCount * WORLD.laneWidthM) / 2;
   const a = worldToScene(-laneHalf, -SCENE_VIEW.rearM);
   const b = worldToScene( laneHalf, WORLD.forwardM);
@@ -1788,8 +1817,8 @@ function renderScene(detections, lidar) {
   
   // Draw asphalt background
   const roadGradient = ctx.createLinearGradient(0, a.py, 0, b.py);
-  roadGradient.addColorStop(0, '#94a3b8'); // lighter daytime asphalt
-  roadGradient.addColorStop(1, '#64748b');
+  roadGradient.addColorStop(0, DARK_MODE ? '#1e293b' : '#94a3b8');
+  roadGradient.addColorStop(1, DARK_MODE ? '#0f172a' : '#64748b');
   ctx.fillStyle = roadGradient;
   ctx.fillRect(a.px, b.py, b.px - a.px, a.py - b.py);
   
@@ -2047,18 +2076,51 @@ function renderTelemetry(detections, lidar, decision) {
     distState.style.color = lidar.distM < 6 ? '#f43f5e' : (lidar.distM < 20 ? '#facc15' : '#34d399');
   }
 
-  // Detection list
+  // Build per-detection intent map (id → INTENT)
+  const intentById = new Map();
+  if (Array.isArray(AUTO._predicted)) {
+    for (const o of AUTO._predicted) intentById.set(o.p.id, o.intent);
+  }
+
+  // Detection list — augmented with intent label
   if (detections.length === 0) {
     detList.innerHTML = `<div class="small" style="opacity:0.5;">No objects in FOV — drag a prop into the lane.</div>`;
   } else {
-    detList.innerHTML = detections.map(d => `
+    detList.innerHTML = detections.map(d => {
+      const intent = intentById.get(d.prop.id) || '';
+      const intentTag = intent ? `<div class="intent">${intent}</div>` : '';
+      return `
       <div class="det" style="border-left-color:${d.color};">
         <div class="swatch" style="background:${d.color};"></div>
-        <div>${d.class}</div>
+        <div>${d.class}${intentTag}</div>
         <div class="dist">${d.distM.toFixed(2)} ft</div>
         <div class="conf">${(d.conf * 100).toFixed(0)}%</div>
+      </div>`;
+    }).join('');
+  }
+
+  // Apollo Scenario + Stage panel
+  const apolloEl = document.getElementById('apolloStack');
+  if (apolloEl) {
+    const scen = SCENARIO_MGR.active;
+    const def = SCENARIO_DEFS[scen.id] || { color: '#94a3b8' };
+    const tStage = ((performance.now() - scen.stageEnteredAt) / 1000).toFixed(1);
+    const ruleChips = TRAFFIC_RULES.decisions
+      .map(r => `<span class="rule-chip ${r.severity === 'HARD' ? 'hard' : 'soft'}" title="${r.reason}">${r.id}</span>`)
+      .join('') || `<span class="rule-chip ok">NO ACTIVE RULES</span>`;
+    const logRows = SCENARIO_MGR.log.slice(0, 3).map(e => {
+      const ago = ((performance.now() - e.t) / 1000).toFixed(1);
+      return `<div class="scen-log"><span class="scen-log-kind">${e.kind}</span> ${e.from} → ${e.to} <span class="scen-log-ago">${ago}s ago</span></div>`;
+    }).join('');
+    apolloEl.innerHTML = `
+      <div class="scen-row">
+        <span class="scen-pill" style="border-color:${def.color}; color:${def.color};">${scen.id.replace(/_/g, ' ')}</span>
+        <span class="scen-stage">${scen.stage}</span>
+        <span class="scen-time">${tStage}s</span>
       </div>
-    `).join('');
+      <div class="rule-row">${ruleChips}</div>
+      <div class="scen-log-list">${logRows || '<div class="scen-log-empty">no transitions yet</div>'}</div>
+    `;
   }
 
   // Decision
@@ -2423,7 +2485,7 @@ function predictObstacles(obs, dt) {
     const halfW = (dims.w || 2) / 2;
     const halfL = (dims.l || dims.w || 2) / 2;
 
-    predicted.push({
+    const entry = {
       p,
       halfW,
       halfL,
@@ -2433,9 +2495,307 @@ function predictObstacles(obs, dt) {
       clearance: halfW + WORLD.carWidthM * 0.5 + 0.15,
       longitudinalPad: halfL + 4.5,
       predictedY: p.yM - vy * PRED.horizonS, // where it will be in 2 s
-    });
+    };
+    entry.intent = classifyIntent(entry);
+    // Cut-in obstacles deserve a wider keep-out envelope (Apollo: high-priority cost).
+    if (entry.intent === INTENT.CUTTING_IN) entry.clearance += 1.0;
+    if (entry.intent === INTENT.ONCOMING)   entry.clearance += 0.6;
+    predicted.push(entry);
   }
   return predicted;
+}
+
+/* ── Apollo-class Intent Classifier ──────────────────────────
+   Mirrors apollo/modules/prediction/predictor: each obstacle is
+   tagged with a coarse intent label that downstream cost funcs
+   and scenario logic can read.  A real Apollo stack uses a
+   VectorNet/LSTM pair; here we use a deterministic heuristic
+   over the prop's own velocity (after subtracting ego motion)
+   and lateral position — which is enough to make the planner
+   reason about "static hazard" vs "cut-in" vs "oncoming". */
+const INTENT = {
+  PARKED:        'PARKED',
+  STATIC_HAZARD: 'STATIC',
+  FOLLOWING:     'FOLLOWING',     // moving same direction, slower than ego
+  ONCOMING:      'ONCOMING',      // moving toward ego
+  CUTTING_IN:    'CUT_IN',        // lateral velocity into ego corridor
+  YIELDING:      'YIELDING',      // pedestrian / static target near corridor
+};
+
+function classifyIntent(o) {
+  // o is a `predicted` entry: { p, vy, halfW, halfL, ... }
+  const prop = o.p;
+  if (prop.parked) return INTENT.PARKED;
+  if (prop.type === 'ped') return INTENT.YIELDING;
+  if (prop.type === 'stop' || prop.type === 'light') return INTENT.STATIC_HAZARD;
+
+  // vy convention in predictObstacles: positive = world-frame velocity toward ego (yM decreasing).
+  // For a CAR moving the SAME direction as ego, world vy is roughly 0 (we travel +Y so other car
+  // travelling +Y stays at constant yM). For an oncoming car, world vy is positive (yM shrinks).
+  if (Math.abs(o.vy) < 1.5) {
+    // Roughly stationary in world frame. If it's right in our corridor, it's a static hazard.
+    return Math.abs(prop.xM - EGO.xM) < 4.5 ? INTENT.STATIC_HAZARD : INTENT.PARKED;
+  }
+  if (o.vy > 1.5) return INTENT.ONCOMING;
+
+  // Lateral approach? compare to last seen xM (per-id memory)
+  const lastX = INTENT._prevX.get(prop.id);
+  INTENT._prevX.set(prop.id, prop.xM);
+  if (lastX !== undefined) {
+    const lateralRate = (prop.xM - lastX);
+    const towardCorridor = (prop.xM > EGO.xM) ? -lateralRate : lateralRate;
+    if (towardCorridor > 0.05 && Math.abs(prop.xM - EGO.xM) < 9) return INTENT.CUTTING_IN;
+  }
+  return INTENT.FOLLOWING;
+}
+INTENT._prevX = new Map();
+
+/* ── Apollo-class Traffic Rules Pipeline ─────────────────────
+   Mirrors apollo/modules/planning/traffic_rules.  Each rule is
+   pure: it inspects the world and emits a "decision contribution"
+   { id, severity, stopAtM, slowToMps, watch, reason }.
+   The pipeline aggregates them into a single set of constraints
+   that the lattice planner + autoDrive consume.
+   Rules implemented (subset of Apollo's set):
+     · BACKSIDE_VEHICLE   — defer lane-change if a faster vehicle
+                            is approaching from behind in adjacent lane
+     · CROSSWALK          — yield to peds within crosswalk influence
+     · DESTINATION        — soft cruise-down as terminal nears
+     · FRONT_VEHICLE      — maintain dynamic headway
+     · KEEP_CLEAR         — hold S-range clear of static blockers
+     · STOP_SIGN          — gated stop with creep-out logic
+     · TRAFFIC_LIGHT      — protected/unprotected handling
+     · YIELD_SIGN         — soft yield at low speed                */
+const TRAFFIC_RULES = {
+  decisions: [],          // populated each frame
+  stopAtM: Infinity,      // hardest stop point
+  slowToMps: Infinity,    // softest speed cap
+  watchIds: new Set(),    // obstacle ids the rules want monitored
+  keepClearZones: [],     // [{ s0, s1, reason }]
+};
+
+function runTrafficRules(detections, lidar, predicted) {
+  const out = {
+    decisions: [],
+    stopAtM: Infinity,
+    slowToMps: Infinity,
+    watchIds: new Set(),
+    keepClearZones: [],
+  };
+  const push = (d) => {
+    out.decisions.push(d);
+    if (d.stopAtM != null && d.stopAtM < out.stopAtM) out.stopAtM = d.stopAtM;
+    if (d.slowToMps != null && d.slowToMps < out.slowToMps) out.slowToMps = d.slowToMps;
+    if (d.watchId != null) out.watchIds.add(d.watchId);
+    if (d.keepClear) out.keepClearZones.push(d.keepClear);
+  };
+
+  // STOP_SIGN — only when sign sits in ego corridor
+  const stopSignCorridorM = WORLD.carWidthM / 2 + 1.5;
+  const stopSign = detections.find(d => d.class === 'STOP_SIGN' && d.distM < 32 && Math.abs(d.xRelM) < stopSignCorridorM);
+  if (stopSign) push({
+    id: 'STOP_SIGN', severity: 'HARD',
+    stopAtM: stopSign.distM - 2.0,
+    reason: `Stop sign · ${stopSign.distM.toFixed(1)} ft`,
+  });
+
+  // TRAFFIC_LIGHT — red blocks, yellow soft-caps speed
+  const redLight = detections.find(d => d.class === 'TRAFFIC_LIGHT' && d.prop.light === 'red' && d.distM < 36);
+  if (redLight) push({
+    id: 'TRAFFIC_LIGHT', severity: 'HARD',
+    stopAtM: redLight.distM - 3.0,
+    reason: `Red signal · ${redLight.distM.toFixed(1)} ft`,
+  });
+  const yellowLight = detections.find(d => d.class === 'TRAFFIC_LIGHT' && d.prop.light === 'yellow' && d.distM < 30);
+  if (yellowLight && !redLight) push({
+    id: 'TRAFFIC_LIGHT', severity: 'SOFT',
+    slowToMps: comfortSpeedCap(yellowLight.distM, 4.0),
+    reason: `Yellow signal · ${yellowLight.distM.toFixed(1)} ft`,
+  });
+
+  // CROSSWALK / pedestrian yield (bigger corridor — peds may step in)
+  const pedCorridorM = WORLD.carWidthM / 2 + REAL_DIMS.ped.w / 2 + 1.8;
+  const ped = detections.find(d => d.class === 'PEDESTRIAN' && Math.abs(d.xRelM) < pedCorridorM && d.distM < 38);
+  if (ped) {
+    push({
+      id: 'CROSSWALK', severity: 'HARD',
+      stopAtM: ped.distM - 5.0,
+      watchId: ped.prop.id,
+      reason: `Pedestrian · ${ped.distM.toFixed(1)} ft`,
+    });
+  }
+
+  // FRONT_VEHICLE — dynamic headway based on relative velocity
+  const carCorridorM = WORLD.carWidthM / 2 + CLASSES.car.real.w / 2 + 0.35;
+  const lead = detections
+    .filter(d => d.class === 'CAR' && Math.abs(d.xRelM) < carCorridorM)
+    .sort((a, b) => a.distM - b.distM)[0];
+  if (lead) {
+    const desiredGap = 3.4 + EGO.speedMps * 1.05;
+    push({
+      id: 'FRONT_VEHICLE', severity: lead.distM < desiredGap ? 'HARD' : 'SOFT',
+      slowToMps: comfortSpeedCap(lead.distM, desiredGap),
+      watchId: lead.prop.id,
+      reason: `Lead car · gap ${lead.distM.toFixed(1)} ft (target ${desiredGap.toFixed(1)})`,
+    });
+  }
+
+  // KEEP_CLEAR — any predicted obstacle inside the lane carves out an S-range
+  for (const o of predicted) {
+    if (Math.abs(o.p.xM - EGO.xM) < 3.5 && o.p.yM > 0 && o.p.yM < 26) {
+      out.keepClearZones.push({
+        s0: Math.max(0, o.p.yM - o.longitudinalPad),
+        s1: o.p.yM + o.longitudinalPad,
+        reason: `keep-clear · ${(CLASSES[o.p.type]?.name || o.p.type).toLowerCase()}`,
+        obsId: o.p.id,
+      });
+    }
+  }
+
+  // BACKSIDE_VEHICLE — log only (we don't yet have rear sensors). Hook for parity with Apollo.
+  // (In a real stack: search props with yM < 0 in adjacent lanes; defer lateral merges.)
+
+  // DESTINATION — pure visual hook, no constraint yet
+  // YIELD_SIGN — none modelled yet; leaving as parity stub
+
+  // Cache for HUD
+  TRAFFIC_RULES.decisions = out.decisions;
+  TRAFFIC_RULES.stopAtM = out.stopAtM;
+  TRAFFIC_RULES.slowToMps = out.slowToMps;
+  TRAFFIC_RULES.watchIds = out.watchIds;
+  TRAFFIC_RULES.keepClearZones = out.keepClearZones;
+  return out;
+}
+
+/* ── Apollo-class Scenario Manager + Stage State Machine ─────
+   Mirrors apollo/modules/planning/scenarios.  At every tick the
+   manager scores each scenario's "is-applicable" predicate and
+   activates the highest-priority match.  Active scenario runs
+   its stage state machine; transitions are timed and emit
+   audit-trail events so the HUD can show "PRE_STOP → STOP" etc.
+   Implemented (mapped from Apollo):
+     · LANE_FOLLOW                 (default cruise)
+     · STOP_SIGN_UNPROTECTED       (PRE_STOP → STOP → CREEP → CRUISE)
+     · TRAFFIC_LIGHT_PROTECTED     (APPROACH → STOP → CRUISE)
+     · EMERGENCY_PULL_OVER         (APPROACH → SLOW_DOWN → STANDBY)
+     · YIELD_SIGN                  (single-stage soft yield)         */
+const SCENARIO_MGR = {
+  active: { id: 'LANE_FOLLOW', stage: 'CRUISE', enteredAt: performance.now(), stageEnteredAt: performance.now() },
+  log: [],            // last N transitions for the HUD
+  _stoppedAt: null,
+  _creepUntil: 0,
+  // Once a scenario clears successfully we mark its trigger object as "consumed"
+  // so the manager doesn't re-enter the same scenario for an obstacle we just handled.
+  // Apollo enforces a similar guard via reference-line stage progression.
+  _consumed: new Set(),
+};
+
+const SCENARIO_DEFS = {
+  LANE_FOLLOW:                 { priority: 0,  color: '#34d399', stages: ['CRUISE'] },
+  STOP_SIGN_UNPROTECTED:       { priority: 80, color: '#f43f5e', stages: ['PRE_STOP', 'STOP', 'CREEP', 'INTERSECTION_CRUISE'] },
+  TRAFFIC_LIGHT_PROTECTED:     { priority: 70, color: '#facc15', stages: ['APPROACH', 'STOP', 'CRUISE'] },
+  EMERGENCY_PULL_OVER:         { priority: 95, color: '#a78bfa', stages: ['APPROACH', 'SLOW_DOWN', 'STANDBY'] },
+  YIELD_SIGN:                  { priority: 40, color: '#fb923c', stages: ['SOFT_YIELD'] },
+};
+
+function pushScenarioLog(entry) {
+  SCENARIO_MGR.log.unshift({ t: performance.now(), ...entry });
+  if (SCENARIO_MGR.log.length > 6) SCENARIO_MGR.log.length = 6;
+}
+
+function scenarioEnter(id, stage) {
+  const cur = SCENARIO_MGR.active;
+  const now = performance.now();
+  if (cur.id !== id) {
+    pushScenarioLog({ from: `${cur.id}/${cur.stage}`, to: `${id}/${stage}`, kind: 'SCENARIO' });
+    SCENARIO_MGR.active = { id, stage, enteredAt: now, stageEnteredAt: now };
+    SCENARIO_MGR._stoppedAt = null;
+    SCENARIO_MGR._creepUntil = 0;
+  } else if (cur.stage !== stage) {
+    pushScenarioLog({ from: `${cur.id}/${cur.stage}`, to: `${id}/${stage}`, kind: 'STAGE' });
+    cur.stage = stage;
+    cur.stageEnteredAt = now;
+  }
+}
+
+function selectScenario(detections, lidar) {
+  // EMERGENCY_PULL_OVER not user-triggered yet → reserved for future hook
+  // (Apollo triggers from external_command; we leave stub.)
+
+  const stopSignCorridorM = WORLD.carWidthM / 2 + 1.5;
+  const stopSign = detections.find(d => d.class === 'STOP_SIGN' && !SCENARIO_MGR._consumed.has(d.id) && d.distM < 22 && Math.abs(d.xRelM) < stopSignCorridorM);
+  const redLight = detections.find(d => d.class === 'TRAFFIC_LIGHT' && !SCENARIO_MGR._consumed.has(d.id) && d.prop.light === 'red' && d.distM < 30);
+  const yellowLight = detections.find(d => d.class === 'TRAFFIC_LIGHT' && !SCENARIO_MGR._consumed.has(d.id) && d.prop.light === 'yellow' && d.distM < 24);
+
+  if (stopSign) return { id: 'STOP_SIGN_UNPROTECTED', refSign: stopSign };
+  if (redLight || yellowLight) return { id: 'TRAFFIC_LIGHT_PROTECTED', refSign: redLight || yellowLight };
+  return { id: 'LANE_FOLLOW' };
+}
+
+function updateScenario(detections, lidar) {
+  const sel = selectScenario(detections, lidar);
+  const cur = SCENARIO_MGR.active;
+  const now = performance.now();
+  const sinceStage = (now - cur.stageEnteredAt) / 1000;
+
+  if (sel.id === 'LANE_FOLLOW') {
+    scenarioEnter('LANE_FOLLOW', 'CRUISE');
+    return SCENARIO_MGR.active;
+  }
+
+  if (sel.id === 'STOP_SIGN_UNPROTECTED') {
+    const distFt = sel.refSign.distM;
+    if (cur.id !== 'STOP_SIGN_UNPROTECTED') scenarioEnter('STOP_SIGN_UNPROTECTED', 'PRE_STOP');
+
+    if (cur.stage === 'PRE_STOP') {
+      // stop-line crossed: distFt < ~3 ft AND speed near zero → STOP
+      if (distFt < 6 && EGO.speedMps < 0.6) scenarioEnter('STOP_SIGN_UNPROTECTED', 'STOP');
+    } else if (cur.stage === 'STOP') {
+      // dwell ≥ 1.0 s satisfies right-of-way → CREEP
+      if (EGO.speedMps < 0.3) {
+        if (!SCENARIO_MGR._stoppedAt) SCENARIO_MGR._stoppedAt = now;
+        if ((now - SCENARIO_MGR._stoppedAt) > 1000) {
+          SCENARIO_MGR._creepUntil = now + 2600;
+          scenarioEnter('STOP_SIGN_UNPROTECTED', 'CREEP');
+        }
+      } else {
+        SCENARIO_MGR._stoppedAt = null;
+      }
+    } else if (cur.stage === 'CREEP') {
+      // creep-out window expired or crossed sign → INTERSECTION_CRUISE
+      if (now > SCENARIO_MGR._creepUntil || distFt < 1.5) {
+        scenarioEnter('STOP_SIGN_UNPROTECTED', 'INTERSECTION_CRUISE');
+      }
+    } else if (cur.stage === 'INTERSECTION_CRUISE') {
+      // sign cleared → return to LANE_FOLLOW
+      if (distFt > 14 || sinceStage > 4.0) {
+        SCENARIO_MGR._consumed.add(sel.refSign.id);
+        scenarioEnter('LANE_FOLLOW', 'CRUISE');
+      }
+    }
+    return SCENARIO_MGR.active;
+  }
+
+  if (sel.id === 'TRAFFIC_LIGHT_PROTECTED') {
+    const distFt = sel.refSign.distM;
+    const isRed = sel.refSign.prop.light === 'red';
+    if (cur.id !== 'TRAFFIC_LIGHT_PROTECTED') scenarioEnter('TRAFFIC_LIGHT_PROTECTED', 'APPROACH');
+
+    if (cur.stage === 'APPROACH') {
+      if (isRed && distFt < 6 && EGO.speedMps < 0.5) scenarioEnter('TRAFFIC_LIGHT_PROTECTED', 'STOP');
+      if (!isRed && distFt < 2) scenarioEnter('TRAFFIC_LIGHT_PROTECTED', 'CRUISE');
+    } else if (cur.stage === 'STOP') {
+      if (!isRed) scenarioEnter('TRAFFIC_LIGHT_PROTECTED', 'CRUISE');
+    } else if (cur.stage === 'CRUISE') {
+      if (distFt > 14 || sinceStage > 3.0) {
+        SCENARIO_MGR._consumed.add(sel.refSign.id);
+        scenarioEnter('LANE_FOLLOW', 'CRUISE');
+      }
+    }
+    return SCENARIO_MGR.active;
+  }
+
+  return SCENARIO_MGR.active;
 }
 
 /* ── Apollo-class Lattice Trajectory Planner (S-L frame) ────
@@ -2710,6 +3070,23 @@ function autoDrive(detections, lidar, dt) {
   if (AUTO.speedProfile && AUTO.speedProfile.length > 0) {
     const lookPt = AUTO.speedProfile.find(sp => sp.s >= AUTO.lookAheadM);
     if (lookPt) vCmd = Math.min(vCmd, lookPt.vMax);
+  }
+
+  // Apollo traffic-rules pipeline contributes both a speed cap and a stop point.
+  if (TRAFFIC_RULES.slowToMps < Infinity) vCmd = Math.min(vCmd, TRAFFIC_RULES.slowToMps);
+  if (TRAFFIC_RULES.stopAtM < Infinity) {
+    vCmd = Math.min(vCmd, comfortSpeedCap(Math.max(0.5, TRAFFIC_RULES.stopAtM), 0.5));
+  }
+
+  // Apollo scenario-stage controls stop-sign + traffic-light dwell behaviour.
+  const scen = SCENARIO_MGR.active;
+  if (scen.id === 'STOP_SIGN_UNPROTECTED') {
+    if (scen.stage === 'STOP') vCmd = 0;
+    else if (scen.stage === 'CREEP') vCmd = Math.min(vCmd, 1.85);
+  } else if (scen.id === 'TRAFFIC_LIGHT_PROTECTED' && scen.stage === 'STOP') {
+    vCmd = 0;
+  } else if (scen.id === 'EMERGENCY_PULL_OVER') {
+    vCmd = scen.stage === 'STANDBY' ? 0 : Math.min(vCmd, 2.5);
   }
 
   const lidarIsRelevant = lidar.distM != null && (!lidar.hit || lidar.corridorHit);
@@ -3104,6 +3481,9 @@ function loop(now) {
   window.__lastDecision = decision;
 
   AUTO.plannedPath = planPath(dt || 0.016); // single authoritative plan — used by autoDrive AND renderer
+  // Apollo-class decision pipeline: scenario manager + traffic rules feed autoDrive.
+  updateScenario(detections, lidar);
+  runTrafficRules(detections, lidar, AUTO._predicted || []);
   autoDrive(detections, lidar, dt || 0.016);
 
   updateEgo(dt || 0.016);
@@ -3111,10 +3491,19 @@ function loop(now) {
 
   pushDist(lidar.distM);
 
-  const displayDecision = (
+  // Decision priority: scenario state > hazard decision > lattice override.
+  const scenDecision = decisionFromScenario(null);
+  let displayDecision;
+  if (scenDecision && !['STOP', 'BRAKE', 'YIELD'].includes(decision.state)) {
+    displayDecision = scenDecision;
+  } else if (
     AUTO.decisionOverride &&
     !['STOP', 'BRAKE', 'YIELD'].includes(decision.state)
-  ) ? AUTO.decisionOverride : decision;
+  ) {
+    displayDecision = AUTO.decisionOverride;
+  } else {
+    displayDecision = decision;
+  }
 
   renderHUD(detections, lidar);
   renderScene(detections, lidar);

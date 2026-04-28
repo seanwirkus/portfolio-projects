@@ -51,6 +51,7 @@
             pointer-events: none;
             opacity: 1;
             transition: opacity 0.22s ease;
+            will-change: transform;
         }
         body.is-retrovision-active #bg-canvas,
         body.is-retrovision-hover #bg-canvas {
@@ -1809,9 +1810,48 @@
             flex-basis: 100%;
         }
 
+        /* === Page entry === */
+        @keyframes pageEntry {
+            from { opacity: 0; transform: translateY(10px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+        body { animation: pageEntry 0.55s cubic-bezier(0.16, 1, 0.3, 1) both; }
+
+        /* === Section bottom-edge blending — fades sections into next canvas area === */
+        /* rv-glow already exists inside .rv — extend it to also fade the bottom edge */
+        .rv-glow::after {
+            content: '';
+            position: absolute;
+            bottom: 0; left: 0; right: 0;
+            height: 80px;
+            background: linear-gradient(to top, #020807, transparent);
+            pointer-events: none;
+        }
+        /* Orbital section fades its bottom edge */
+        .orb::after {
+            content: '';
+            position: absolute;
+            bottom: 0; left: 0; right: 0;
+            height: 80px;
+            background: linear-gradient(to top, #030806, transparent);
+            pointer-events: none;
+            z-index: 1;
+        }
+
         /* === Reveal helpers === */
-        .reveal { opacity: 0; transform: translateY(40px); transition: opacity .5s, transform .5s; transition-timing-function: cubic-bezier(.2,.7,.2,1); }
-        .reveal.in { opacity: 1; transform: translateY(0); }
+        .reveal {
+            opacity: 0;
+            transform: translateY(28px);
+            transition:
+                opacity 0.65s cubic-bezier(0.16, 1, 0.3, 1),
+                transform 0.65s cubic-bezier(0.16, 1, 0.3, 1);
+            will-change: transform, opacity;
+        }
+        .reveal.in {
+            opacity: 1;
+            transform: translateY(0);
+            will-change: auto;
+        }
         @media (prefers-reduced-motion: reduce) {
             *, *::before, *::after {
                 animation-duration: 0.001ms !important;
@@ -2487,7 +2527,7 @@
                 <div class="orb-window orb-window--embed reveal">
                     <iframe
                         class="orb-window-iframe"
-                        src="embeds/preview-shell.html?src=orbital-editor.html%3Fmode%3Dpreview&amp;width=1024&amp;height=640&amp;accent=10b981"
+                        src="embeds/orbital-editor.html?mode=preview"
                         title="Orbital — molecule editor preview"
                         loading="lazy"
                         scrolling="no"
@@ -3353,12 +3393,18 @@
         /* ============== SCROLL REVEAL ============== */
         const io = new IntersectionObserver(entries => {
             entries.forEach(e => {
-                if (e.isIntersecting) {
-                    e.target.classList.add('in');
-                    io.unobserve(e.target);
+                if (!e.isIntersecting) return;
+                // Stagger siblings inside known group containers
+                const group = e.target.closest('.orb-cards, .about-side, .impact-lanes, .orb-copy, .work-grid, .classic-grid, .orb-grid');
+                if (group) {
+                    const sibs = [...group.querySelectorAll('.reveal')];
+                    const idx = sibs.indexOf(e.target);
+                    if (idx > 0) e.target.style.transitionDelay = `${idx * 0.07}s`;
                 }
+                e.target.classList.add('in');
+                io.unobserve(e.target);
             });
-        }, { threshold: 0.15 });
+        }, { threshold: 0.08, rootMargin: '0px 0px -32px 0px' });
         document.querySelectorAll('.reveal').forEach(el => io.observe(el));
 
         /* ============== STAT COUNTERS ============== */
@@ -3500,6 +3546,23 @@
             dnaItems.push({ rungA, rungB, ma, mb, backA, backB, t: i / (RUNGS - 1) });
         }
 
+        // Collect per-mesh material refs + base opacities for orbital morph fade
+        const dnaMeshInfo = [];
+        dnaItems.forEach(item => {
+            [item.rungA, item.rungB, item.ma, item.mb].forEach(mesh => {
+                if (!mesh) return;
+                const baseOp = mesh.material.transparent ? (mesh.material.opacity ?? 1) : 1;
+                mesh.material.transparent = true;
+                dnaMeshInfo.push({ mat: mesh.material, baseOp });
+            });
+        });
+        tubeMatA.transparent = true;
+        tubeMatB.transparent = true;
+        const backboneMatInfo = [
+            { mat: tubeMatA, baseOp: 1 },
+            { mat: tubeMatB, baseOp: 1 }
+        ];
+
         // Function to update DNA geometry shape per frame
         function updateDNA(turns, splitDist) {
             for (let i = 0; i < RUNGS; i++) {
@@ -3631,6 +3694,53 @@
             orbiters.push(m);
         }
 
+        // Ribbon material info (collected after ribbons are built)
+        const ribbonMatInfo = ribbons.map(wrap => {
+            const mat = wrap.children[0].material;
+            return { mat, baseOp: mat.opacity ?? 0.55 };
+        });
+
+        // Helper: set opacity on every mesh in a group
+        function traverseSetOpacity(group, opacity) {
+            group.traverse(obj => {
+                if (obj.isMesh && obj.material) {
+                    obj.material.transparent = true;
+                    obj.material.opacity = opacity;
+                }
+            });
+        }
+
+        // ===== Orbital molecule cluster (fades in when orbital section enters view) =====
+        const orbMolGroup = new THREE.Group();
+        scene.add(orbMolGroup);
+
+        const orbPalettes = [
+            [0x10b981, 0x6ee7b7], [0x34d399, 0x22d3ee],
+            [0x6ee7b7, 0x818cf8], [0x10b981, 0xfb923c],
+            [0x22d3ee, 0x6ee7b7], [0x34d399, 0x10b981]
+        ];
+        for (let i = 0; i < 6; i++) {
+            const m = makeMolecule(orbPalettes[i]);
+            const angle = (i / 6) * Math.PI * 2;
+            m.position.set(
+                Math.cos(angle) * 2.2,
+                Math.sin(angle * 1.7) * 0.9,
+                Math.sin(angle) * 0.7
+            );
+            orbMolGroup.add(m);
+        }
+        const orbCenter = makeMolecule([0x6ee7b7, 0x10b981]);
+        orbCenter.scale.setScalar(2.0);
+        orbMolGroup.add(orbCenter);
+        traverseSetOpacity(orbMolGroup, 0);
+        orbMolGroup.scale.setScalar(0.05);
+
+        // Pre-cache all orbital group mesh materials to avoid tree traversal each frame
+        const orbMolMeshMats = [];
+        orbMolGroup.traverse(obj => {
+            if (obj.isMesh && obj.material) orbMolMeshMats.push(obj.material);
+        });
+
         // ===== Sparse "molecule dust" (drastically fewer than before — no AI starfield) =====
         const particleCount = 220;
         const positions = new Float32Array(particleCount * 3);
@@ -3713,8 +3823,22 @@
             }
         }
 
+        let currentOrbitalProgress = 0;
+        const orbitalLabSection = document.getElementById('orbital-lab');
+        const retroVisionSection = document.getElementById('vision-lab');
+        const clampF = (v, lo = 0, hi = 1) => Math.min(hi, Math.max(lo, v));
+
+        // Colors for DNA vs orbital lighting moods
+        const dnaKeyColor = new THREE.Color(0x6ee7b7);
+        const orbKeyColor = new THREE.Color(0x10b981);
+        const dnaFillColor = new THREE.Color(0x818cf8);
+        const orbFillColor = new THREE.Color(0x22d3ee);
+        const lerpColor = new THREE.Color();
+
         const clock = new THREE.Clock();
         function tick() {
+            requestAnimationFrame(tick);
+            if (document.hidden) return; // pause rendering when tab hidden
             const t = clock.getElapsedTime();
             scrollY += (targetScroll - scrollY) * 0.07;
             mouse.x += (mouse.tx - mouse.x) * 0.05;
@@ -3725,18 +3849,63 @@
             syncScrollUI(p);
 
             // DNA un-winding transition 
-            // Straighten and split smoothly as we scroll down from the hero section
-            const unwindProgress = Math.max(0, Math.min(1, (p - 0.02) / 0.15)); 
-            
+            // Straighten and split smoothly as we enter the Direction section
+            let unwindProgress = 0;
+            if (impactSection) {
+                const impactRect = impactSection.getBoundingClientRect();
+                // When impact section approaches the middle of the screen
+                unwindProgress = clampF((innerHeight * 0.6 - impactRect.top) / (innerHeight * 0.4));
+            }
+
             targetHelixTurns = HELIX_TURNS_BASE * (1 - unwindProgress);
             targetSplit = 12 * unwindProgress;
 
-            currentHelixTurns += (targetHelixTurns - currentHelixTurns) * 0.08;
-            currentSplit += (targetSplit - currentSplit) * 0.08;
+            // Faster lerp so it feels snappier (0.12 vs 0.08)
+            currentHelixTurns += (targetHelixTurns - currentHelixTurns) * 0.12;
+            currentSplit += (targetSplit - currentSplit) * 0.12;
 
             if (Math.abs(currentHelixTurns - targetHelixTurns) > 0.001 || Math.abs(currentSplit - targetSplit) > 0.001) {
                 updateDNA(currentHelixTurns, currentSplit);
             }
+
+            // === Orbital-section morph: DNA → molecules ===
+            // DNA stays fully visible through RetroVision; only fades when Orbital is in view
+            if (orbitalLabSection) {
+                const orbRect = orbitalLabSection.getBoundingClientRect();
+                // Block fade while RetroVision is still prominent in viewport
+                const rvRect = retroVisionSection ? retroVisionSection.getBoundingClientRect() : null;
+                const rvStillVisible = rvRect && rvRect.bottom > innerHeight * 0.25;
+
+                let rawOrb = 0;
+                if (!rvStillVisible) {
+                    // Orbital section must be well into view (past 40% from top) to start fade
+                    const entry = clampF((innerHeight * 0.5 - orbRect.top) / (innerHeight * 0.6));
+                    const exited = clampF((-orbRect.bottom) / (innerHeight * 0.3));
+                    rawOrb = entry * (1 - exited);
+                }
+                currentOrbitalProgress += (rawOrb - currentOrbitalProgress) * 0.06;
+            }
+
+            // Fade DNA out as orbital section approaches (skip if near-zero for perf)
+            const dnaAlpha = 1 - currentOrbitalProgress;
+            if (currentOrbitalProgress > 0.002) {
+                [...dnaMeshInfo, ...backboneMatInfo, ...ribbonMatInfo].forEach(({ mat, baseOp }) => {
+                    mat.opacity = baseOp * dnaAlpha;
+                });
+            }
+
+            // Fade + scale in the orbital molecule cluster via pre-cached material list
+            const orbOpacity = currentOrbitalProgress * 0.92;
+            orbMolMeshMats.forEach(mat => { mat.opacity = orbOpacity; });
+            orbMolGroup.scale.setScalar(0.05 + currentOrbitalProgress * 0.95);
+            orbMolGroup.rotation.y = t * 0.22;
+            orbMolGroup.position.x = Math.sin(t * 0.11) * 0.25;
+            orbMolGroup.position.y = -p * 1.5 + Math.cos(t * 0.08) * 0.15; // sticky with camera
+
+            // Shift scene lighting mood: DNA mint/purple → orbital deep green/cyan
+            key.color.lerpColors(dnaKeyColor, orbKeyColor, currentOrbitalProgress);
+            fill.color.lerpColors(dnaFillColor, orbFillColor, currentOrbitalProgress);
+            key.intensity = 1.2 + currentOrbitalProgress * 0.5;
 
             // Camera dolly + pan based on scroll
             camera.position.x = mouse.x * 0.6;
@@ -3752,7 +3921,8 @@
             heroGroup.rotation.y = (t * 0.22 + p * Math.PI * 0.6) * spinAmount;
             heroGroup.rotation.x = (Math.sin(t * 0.18) * 0.08 + p * 0.4) * spinAmount;
             heroGroup.position.x = -p * 2.0 * spinAmount;
-            heroGroup.position.y = -p * 1.4;
+            // Sticky with the camera while visible
+            heroGroup.position.y = -p * 1.5;
             helixGroup.rotation.y = (t * 0.05) * spinAmount;
 
             // Protein ribbons swirl
@@ -3762,16 +3932,17 @@
                 r.position.y += Math.sin(t * 0.4 + i) * 0.0015;
             });
 
-            // Molecule orbiters
+            // Molecule orbiters — pull inward and scale up near orbital section
             orbiters.forEach((m, i) => {
                 m.userData.theta += m.userData.speed;
-                const r = m.userData.r;
+                const r = m.userData.r * (1 - currentOrbitalProgress * 0.38);
                 m.position.x = Math.cos(m.userData.theta) * r;
                 m.position.z = Math.sin(m.userData.theta) * r - 1;
                 m.position.y = Math.sin(t * 0.5 + m.userData.bobPhase) * m.userData.bobAmp + p * -1.2;
                 m.rotation.x += m.userData.rotSpeed.x;
                 m.rotation.y += m.userData.rotSpeed.y;
                 m.rotation.z += m.userData.rotSpeed.z;
+                m.scale.setScalar(1 + currentOrbitalProgress * 0.55);
             });
 
             // Particles drift
@@ -3779,70 +3950,73 @@
             particles.rotation.x = mouse.y * 0.1;
 
             renderer.render(scene, camera);
-            requestAnimationFrame(tick);
         }
         tick();
     </script>
 
-    <!-- 3Dmol.js backdrop inside #orbital-lab Orbital Editor shell — https://3dmol.org -->
-    <script src="https://cdn.jsdelivr.net/npm/3dmol@2.1.0/build/3Dmol-min.js"></script>
+    <!-- 3Dmol.js — lazy-loaded only when orbital section is near the viewport -->
     <script>
         (function () {
             const viewport = document.getElementById('orb-mol-viewport');
-            const hero = document.querySelector('.orb-editor-shell');
-            if (!viewport || !hero || typeof window.$3Dmol === 'undefined') return;
+            const shell = document.querySelector('.orb-editor-shell');
+            if (!viewport || !shell) return;
 
-            const reduced = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+            let loaded = false;
 
-            let viewer;
-            try {
-                viewer = window.$3Dmol.createViewer(viewport, {
-                    backgroundColor: '#030806',
-                    backgroundAlpha: 1,
-                });
-            } catch (e) {
-                console.warn('3Dmol viewer failed:', e);
-                return;
-            }
-
-            window.$3Dmol.download('cid:2519', viewer, {}, function () {
-                viewer.setStyle({}, {
-                    stick: { radius: 0.13 },
-                    sphere: { scale: 0.19 },
-                });
-                viewer.zoomTo();
-                viewer.resize();
-
-                function syncSpin(on) {
-                    if (reduced) {
-                        viewer.spin(false);
-                        return;
-                    }
-                    viewer.spin(on ? 'y' : false, on ? 0.52 : undefined);
+            function initMolViewer() {
+                if (typeof window.$3Dmol === 'undefined') return;
+                const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+                let viewer;
+                try {
+                    viewer = window.$3Dmol.createViewer(viewport, {
+                        backgroundColor: '#030806',
+                        backgroundAlpha: 1,
+                    });
+                } catch (e) {
+                    console.warn('3Dmol viewer failed:', e);
+                    return;
                 }
 
-                var io = new IntersectionObserver(function (entries) {
-                    entries.forEach(function (e) {
-                        syncSpin(e.isIntersecting);
-                    });
-                }, { threshold: 0.08 });
-                io.observe(hero);
-
-                var ro = new ResizeObserver(function () {
+                window.$3Dmol.download('cid:2519', viewer, {}, function () {
+                    viewer.setStyle({}, { stick: { radius: 0.13 }, sphere: { scale: 0.19 } });
+                    viewer.zoomTo();
                     viewer.resize();
-                });
-                ro.observe(viewport);
 
-                document.addEventListener('visibilitychange', function () {
-                    if (document.hidden) {
-                        viewer.spin(false);
-                    } else {
-                        viewer.resize();
-                        var r = hero.getBoundingClientRect();
-                        syncSpin(r.bottom > 40 && r.top < window.innerHeight - 40);
+                    function syncSpin(on) {
+                        if (reduced) { viewer.spin(false); return; }
+                        viewer.spin(on ? 'y' : false, on ? 0.52 : undefined);
                     }
+
+                    new IntersectionObserver(function (entries) {
+                        entries.forEach(function (e) { syncSpin(e.isIntersecting); });
+                    }, { threshold: 0.08 }).observe(shell);
+
+                    new ResizeObserver(function () { viewer.resize(); }).observe(viewport);
+
+                    document.addEventListener('visibilitychange', function () {
+                        if (document.hidden) {
+                            viewer.spin(false);
+                        } else {
+                            viewer.resize();
+                            var r = shell.getBoundingClientRect();
+                            syncSpin(r.bottom > 40 && r.top < window.innerHeight - 40);
+                        }
+                    });
                 });
-            });
+            }
+
+            // Load 3Dmol only when the orbital section is ~500px away
+            const lazyIo = new IntersectionObserver(function (entries) {
+                if (!entries[0].isIntersecting || loaded) return;
+                loaded = true;
+                lazyIo.disconnect();
+                var s = document.createElement('script');
+                s.src = 'https://cdn.jsdelivr.net/npm/3dmol@2.1.0/build/3Dmol-min.js';
+                s.onload = initMolViewer;
+                document.head.appendChild(s);
+            }, { rootMargin: '500px' });
+
+            lazyIo.observe(shell);
         })();
     </script>
 </body>
