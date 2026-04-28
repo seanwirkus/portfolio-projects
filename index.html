@@ -696,7 +696,7 @@
             border-bottom: 1px solid var(--line);
             display: grid;
             align-content: center;
-            gap: 70px;
+            gap: clamp(28px, 4vw, 48px);
         }
         .rv-glow {
             position: absolute;
@@ -740,7 +740,7 @@
             grid-template-columns: minmax(280px, 0.85fr) minmax(0, 1.4fr);
             gap: clamp(28px, 4vw, 60px);
             align-items: center;
-            margin-bottom: 50px;
+            margin-bottom: 28px;
             perspective: 1600px;
         }
         /* Subtle cursor-following accent — very low opacity, kept barely-there. */
@@ -931,19 +931,52 @@
             background: #05020F;
         }
 
+        /* Outer shell — mirrors Orbital .orb-editor-shell */
+        .rv-editor-shell {
+            position: relative;
+            z-index: 2;
+            border-radius: 18px;
+            border: 1px solid rgba(139, 92, 246, 0.22);
+            overflow: hidden;
+            background: linear-gradient(180deg, rgba(12, 6, 32, 0.92) 0%, rgba(8, 4, 22, 0.88) 100%);
+            box-shadow:
+                0 28px 88px rgba(0, 0, 0, 0.42),
+                0 0 0 1px rgba(167, 139, 250, 0.1),
+                inset 0 1px 0 rgba(255, 255, 255, 0.04);
+        }
+        .rv-editor-shell > .rv-window-bar {
+            border-bottom-color: rgba(34, 211, 238, 0.14);
+        }
+        .rv-editor-shell-body {
+            padding: clamp(22px, 3.2vw, 36px) clamp(14px, 2.8vw, 28px) clamp(26px, 3.2vw, 40px);
+            display: grid;
+            gap: clamp(24px, 3.5vw, 44px);
+            align-content: start;
+        }
+        .rv-editor-shell-body .rv-grid {
+            margin-bottom: 0;
+        }
+        .rv-window--embed {
+            border-radius: 14px;
+        }
+        .rv-editor-shell .rv-window--embed .rv-window-iframe {
+            display: block;
+            height: clamp(420px, 38vw, 580px);
+        }
+
         /* Three feature cards */
         .rv-features {
             position: relative;
             z-index: 2;
             display: grid;
             grid-template-columns: repeat(3, minmax(0, 1fr));
-            gap: 14px;
+            gap: 12px;
         }
         .rv-feature {
             display: flex;
             align-items: center;
-            gap: 16px;
-            padding: 20px 22px;
+            gap: 14px;
+            padding: 16px 18px;
             border: 1px solid rgba(255,255,255,0.08);
             border-radius: 14px;
             background: rgba(12, 8, 28, 0.65);
@@ -1008,14 +1041,385 @@
         @media (max-width: 1100px) {
             .rv-grid {
                 grid-template-columns: 1fr;
-                gap: 40px;
+                gap: 32px;
             }
             .rv-features { grid-template-columns: 1fr; }
+            .rv-editor-shell-body { padding: 20px 14px 28px; }
         }
         @media (max-width: 700px) {
             .rv { padding: 60px 4vw 80px; }
-            .rv-window-title { display: none; }
-            .rv-window-iframe { height: clamp(360px, 80vw, 520px); }
+            .rv-window-iframe,
+            .rv-editor-shell .rv-window--embed .rv-window-iframe {
+                height: clamp(360px, 80vw, 520px);
+            }
+        }
+
+        /* === Section: Orbital spotlight (parallel to RetroVision .rv) === */
+        .orb {
+            position: relative;
+            z-index: 2;
+            padding: 140px 6vw 180px;
+            min-height: auto;
+            background:
+                radial-gradient(900px 500px at 10% 25%, rgba(16, 185, 129, 0.07), transparent 58%),
+                radial-gradient(800px 520px at 92% 78%, rgba(59, 130, 246, 0.06), transparent 55%),
+                linear-gradient(180deg, #020806 0%, #051210 45%, #030806 100%);
+            overflow: hidden;
+            border-top: 1px solid var(--line);
+            border-bottom: 1px solid var(--line);
+            display: grid;
+            align-content: center;
+            gap: clamp(28px, 4vw, 48px);
+        }
+        .orb-glow {
+            position: absolute;
+            inset: 0;
+            background:
+                radial-gradient(circle at 22% 35%, rgba(52, 211, 153, 0.06), transparent 42%),
+                radial-gradient(circle at 78% 22%, rgba(45, 212, 191, 0.05), transparent 48%);
+            pointer-events: none;
+        }
+        .orb-rings {
+            position: absolute;
+            inset: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            opacity: 0.45;
+        }
+        /* Outer mac chrome groups spotlight copy + preview + cards. */
+        .orb-editor-shell {
+            position: relative;
+            z-index: 2;
+            border-radius: 18px;
+            border: 1px solid rgba(52, 211, 153, 0.22);
+            overflow: hidden;
+            background: linear-gradient(180deg, rgba(4, 18, 14, 0.92) 0%, rgba(3, 14, 11, 0.88) 100%);
+            box-shadow:
+                0 28px 88px rgba(0, 0, 0, 0.42),
+                0 0 0 1px rgba(52, 211, 153, 0.08),
+                inset 0 1px 0 rgba(255, 255, 255, 0.045);
+        }
+        .orb-editor-shell-mol {
+            position: absolute;
+            inset: 0;
+            z-index: 0;
+            pointer-events: none;
+            border-radius: inherit;
+            overflow: hidden;
+        }
+        .orb-editor-shell .orb-window-bar,
+        .orb-editor-shell-body {
+            position: relative;
+            z-index: 2;
+        }
+        /* 3Dmol (https://3dmol.org) — subtle backdrop inside Orbital Editor shell */
+        .orb-editor-shell .orb-show-mol__viewport {
+            position: absolute;
+            left: 50%;
+            top: 52%;
+            width: min(118vw, 1500px);
+            height: min(78vw, 640px);
+            max-height: 520px;
+            transform: translate(-50%, -50%);
+            opacity: 0.4;
+            filter: saturate(1.06) hue-rotate(-6deg) contrast(1.05);
+        }
+        .orb-editor-shell .orb-show-mol__veil {
+            position: absolute;
+            inset: 0;
+            z-index: 1;
+            background:
+                radial-gradient(ellipse 78% 68% at 50% 42%, rgba(3, 14, 11, 0.45) 0%, transparent 58%),
+                linear-gradient(185deg, rgba(4, 16, 12, 0.88) 0%, rgba(4, 18, 14, 0.42) 48%, rgba(3, 12, 10, 0.85) 100%);
+            pointer-events: none;
+        }
+        .orb-editor-shell > .orb-window-bar {
+            border-bottom-color: rgba(52, 211, 153, 0.14);
+        }
+        .orb-editor-shell-body {
+            padding: clamp(22px, 3.2vw, 36px) clamp(14px, 2.8vw, 28px) clamp(26px, 3.2vw, 40px);
+            display: grid;
+            gap: clamp(24px, 3.5vw, 44px);
+            align-content: start;
+        }
+        .orb-grid {
+            position: relative;
+            z-index: 2;
+            display: grid;
+            grid-template-columns: minmax(280px, 0.85fr) minmax(0, 1.4fr);
+            gap: clamp(28px, 4vw, 56px);
+            align-items: center;
+            margin-bottom: 0;
+            perspective: 1600px;
+        }
+        .orb::after {
+            content: '';
+            position: absolute;
+            left: var(--orb-mx, 50%);
+            top: var(--orb-my, 35%);
+            width: 420px;
+            height: 420px;
+            transform: translate(-50%, -50%);
+            background: radial-gradient(circle, rgba(16, 185, 129, 0.06), transparent 62%);
+            pointer-events: none;
+            opacity: var(--orb-spot, 0);
+            transition: opacity 0.3s ease;
+            mix-blend-mode: screen;
+            z-index: 1;
+        }
+        .orb:hover::after { opacity: 0.55; }
+        .orb-copy { min-width: 0; }
+        .orb-eyebrow {
+            font-size: 0.78rem;
+            letter-spacing: 0.04em;
+            color: #6ee7b7;
+            margin-bottom: 18px;
+            font-weight: 400;
+        }
+        .orb-title {
+            font-family: 'Inter', system-ui, -apple-system, sans-serif;
+            font-weight: 800;
+            font-size: clamp(2.6rem, 4.6vw, 5rem);
+            line-height: 0.98;
+            letter-spacing: -0.04em;
+            margin: 0 0 22px;
+            background: linear-gradient(95deg, #ecfdf5 0%, #a7f3d0 28%, #34d399 55%, #22d3ee 78%, #ecfdf5 100%);
+            background-size: 220% auto;
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+            color: #fff;
+            white-space: nowrap;
+            max-width: 100%;
+            animation: orbShimmer 5s ease-in-out infinite alternate;
+        }
+        @keyframes orbShimmer {
+            0% { background-position: 0% center; }
+            100% { background-position: 100% center; }
+        }
+        @media (prefers-reduced-motion: reduce) {
+            .orb-title { animation: none; }
+        }
+        @media (max-width: 1100px) {
+            .orb-title { font-size: clamp(3rem, 9vw, 5.4rem); }
+        }
+        .orb-tagline {
+            font-size: clamp(1.05rem, 1.4vw, 1.28rem);
+            color: var(--ink);
+            font-weight: 500;
+            line-height: 1.4;
+            margin-bottom: 16px;
+        }
+        .orb-lead {
+            color: var(--ink-mute);
+            font-size: clamp(0.92rem, 1.05vw, 1.04rem);
+            line-height: 1.65;
+            max-width: 50ch;
+            margin-bottom: 24px;
+        }
+        .orb-tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+        .orb-tag {
+            font-size: 0.78rem;
+            letter-spacing: 0.02em;
+            font-weight: 500;
+            padding: 7px 14px;
+            border-radius: 8px;
+            border: 1px solid;
+            background: rgba(4, 18, 14, 0.65);
+            transition: transform 0.125s ease, box-shadow 0.125s ease, border-color 0.125s ease;
+            cursor: default;
+        }
+        .orb-tag:hover { transform: translateY(-2px); }
+        .orb-tag--mint   { color: #6ee7b7; border-color: rgba(52, 211, 153, 0.45);  background: rgba(16, 185, 129, 0.1); }
+        .orb-tag--mint:hover   { border-color: rgba(52, 211, 153, 0.9);  box-shadow: 0 0 22px rgba(52, 211, 153, 0.28); }
+        .orb-tag--sky { color: #7dd3fc; border-color: rgba(56, 189, 248, 0.45); background: rgba(14, 116, 144, 0.15); }
+        .orb-tag--sky:hover { border-color: rgba(56, 189, 248, 0.88); box-shadow: 0 0 22px rgba(56, 189, 248, 0.22); }
+        .orb-tag--slate { color: #cbd5e1; border-color: rgba(148, 163, 184, 0.35); background: rgba(15, 23, 42, 0.35); }
+        .orb-tag--slate:hover { border-color: rgba(148, 163, 184, 0.75); box-shadow: 0 0 20px rgba(148, 163, 184, 0.18); }
+
+        .orb-window {
+            position: relative;
+            border-radius: 14px;
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            background: #030806;
+            overflow: hidden;
+            box-shadow:
+                0 36px 100px rgba(0, 0, 0, 0.55),
+                0 12px 32px rgba(16, 185, 129, 0.12),
+                0 0 0 1px rgba(52, 211, 153, 0.1),
+                inset 0 1px 0 rgba(255, 255, 255, 0.04);
+            transform-style: preserve-3d;
+            transition: box-shadow 0.2s ease;
+        }
+        .orb-window::before {
+            content: '';
+            position: absolute;
+            inset: -1px;
+            border-radius: inherit;
+            padding: 1px;
+            background: linear-gradient(135deg, rgba(52, 211, 153, 0.45), rgba(56, 189, 248, 0.22) 55%, rgba(16, 185, 129, 0.35));
+            -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+            -webkit-mask-composite: xor;
+            mask-composite: exclude;
+            opacity: 0.55;
+            pointer-events: none;
+        }
+        .orb-grid:hover .orb-window {
+            box-shadow:
+                0 50px 130px rgba(0, 0, 0, 0.6),
+                0 16px 40px rgba(16, 185, 129, 0.22),
+                0 0 0 1px rgba(52, 211, 153, 0.2),
+                inset 0 1px 0 rgba(255, 255, 255, 0.07);
+        }
+        .orb-window-bar {
+            display: flex;
+            align-items: center;
+            padding: 10px 14px;
+            background: linear-gradient(180deg, #061812, #041210);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+            position: relative;
+        }
+        .orb-window-dots { display: flex; gap: 6px; }
+        .orb-window-dots span {
+            width: 11px; height: 11px; border-radius: 50%;
+            background: rgba(255, 255, 255, 0.14);
+        }
+        .orb-window-dots span:nth-child(1) { background: #ff5f57; }
+        .orb-window-dots span:nth-child(2) { background: #febc2e; }
+        .orb-window-dots span:nth-child(3) { background: #28c840; }
+        .orb-window-title {
+            position: absolute;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 0.8rem;
+            color: var(--ink-soft);
+            font-family: 'Inter', system-ui, sans-serif;
+            font-weight: 500;
+            letter-spacing: 0.01em;
+        }
+        .orb-window-live {
+            margin-left: auto;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 0.7rem;
+            letter-spacing: 0.16em;
+            color: var(--ink-soft);
+            border: 1px solid rgba(52, 211, 153, 0.28);
+            background: rgba(16, 185, 129, 0.08);
+            padding: 4px 10px;
+            border-radius: 999px;
+            text-transform: uppercase;
+        }
+        .orb-live-dot {
+            width: 7px; height: 7px; border-radius: 50%;
+            background: #34d399;
+            box-shadow: 0 0 8px #34d399;
+            animation: orbLivePulse 1s ease-in-out infinite;
+        }
+        @keyframes orbLivePulse {
+            0%, 100% { opacity: 0.65; transform: scale(1); }
+            50%      { opacity: 1;   transform: scale(1.2); }
+        }
+        .orb-window-iframe {
+            display: block;
+            width: 100%;
+            height: clamp(420px, 38vw, 580px);
+            border: none;
+            background: #020806;
+        }
+        .orb-window--embed {
+            border-radius: 14px;
+        }
+        .orb-editor-shell .orb-window--embed .orb-window-iframe {
+            display: block;
+            height: clamp(420px, 38vw, 580px);
+        }
+
+        .orb-cards {
+            position: relative;
+            z-index: 2;
+            display: grid;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            gap: 12px;
+        }
+        .orb-card {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            padding: 16px 18px;
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 14px;
+            background: rgba(6, 22, 18, 0.72);
+            transition: transform .175s cubic-bezier(.2,.7,.3,1.2), border-color .175s ease, background .175s ease, box-shadow .175s ease;
+            will-change: transform;
+        }
+        .orb-card:hover {
+            transform: translateY(-5px);
+            border-color: rgba(52, 211, 153, 0.38);
+            background: rgba(8, 32, 26, 0.88);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.42), 0 0 0 1px rgba(52, 211, 153, 0.12);
+        }
+        .orb-card-icon {
+            flex-shrink: 0;
+            width: 48px;
+            height: 48px;
+            border-radius: 12px;
+            display: grid;
+            place-items: center;
+            border: 1px solid;
+            transition: transform .175s ease, box-shadow .175s ease;
+        }
+        .orb-card:hover .orb-card-icon { transform: scale(1.06); }
+        .orb-card-icon svg { width: 24px; height: 24px; }
+        .orb-card-icon--mint {
+            color: #6ee7b7;
+            background: rgba(16, 185, 129, 0.14);
+            border-color: rgba(52, 211, 153, 0.4);
+            box-shadow: 0 0 0 rgba(52, 211, 153, 0);
+        }
+        .orb-card:hover .orb-card-icon--mint {
+            box-shadow: 0 0 26px rgba(52, 211, 153, 0.35);
+        }
+        .orb-card-icon--sky {
+            color: #7dd3fc;
+            background: rgba(14, 116, 144, 0.2);
+            border-color: rgba(56, 189, 248, 0.38);
+        }
+        .orb-card:hover .orb-card-icon--sky {
+            box-shadow: 0 0 26px rgba(56, 189, 248, 0.28);
+        }
+        .orb-card-body strong {
+            display: block;
+            font-family: 'Inter', system-ui, sans-serif;
+            font-weight: 600;
+            font-size: 1.05rem;
+            color: var(--ink);
+            margin-bottom: 4px;
+        }
+        .orb-card-body p {
+            color: var(--ink-mute);
+            font-size: 0.85rem;
+            line-height: 1.5;
+            margin: 0;
+        }
+
+        @media (max-width: 1100px) {
+            .orb-grid { grid-template-columns: 1fr; gap: 36px; }
+            .orb-cards { grid-template-columns: 1fr; }
+            .orb-editor-shell-body { padding: 20px 14px 28px; }
+        }
+        @media (max-width: 700px) {
+            .orb { padding: 56px 4vw 72px; }
+            .orb-window-iframe,
+            .orb-editor-shell .orb-window--embed .orb-window-iframe {
+                height: clamp(360px, 80vw, 520px);
+            }
         }
 
         /* === Section: Projects === */
@@ -1544,6 +1948,15 @@
                 <path d="M -30 580 Q 180 450 460 430 T 1080 320" stroke="url(#rv-streak-1)" stroke-width="1" fill="none" opacity="0.5"/>
             </svg>
 
+            <div class="rv-editor-shell">
+                <div class="rv-window-bar rv-editor-shell-bar">
+                    <div class="rv-window-dots" aria-hidden="true">
+                        <span></span><span></span><span></span>
+                    </div>
+                    <div class="rv-window-title">RetroVision</div>
+                    <div class="rv-window-live"><span class="rv-live-dot"></span>LIVE</div>
+                </div>
+                <div class="rv-editor-shell-body">
             <div class="rv-grid">
                 <div class="rv-copy">
                     <div class="rv-eyebrow reveal">Embedded Systems Developer</div>
@@ -1561,14 +1974,7 @@
                     </div>
                 </div>
 
-                <div class="rv-window reveal">
-                    <div class="rv-window-bar">
-                        <div class="rv-window-dots" aria-hidden="true">
-                            <span></span><span></span><span></span>
-                        </div>
-                        <div class="rv-window-title">RetroVision Simulator</div>
-                        <div class="rv-window-live"><span class="rv-live-dot"></span>LIVE</div>
-                    </div>
+                <div class="rv-window rv-window--embed reveal">
                     <iframe
                         class="rv-window-iframe"
                         src="freeway-frenzy-app/vision-lab.html?units=ft&chromeless=1"
@@ -1619,6 +2025,8 @@
                         <p>Designed as an add-on for older cars.</p>
                     </div>
                 </article>
+            </div>
+                </div>
             </div>
         </section>
 
@@ -2022,6 +2430,118 @@
             schedule();
         })();
         </script>
+
+        <section class="orb" id="orbital-lab" aria-label="Orbital Editor spotlight">
+            <div class="orb-glow" aria-hidden="true"></div>
+            <svg class="orb-rings" viewBox="0 0 1200 640" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
+                <defs>
+                    <linearGradient id="orb-ring-1" x1="0%" y1="0%" x2="100%" y2="100%">
+                        <stop offset="0%" stop-color="#34d399" stop-opacity="0"/>
+                        <stop offset="45%" stop-color="#34d399" stop-opacity="0.45"/>
+                        <stop offset="100%" stop-color="#22d3ee" stop-opacity="0"/>
+                    </linearGradient>
+                    <linearGradient id="orb-ring-2" x1="100%" y1="0%" x2="0%" y2="100%">
+                        <stop offset="0%" stop-color="#6ee7b7" stop-opacity="0"/>
+                        <stop offset="50%" stop-color="#10b981" stop-opacity="0.35"/>
+                        <stop offset="100%" stop-color="#34d399" stop-opacity="0"/>
+                    </linearGradient>
+                </defs>
+                <g fill="none" stroke-linecap="round" opacity="0.85">
+                    <path d="M 120 520 L 240 420 L 240 280 L 120 180 L 0 280 L 0 420 Z" stroke="url(#orb-ring-1)" stroke-width="1.2"/>
+                    <path d="M 980 140 L 1080 240 L 1180 140 L 1080 40 Z" stroke="url(#orb-ring-2)" stroke-width="1"/>
+                    <ellipse cx="620" cy="120" rx="180" ry="48" stroke="url(#orb-ring-1)" stroke-width="0.9" opacity="0.6"/>
+                    <path d="M 420 560 Q 620 440 820 520" stroke="url(#orb-ring-2)" stroke-width="1" opacity="0.55"/>
+                </g>
+            </svg>
+
+            <!-- Orbital Editor chrome wrap (featured strip below #work removed). -->
+            <div class="orb-editor-shell">
+                <div class="orb-editor-shell-mol" aria-hidden="true">
+                    <div id="orb-mol-viewport" class="orb-show-mol__viewport"></div>
+                    <div class="orb-show-mol__veil"></div>
+                </div>
+                <div class="orb-window-bar">
+                    <div class="orb-window-dots" aria-hidden="true">
+                        <span></span><span></span><span></span>
+                    </div>
+                    <div class="orb-window-title">Orbital Editor</div>
+                    <div class="orb-window-live"><span class="orb-live-dot"></span>LIVE</div>
+                </div>
+                <div class="orb-editor-shell-body">
+            <div class="orb-grid">
+                <div class="orb-copy">
+                    <div class="orb-eyebrow reveal">Full Stack Developer</div>
+                    <h2 class="orb-title reveal">Orbital</h2>
+                    <p class="orb-tagline reveal">A molecule graph, renderer, and planning surface for chemistry workflows.</p>
+                    <p class="orb-lead reveal">
+                        Orbital connects a real molecule model to editing tools and visualization — atoms and bonds resolve through the same engine you ship, so sketches in the browser behave like the code behind them.
+                    </p>
+                    <div class="orb-tags reveal">
+                        <span class="orb-tag orb-tag--mint">React</span>
+                        <span class="orb-tag orb-tag--mint">Python</span>
+                        <span class="orb-tag orb-tag--sky">Chemistry</span>
+                        <span class="orb-tag orb-tag--slate">Model-driven UI</span>
+                    </div>
+                </div>
+
+                <div class="orb-window orb-window--embed reveal">
+                    <iframe
+                        class="orb-window-iframe"
+                        src="embeds/preview-shell.html?src=orbital-editor.html%3Fmode%3Dpreview&amp;width=1024&amp;height=640&amp;accent=10b981"
+                        title="Orbital — molecule editor preview"
+                        loading="lazy"
+                        scrolling="no"
+                    ></iframe>
+                </div>
+            </div>
+
+            <div class="orb-cards">
+                <article class="orb-card reveal">
+                    <div class="orb-card-icon orb-card-icon--mint">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+                            <circle cx="12" cy="12" r="3"/>
+                            <circle cx="6" cy="8" r="2"/>
+                            <circle cx="18" cy="8" r="2"/>
+                            <circle cx="8" cy="17" r="2"/>
+                            <circle cx="16" cy="17" r="2"/>
+                            <path d="M8 9.5l2 1.5M14 9.5l2 1.5M10 13l-1 2.5M14 13l1 2.5"/>
+                        </svg>
+                    </div>
+                    <div class="orb-card-body">
+                        <strong>Molecule graph</strong>
+                        <p>Atoms and bonds stay coherent as you edit — one model drives placement, bonding, and erase tools.</p>
+                    </div>
+                </article>
+                <article class="orb-card reveal">
+                    <div class="orb-card-icon orb-card-icon--mint">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M4 19l4-14h8l4 14"/>
+                            <path d="M9 10h6"/>
+                            <circle cx="9" cy="15" r="1"/>
+                            <circle cx="15" cy="15" r="1"/>
+                        </svg>
+                    </div>
+                    <div class="orb-card-body">
+                        <strong>Renderer + tools</strong>
+                        <p>The live canvas uses the project’s real renderer classes — not a decorative placeholder.</p>
+                    </div>
+                </article>
+                <article class="orb-card reveal">
+                    <div class="orb-card-icon orb-card-icon--sky">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M12 3v4M12 17v4M4.22 4.22l2.83 2.83M16.95 16.95l2.83 2.83M3 12h4M17 12h4M4.22 19.78l2.83-2.83M16.95 7.05l2.83-2.83"/>
+                            <circle cx="12" cy="12" r="4"/>
+                        </svg>
+                    </div>
+                    <div class="orb-card-body">
+                        <strong>Workflow surface</strong>
+                        <p>Built as a planning and teaching layer on top of chemistry intelligence — extend toward synthesis routes when you need them.</p>
+                    </div>
+                </article>
+            </div>
+                </div>
+            </div>
+        </section>
 
         <section class="projects" id="work">
             <div class="section-head">
@@ -2722,7 +3242,7 @@
             { title: 'CardioCycle Explorer', desc: 'Interactive Cardiac Cycle Visualizer', role: 'Software Engineer', tag: 'Physiology', href: 'ekg-wiggers.html', cover: 'ekg', tags: ['JavaScript', 'SVG', 'Physiology'] },
             { title: 'PianoViz', desc: 'MIDI Visualizer + Logic Pro Companion', role: 'Audio Tooling Developer', tag: 'Audio', href: 'pianoviz.html', cover: 'pianoviz', tags: ['React', 'Web MIDI', 'Vite'] },
             { title: 'Delivery Center Tycoon', desc: 'Roblox Logistics & Warehouse Simulator', role: 'Game Developer', tag: 'Game', href: 'dct.html', cover: 'dct', tags: ['Lua', 'Rojo', 'React'] },
-            { title: 'ESP32-CAR', desc: 'Camera-Equipped RC Car with Sensor Array', role: 'Embedded Systems Developer', tag: 'Embedded', href: 'esp32-car.html', cover: 'esp32', tags: ['C/C++', 'ESP32-CAM', 'I2C'] },
+            { title: 'RetroVision', desc: 'Dual-ESP32 driver-assist HUD: camera classifies cars, signs, signals, and pedestrians while a TFmini-S LiDAR tracks distance — fused over UART and rendered with LVGL.', role: 'Embedded Systems Developer', tag: 'Embedded · Vision', href: 'freeway-frenzy.html#retrovision', cover: 'esp32', tags: ['C/C++', 'ESP32-S3', 'TFmini-S LiDAR'] },
             { title: 'miSO', desc: 'macOS Virtual Machine Manager', role: 'macOS / Swift Developer', tag: 'macOS', href: 'miso.html', cover: 'miso', tags: ['Swift', 'SwiftUI', 'Virtualization'] },
             { title: 'FreewayFrenzy', desc: 'Distributed Embedded Driving Game', role: 'Embedded Systems Developer', tag: 'Embedded Game', href: 'freeway-frenzy.html', cover: 'freeway', tags: ['C/C++', 'ESP32', 'FreeRTOS'] },
             { title: 'SupaSesh', desc: 'Multi-Platform Session Tracking App', role: 'iOS / Swift Developer', tag: 'iOS', href: 'supasesh.html', cover: 'supasesh', tags: ['Swift', 'SwiftUI', 'CloudKit'] },
@@ -3262,6 +3782,68 @@
             requestAnimationFrame(tick);
         }
         tick();
+    </script>
+
+    <!-- 3Dmol.js backdrop inside #orbital-lab Orbital Editor shell — https://3dmol.org -->
+    <script src="https://cdn.jsdelivr.net/npm/3dmol@2.1.0/build/3Dmol-min.js"></script>
+    <script>
+        (function () {
+            const viewport = document.getElementById('orb-mol-viewport');
+            const hero = document.querySelector('.orb-editor-shell');
+            if (!viewport || !hero || typeof window.$3Dmol === 'undefined') return;
+
+            const reduced = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+            let viewer;
+            try {
+                viewer = window.$3Dmol.createViewer(viewport, {
+                    backgroundColor: '#030806',
+                    backgroundAlpha: 1,
+                });
+            } catch (e) {
+                console.warn('3Dmol viewer failed:', e);
+                return;
+            }
+
+            window.$3Dmol.download('cid:2519', viewer, {}, function () {
+                viewer.setStyle({}, {
+                    stick: { radius: 0.13 },
+                    sphere: { scale: 0.19 },
+                });
+                viewer.zoomTo();
+                viewer.resize();
+
+                function syncSpin(on) {
+                    if (reduced) {
+                        viewer.spin(false);
+                        return;
+                    }
+                    viewer.spin(on ? 'y' : false, on ? 0.52 : undefined);
+                }
+
+                var io = new IntersectionObserver(function (entries) {
+                    entries.forEach(function (e) {
+                        syncSpin(e.isIntersecting);
+                    });
+                }, { threshold: 0.08 });
+                io.observe(hero);
+
+                var ro = new ResizeObserver(function () {
+                    viewer.resize();
+                });
+                ro.observe(viewport);
+
+                document.addEventListener('visibilitychange', function () {
+                    if (document.hidden) {
+                        viewer.spin(false);
+                    } else {
+                        viewer.resize();
+                        var r = hero.getBoundingClientRect();
+                        syncSpin(r.bottom > 40 && r.top < window.innerHeight - 40);
+                    }
+                });
+            });
+        })();
     </script>
 </body>
 </html>

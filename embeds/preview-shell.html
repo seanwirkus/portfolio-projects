@@ -12,6 +12,7 @@
             --shell-accent-soft: rgba(59, 130, 246, 0.14);
             --frame-width: 1280px;
             --frame-height: 720px;
+            --preview-pad: 14px;
         }
 
         * {
@@ -26,9 +27,9 @@
             overflow: hidden;
             font-family: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
             background:
-                radial-gradient(circle at top left, var(--shell-accent), transparent 40%),
-                radial-gradient(circle at bottom right, var(--shell-accent-soft), transparent 38%),
-                linear-gradient(180deg, #020617 0%, #06101f 100%);
+                radial-gradient(circle at 18% 8%, var(--shell-accent), transparent 42%),
+                radial-gradient(circle at 92% 88%, var(--shell-accent-soft), transparent 40%),
+                linear-gradient(185deg, #020617 0%, #050c18 52%, #06101f 100%);
         }
 
         .preview-root {
@@ -38,11 +39,25 @@
             overflow: hidden;
         }
 
+        .preview-chrome-slot {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            pointer-events: none;
+            z-index: 2;
+        }
+
+        .preview-chrome-slot .preview-badge,
+        .preview-chrome-slot .scroll-btn {
+            pointer-events: auto;
+        }
+
         .preview-badges {
             position: absolute;
             top: 16px;
             left: 16px;
-            z-index: 2;
             display: flex;
             flex-wrap: wrap;
             gap: 8px;
@@ -75,17 +90,35 @@
             width: var(--frame-width);
             height: var(--frame-height);
             overflow: hidden;
-            border-radius: 24px;
-            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 26px;
+            border: 1px solid rgba(255, 255, 255, 0.055);
             box-shadow:
-                0 32px 80px rgba(2, 6, 23, 0.45),
-                inset 0 0 0 1px rgba(255, 255, 255, 0.04);
+                0 28px 72px rgba(2, 6, 23, 0.42),
+                0 0 0 1px rgba(255, 255, 255, 0.028) inset;
             transform: translate(-50%, -50%) scale(1);
             transform-origin: center center;
             background: var(--shell-bg);
         }
 
+        /* Subtle veil along top edge inside the frame */
+        .preview-canvas::before {
+            content: "";
+            position: absolute;
+            inset: 0;
+            border-radius: inherit;
+            pointer-events: none;
+            z-index: 1;
+            background: linear-gradient(
+                180deg,
+                rgba(255, 255, 255, 0.042) 0%,
+                rgba(255, 255, 255, 0.012) 18%,
+                transparent 52%
+            );
+        }
+
         .preview-frame {
+            position: relative;
+            z-index: 0;
             width: 100%;
             height: 100%;
             border: 0;
@@ -104,7 +137,7 @@
             line-height: 1.6;
         }
 
-        @media (max-width: 640px) {
+        @media (max-width: 768px) {
             .preview-badges {
                 top: 12px;
                 left: 12px;
@@ -133,7 +166,7 @@
             height: 48px;
             border-radius: 50%;
             background: rgba(2, 6, 23, 0.8);
-            border: 1px solid rgba(255, 255, 255, 0.15);
+            border: 1px solid rgba(255, 255, 255, 0.12);
             color: #fff;
             font-size: 1.2rem;
             display: flex;
@@ -142,17 +175,18 @@
             cursor: pointer;
             backdrop-filter: blur(10px);
             transition: all 0.2s ease;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+            box-shadow: 0 4px 14px rgba(0, 0, 0, 0.28);
         }
 
         .scroll-btn:hover {
             background: rgba(255, 255, 255, 0.2);
             transform: scale(1.05);
         }
-        
+
         .scroll-btn:active {
             transform: scale(0.95);
         }
+
         body[data-theme-mode="light"] {
             --shell-bg: #f8fafc;
             --shell-accent: rgba(59, 130, 246, 0.08);
@@ -170,52 +204,49 @@
             color: #334155;
         }
 
+        body[data-theme-mode="light"] .preview-canvas {
+            border-color: rgba(15, 23, 42, 0.1);
+            box-shadow:
+                0 24px 64px rgba(15, 23, 42, 0.1),
+                0 0 0 1px rgba(15, 23, 42, 0.05) inset;
+        }
+
         body[data-theme-mode="light"] .scroll-btn {
-            background: rgba(255, 255, 255, 0.9);
-            border-color: rgba(15, 23, 42, 0.15);
+            background: rgba(255, 255, 255, 0.92);
+            border-color: rgba(15, 23, 42, 0.12);
             color: #0f172a;
         }
     </style>
     <link rel="icon" type="image/svg+xml" href="../favicon.svg">
 </head>
 <body>
-    <div class="preview-root">
-        <div class="preview-badges">
-            <div class="preview-badge" id="preview-label">Scaled preview</div>
-            <div class="preview-badge secondary" id="preview-size">1280 × 720</div>
-        </div>
+    <div class="preview-root" id="preview-root">
+        <div class="preview-chrome-slot" id="chrome-slot" aria-hidden="true"></div>
         <div class="preview-canvas" id="preview-canvas">
             <iframe class="preview-frame" id="preview-frame" title="Project preview frame" scrolling="no"></iframe>
-        </div>
-        <div class="scroll-controls" id="scroll-controls" hidden>
-            <button class="scroll-btn" id="scroll-up" aria-label="Scroll Up">&#9650;</button>
-            <button class="scroll-btn" id="scroll-down" aria-label="Scroll Down">&#9660;</button>
         </div>
         <div class="preview-empty" id="preview-empty" hidden>
             This preview could not load because no source was provided.
         </div>
     </div>
     <script>
-        // Theme Sync Logic
+        const params = new URLSearchParams(window.location.search);
+        /** Add `chrome=1` to show title badges + scroll arrows (standalone/debug). Embed default is chromeless. */
+        const showChrome = params.get('chrome') === '1';
+
+        const previewFrame = document.getElementById('preview-frame');
+
         window.addEventListener('message', (e) => {
             if (e.data.type === 'theme-change') {
                 document.body.dataset.themeMode = e.data.mode;
                 document.documentElement.style.colorScheme = e.data.mode;
-                // Pass it down to the internal iframe too
                 previewFrame.contentWindow?.postMessage(e.data, '*');
             }
         });
-
-        const params = new URLSearchParams(window.location.search);
-        const previewFrame = document.getElementById('preview-frame');
         const previewCanvas = document.getElementById('preview-canvas');
-        const previewRoot = document.querySelector('.preview-root');
+        const previewRoot = document.getElementById('preview-root');
         const previewEmpty = document.getElementById('preview-empty');
-        const previewLabel = document.getElementById('preview-label');
-        const previewSize = document.getElementById('preview-size');
-        const scrollControls = document.getElementById('scroll-controls');
-        const scrollUp = document.getElementById('scroll-up');
-        const scrollDown = document.getElementById('scroll-down');
+        const chromeSlot = document.getElementById('chrome-slot');
 
         const clamp = (value, min, max) => Math.min(Math.max(value, min), max);
 
@@ -231,7 +262,8 @@
         const src = params.get('src');
         const frameWidth = clamp(Number(params.get('width') || 1280), 320, 2400);
         const frameHeight = clamp(Number(params.get('height') || 720), 240, 1800);
-        const padding = clamp(Number(params.get('padding') || 28), 16, 64);
+        const legacyPadDefault = showChrome ? 28 : 14;
+        const padding = clamp(Number(params.get('padding') || legacyPadDefault), 8, 64);
         const label = params.get('label') || 'Scaled preview';
         const sizeLabel = params.get('sizeLabel') || `${frameWidth} × ${frameHeight}`;
         const accent = params.get('accent');
@@ -239,8 +271,7 @@
 
         document.documentElement.style.setProperty('--frame-width', `${frameWidth}px`);
         document.documentElement.style.setProperty('--frame-height', `${frameHeight}px`);
-        previewLabel.textContent = label;
-        previewSize.textContent = sizeLabel;
+        document.documentElement.style.setProperty('--preview-pad', `${padding}px`);
 
         if (accent) {
             const strongAccent = toRgba(accent, 0.22);
@@ -251,37 +282,57 @@
 
         if (!src) {
             previewCanvas.hidden = true;
-            previewLabel.hidden = true;
-            previewSize.hidden = true;
-            scrollControls.hidden = true;
+            chromeSlot.hidden = true;
             previewEmpty.hidden = false;
         } else {
             previewFrame.src = src;
-            scrollControls.hidden = false;
             if (allow) previewFrame.setAttribute('allow', allow);
         }
 
-        const scrollIframe = (amount) => {
-            if (previewFrame.contentWindow) {
-                previewFrame.contentWindow.scrollBy({ top: amount, behavior: 'smooth' });
-            }
-        };
+        let scrollUp;
+        let scrollDown;
 
-        scrollUp.addEventListener('click', () => scrollIframe(-400));
-        scrollDown.addEventListener('click', () => scrollIframe(400));
+        if (showChrome) {
+            chromeSlot.innerHTML = ''
+                + '<div class="preview-badges">'
+                + `<div class="preview-badge" id="preview-label">${escapeHtml(label)}</div>`
+                + `<div class="preview-badge secondary" id="preview-size">${escapeHtml(sizeLabel)}</div>`
+                + '</div>'
+                + '<div class="scroll-controls" id="scroll-controls">'
+                + '<button class="scroll-btn" id="scroll-up" aria-label="Scroll Up">&#9650;</button>'
+                + '<button class="scroll-btn" id="scroll-down" aria-label="Scroll Down">&#9660;</button>'
+                + '</div>';
+            chromeSlot.setAttribute('aria-hidden', 'false');
+            scrollUp = document.getElementById('scroll-up');
+            scrollDown = document.getElementById('scroll-down');
+
+            const scrollIframe = (amount) => {
+                if (previewFrame.contentWindow) {
+                    previewFrame.contentWindow.scrollBy({ top: amount, behavior: 'smooth' });
+                }
+            };
+
+            scrollUp.addEventListener('click', () => scrollIframe(-400));
+            scrollDown.addEventListener('click', () => scrollIframe(400));
+        }
+
+        /** @param {string} text */
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
 
         const fitPreview = () => {
             const availableWidth = Math.max(previewRoot.clientWidth - padding, 0);
-            
-            // Let the preview app handle its own mobile responsiveness natively instead of shrinking it
+
             if (window.innerWidth <= 768) {
                 document.documentElement.style.setProperty('--frame-width', `100%`);
                 document.documentElement.style.setProperty('--frame-height', `100%`);
                 previewCanvas.style.transform = `translate(-50%, -50%) scale(1)`;
                 return;
             }
-            
-            // Restore desktop frame dimensions if window resizing
+
             document.documentElement.style.setProperty('--frame-width', `${frameWidth}px`);
             document.documentElement.style.setProperty('--frame-height', `${frameHeight}px`);
 

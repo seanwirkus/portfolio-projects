@@ -358,6 +358,12 @@
         .swatch.sunset { background: linear-gradient(135deg, #f97316, #ec4899); }
         .swatch.light { background: linear-gradient(135deg, #f4f7f5, #cbd5e1); }
 
+        /* Preview / chromeless embeds: theme settings slide-over removed so canvas stays unobstructed */
+        body.orbital-hide-settings #settings-toggle,
+        body.orbital-hide-settings #settings-panel {
+            display: none !important;
+        }
+
         /* ===== Mobile ===== */
         @media (max-width: 720px) {
             .canvas-wrap { left: 8px; right: 8px; bottom: 8px; top: 52px; border-radius: 16px; }
@@ -367,6 +373,16 @@
     </style>
 </head>
 <body>
+    <script>
+        (function () {
+            try {
+                var p = new URLSearchParams(window.location.search);
+                if (p.get('mode') === 'preview' || p.get('chromeless') === '1') {
+                    document.body.classList.add('orbital-hide-settings');
+                }
+            } catch (e) {}
+        })();
+    </script>
     <header class="topbar">
         <div class="brand">
             <div class="brand-mark">
@@ -508,6 +524,10 @@
             settingsPanel.classList.contains('open') ? closeSettings() : openSettings();
         });
         settingsClose.addEventListener('click', closeSettings);
+
+        if (document.body.classList.contains('orbital-hide-settings')) {
+            closeSettings();
+        }
 
         // ===== Dock visibility =====
         const DOCK_KEY = 'orbital-dock-hidden';
