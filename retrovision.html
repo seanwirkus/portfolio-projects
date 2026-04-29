@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RetroVision | Sean</title>
+    <meta name="description" content="RetroVision project page with a live embedded perception HUD, camera detections, LiDAR distance data, and UART telemetry for a dual-ESP32 driver-assist retrofit.">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+    <link rel="icon" type="image/svg+xml" href="favicon.svg">
+</head>
+<body>
+    <div class="cursor-dot"></div>
+    <div class="cursor-outline"></div>
+    <div class="bg-gradient bg-gradient-1"></div>
+    <div class="bg-gradient bg-gradient-2"></div>
+    <div class="bg-noise"></div>
+
+    <nav class="navbar">
+        <div class="nav-content">
+            <div class="logo magnetic" onclick="window.location.href='index.html'">S.</div>
+            <ul class="nav-links">
+                <li><a href="index.html#projects" class="magnetic">Back to Portfolio</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <main class="container project-page retrovision-page" style="--project-accent:#22d3ee;--project-accent-alt:#a78bfa;">
+        <header class="project-page-header section-animate">
+            <a href="index.html#projects" class="back-link magnetic">&larr; Back to projects</a>
+            <div class="project-kicker">Embedded Vision App</div>
+            <h1 class="project-page-title">RetroVision</h1>
+            <p class="project-summary">
+                RetroVision is a retrofit perception HUD for older vehicles. A camera classifies cars, stop signs, traffic signals, and pedestrians while a TFmini-S LiDAR stream tracks forward distance. The data is fused on an ESP32-C3, sent over UART, and rendered as a real-time ESP32-S3 driver-assist display.
+            </p>
+            <div class="project-callout"><strong>Main experience:</strong> the live RetroVision Lab below, with the HUD, scene editor, planner state, and UART-style telemetry kept together.</div>
+        </header>
+
+        <section class="project-stage-card section-animate" id="retrovision-lab">
+            <div class="project-stage-bar">
+                <div class="project-stage-label">RetroVision Lab</div>
+                <div class="project-stage-actions">
+                    <a class="project-inline-link" href="freeway-frenzy-app/vision-lab.html?units=ft" target="_blank" rel="noreferrer">Open full lab</a>
+                </div>
+            </div>
+
+            <div class="retrovision-intro" aria-label="RetroVision introduction">
+                <p class="retrovision-intro-title">Camera detections, LiDAR range, autonomy decisions, and UART payloads in one live lab.</p>
+                <p class="retrovision-intro-lead">
+                    Drag cars, stop signs, traffic lights, or pedestrians into the scene. The left display is the embedded HUD output; the right scene is the sensor world; the footer keeps the data stream visible so the app can be checked before it moves onto hardware.
+                </p>
+                <div class="retrovision-chip-row" aria-label="RetroVision stack">
+                    <span class="retrovision-chip">ESP32-S3</span>
+                    <span class="retrovision-chip">ESP32-C3</span>
+                    <span class="retrovision-chip">TFmini-S LiDAR</span>
+                    <span class="retrovision-chip">Camera classes</span>
+                    <span class="retrovision-chip">LVGL</span>
+                    <span class="retrovision-chip">UART</span>
+                </div>
+            </div>
+
+            <div class="project-stage-insights">
+                <article class="project-stage-insight">
+                    <span>Perception</span>
+                    <strong>Objects plus range</strong>
+                    <p>The lab combines semantic detections with a single forward time-of-flight distance so the HUD can show what is ahead and how close it is.</p>
+                </article>
+                <article class="project-stage-insight">
+                    <span>Planner data</span>
+                    <strong>Decision state stays visible</strong>
+                    <p>Stop, yield, caution, lattice routing, and planner fallback states are surfaced alongside the raw detections instead of hidden inside the simulation.</p>
+                </article>
+                <article class="project-stage-insight">
+                    <span>Hardware contract</span>
+                    <strong>Telemetry matches the device split</strong>
+                    <p>The footer packet keeps the C3-to-S3 data contract explicit: distance, detected classes, confidence, and current decision state.</p>
+                </article>
+            </div>
+
+            <div class="project-frame-shell project-frame-shell--preview retrovision-desktop-frame" style="--frame-height:720px; --frame-ratio:1024 / 680;">
+                <iframe
+                    class="project-frame"
+                    src="embeds/preview-shell.html?src=/freeway-frenzy-app/vision-lab.html%3Funits%3Dft%26chromeless%3D1&amp;width=1024&amp;height=680&amp;accent=22d3ee&amp;allow=autoplay"
+                    title="RetroVision Lab"
+                    loading="eager"
+                    scrolling="no"
+                ></iframe>
+            </div>
+            <div class="project-frame-shell retrovision-mobile-frame" style="aspect-ratio: 9 / 16; max-height: 82vh;">
+                <iframe
+                    class="project-frame"
+                    src="freeway-frenzy-app/vision-lab.html?units=ft"
+                    title="RetroVision Lab mobile"
+                    loading="eager"
+                    allow="autoplay"
+                    style="width:100%; height:100%; border:none; border-radius: 0 0 12px 12px;"
+                ></iframe>
+            </div>
+            <div class="project-stage-note">
+                This page is focused on RetroVision only. The older driving game remains separate.
+            </div>
+        </section>
+
+        <section class="project-meta-grid section-animate">
+            <article class="project-meta-card">
+                <h3>Built With</h3>
+                <div class="project-tag-list">
+                    <span class="tag">ESP32-S3</span>
+                    <span class="tag">ESP32-C3</span>
+                    <span class="tag">C</span>
+                    <span class="tag">ESP-IDF</span>
+                    <span class="tag">LVGL</span>
+                    <span class="tag">UART</span>
+                    <span class="tag">TFmini-S</span>
+                </div>
+            </article>
+            <article class="project-meta-card">
+                <h3>System Split</h3>
+                <p>
+                    The ESP32-C3 owns sensor fusion and packet construction. The ESP32-S3 owns the display loop, HUD rendering, and driver-facing alerts.
+                </p>
+            </article>
+            <article class="project-meta-card">
+                <h3>Data Kept</h3>
+                <ul class="project-points">
+                    <li>LiDAR distance and range state</li>
+                    <li>Detected object class, position, and confidence</li>
+                    <li>Planner decision, reason, and telemetry packet preview</li>
+                </ul>
+            </article>
+        </section>
+
+        <section class="project-copy-grid section-animate">
+            <article class="project-copy-card">
+                <h3>Why It Is Separate</h3>
+                <p>
+                    RetroVision is no longer presented as a follow-on section inside the driving game project. It is its own embedded vision app with a different purpose: retrofit driver awareness and sensor-fusion validation.
+                </p>
+            </article>
+            <article class="project-copy-card">
+                <h3>Why The Lab Matters</h3>
+                <p>
+                    The lab keeps the useful data visible while making the core product easy to understand. You can test object placement, distance changes, planner behavior, and UART output without opening the older driving game.
+                </p>
+            </article>
+        </section>
+
+        <style>
+            .retrovision-page .project-page-header {
+                max-width: 980px;
+            }
+
+            .retrovision-intro {
+                margin: 1rem 0 1.1rem;
+                padding: 1rem 1.1rem;
+                border: 1px solid rgba(255, 255, 255, 0.11);
+                border-radius: 14px;
+                background:
+                    radial-gradient(110% 140% at 8% 0%, rgba(34, 211, 238, 0.18), transparent 56%),
+                    radial-gradient(110% 140% at 92% 12%, rgba(167, 139, 250, 0.16), transparent 54%),
+                    linear-gradient(120deg, rgba(17, 24, 39, 0.74), rgba(8, 47, 73, 0.48));
+                backdrop-filter: blur(1px);
+            }
+
+            .retrovision-intro-title {
+                margin: 0 0 0.4rem;
+                color: #67e8f9;
+                font-weight: 700;
+                letter-spacing: 0.02em;
+                font-size: 0.98rem;
+            }
+
+            .retrovision-intro-lead {
+                margin: 0;
+                color: #dbe7f5;
+                line-height: 1.68;
+            }
+
+            .retrovision-chip-row {
+                margin-top: 0.85rem;
+                display: flex;
+                flex-wrap: wrap;
+                gap: 0.5rem;
+            }
+
+            .retrovision-chip {
+                display: inline-flex;
+                align-items: center;
+                padding: 0.3rem 0.62rem;
+                border-radius: 999px;
+                border: 1px solid rgba(34, 211, 238, 0.42);
+                background: rgba(8, 145, 178, 0.14);
+                color: #a5f3fc;
+                font-size: 0.77rem;
+                letter-spacing: 0.03em;
+                font-weight: 600;
+            }
+
+            .retrovision-mobile-frame {
+                display: none;
+            }
+
+            @media (pointer: coarse) {
+                .retrovision-desktop-frame {
+                    display: none !important;
+                }
+
+                .retrovision-mobile-frame {
+                    display: block !important;
+                }
+            }
+        </style>
+    </main>
+
+    <script src="script.js"></script>
+</body>
+</html>

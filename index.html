@@ -51,11 +51,11 @@
             pointer-events: none;
             opacity: 1;
             transition: opacity 0.22s ease;
-            will-change: transform;
+            will-change: opacity;
         }
-        body.is-retrovision-active #bg-canvas,
-        body.is-retrovision-hover #bg-canvas {
-            opacity: 0;
+        /* Canvas stays visible throughout */
+        #bg-canvas {
+            opacity: 1;
         }
 
         /* === Custom cursor disabled so it never covers hero text === */
@@ -142,13 +142,13 @@
             content: '';
             position: absolute;
             inset: 0;
-            background: radial-gradient(ellipse 80% 70% at 25% 50%, rgba(7, 9, 14, 0.78) 0%, rgba(7, 9, 14, 0.55) 45%, rgba(7, 9, 14, 0) 75%);
+            background: radial-gradient(ellipse 80% 70% at 25% 50%, rgba(7, 9, 14, 0.45) 0%, rgba(7, 9, 14, 0.3) 45%, rgba(7, 9, 14, 0) 75%);
             pointer-events: none;
             z-index: -1;
         }
         @media (max-width: 720px) {
             .hero { padding: 100px 6vw 60px; }
-            .hero::before { background: linear-gradient(180deg, rgba(7,9,14,0.85) 0%, rgba(7,9,14,0.6) 60%, rgba(7,9,14,0.3) 100%); }
+            .hero::before, .marquee::before, .about::before, .impact::before { background: linear-gradient(180deg, rgba(7,9,14,0.85) 0%, rgba(7,9,14,0.6) 60%, rgba(7,9,14,0.3) 100%); }
         }
         .hero-eyebrow {
             display: inline-flex; align-items: center; gap: 10px;
@@ -691,7 +691,7 @@
             background:
                 radial-gradient(1200px 600px at 12% 30%, rgba(167,139,250,0.04), transparent 60%),
                 radial-gradient(1000px 700px at 92% 70%, rgba(236,72,153,0.03), transparent 60%),
-                #050416;
+                rgba(5, 4, 22, 0.65);
             overflow: hidden;
             border-top: 1px solid var(--line);
             border-bottom: 1px solid var(--line);
@@ -843,7 +843,7 @@
             position: relative;
             border-radius: 14px;
             border: 1px solid rgba(255,255,255,0.08);
-            background: #08051a;
+            background: rgba(8, 5, 26, 0.75);
             overflow: hidden;
             box-shadow:
                 0 36px 100px rgba(0,0,0,0.6),
@@ -1041,7 +1041,8 @@
 
         @media (max-width: 1100px) {
             .rv-grid {
-                grid-template-columns: 1fr;
+                display: flex;
+                flex-direction: column;
                 gap: 32px;
             }
             .rv-features { grid-template-columns: 1fr; }
@@ -1064,7 +1065,7 @@
             background:
                 radial-gradient(900px 500px at 10% 25%, rgba(16, 185, 129, 0.07), transparent 58%),
                 radial-gradient(800px 520px at 92% 78%, rgba(59, 130, 246, 0.06), transparent 55%),
-                linear-gradient(180deg, #020806 0%, #051210 45%, #030806 100%);
+                linear-gradient(180deg, rgba(2, 8, 6, 0.88) 0%, rgba(5, 18, 16, 0.85) 45%, rgba(3, 8, 6, 0.88) 100%);
             overflow: hidden;
             border-top: 1px solid var(--line);
             border-bottom: 1px solid var(--line);
@@ -1095,7 +1096,7 @@
             border-radius: 18px;
             border: 1px solid rgba(52, 211, 153, 0.22);
             overflow: hidden;
-            background: linear-gradient(180deg, rgba(4, 18, 14, 0.92) 0%, rgba(3, 14, 11, 0.88) 100%);
+            background: linear-gradient(180deg, rgba(4, 18, 14, 0.75) 0%, rgba(3, 14, 11, 0.75) 100%);
             box-shadow:
                 0 28px 88px rgba(0, 0, 0, 0.42),
                 0 0 0 1px rgba(52, 211, 153, 0.08),
@@ -1411,7 +1412,7 @@
         }
 
         @media (max-width: 1100px) {
-            .orb-grid { grid-template-columns: 1fr; gap: 36px; }
+            .orb-grid { display: flex; flex-direction: column; gap: 36px; }
             .orb-cards { grid-template-columns: 1fr; }
             .orb-editor-shell-body { padding: 20px 14px 28px; }
         }
@@ -1812,8 +1813,8 @@
 
         /* === Page entry === */
         @keyframes pageEntry {
-            from { opacity: 0; transform: translateY(10px); }
-            to   { opacity: 1; transform: translateY(0); }
+            from { opacity: 0; }
+            to   { opacity: 1; }
         }
         body { animation: pageEntry 0.55s cubic-bezier(0.16, 1, 0.3, 1) both; }
 
@@ -2366,7 +2367,7 @@
                         }, 3000);
                     }
                 }
-            }, { threshold: 0.18 });
+            }, { threshold: 0.62 });
             io.observe(section);
 
             /* ── True scroll parallax + mouse-driven 3D tilt ─────
@@ -2434,12 +2435,7 @@
                 }
 
                 if (windowEl) {
-                    const tilt = mouseInside ? 1 : 0;
-                    const rotY =  mouseNX * 4.5 * tilt;
-                    const rotX = -mouseNY * 3.2 * tilt;
-                    windowEl.style.transform =
-                        `perspective(1600px) translate3d(0, ${o * PX.window}px, 0) ` +
-                        `rotateX(${rotX}deg) rotateY(${rotY}deg)`;
+                    windowEl.style.transform = `translate3d(0, ${o * PX.window}px, 0)`;
                 }
 
                 section.style.setProperty('--rv-spot', mouseInside ? '1' : '0');
@@ -3282,7 +3278,7 @@
             { title: 'CardioCycle Explorer', desc: 'Interactive Cardiac Cycle Visualizer', role: 'Software Engineer', tag: 'Physiology', href: 'ekg-wiggers.html', cover: 'ekg', tags: ['JavaScript', 'SVG', 'Physiology'] },
             { title: 'PianoViz', desc: 'MIDI Visualizer + Logic Pro Companion', role: 'Audio Tooling Developer', tag: 'Audio', href: 'pianoviz.html', cover: 'pianoviz', tags: ['React', 'Web MIDI', 'Vite'] },
             { title: 'Delivery Center Tycoon', desc: 'Roblox Logistics & Warehouse Simulator', role: 'Game Developer', tag: 'Game', href: 'dct.html', cover: 'dct', tags: ['Lua', 'Rojo', 'React'] },
-            { title: 'RetroVision', desc: 'Dual-ESP32 driver-assist HUD: camera classifies cars, signs, signals, and pedestrians while a TFmini-S LiDAR tracks distance — fused over UART and rendered with LVGL.', role: 'Embedded Systems Developer', tag: 'Embedded · Vision', href: 'freeway-frenzy.html#retrovision', cover: 'esp32', tags: ['C/C++', 'ESP32-S3', 'TFmini-S LiDAR'] },
+            { title: 'RetroVision', desc: 'Dual-ESP32 driver-assist HUD: camera classifies cars, signs, signals, and pedestrians while a TFmini-S LiDAR tracks distance — fused over UART and rendered with LVGL.', role: 'Embedded Systems Developer', tag: 'Embedded · Vision', href: 'retrovision.html', cover: 'esp32', tags: ['C/C++', 'ESP32-S3', 'TFmini-S LiDAR'] },
             { title: 'miSO', desc: 'macOS Virtual Machine Manager', role: 'macOS / Swift Developer', tag: 'macOS', href: 'miso.html', cover: 'miso', tags: ['Swift', 'SwiftUI', 'Virtualization'] },
             { title: 'FreewayFrenzy', desc: 'Distributed Embedded Driving Game', role: 'Embedded Systems Developer', tag: 'Embedded Game', href: 'freeway-frenzy.html', cover: 'freeway', tags: ['C/C++', 'ESP32', 'FreeRTOS'] },
             { title: 'SupaSesh', desc: 'Multi-Platform Session Tracking App', role: 'iOS / Swift Developer', tag: 'iOS', href: 'supasesh.html', cover: 'supasesh', tags: ['Swift', 'SwiftUI', 'CloudKit'] },
@@ -3329,14 +3325,11 @@
                 const y = e.clientY - r.top;
                 a.style.setProperty('--mx', x + 'px');
                 a.style.setProperty('--my', y + 'px');
-                const rx = ((y / r.height) - 0.5) * -3;
-                const ry = ((x / r.width) - 0.5) * 3.5;
-                a.style.transform = `perspective(1000px) rotateX(${rx}deg) rotateY(${ry}deg) scale3d(1.006, 1.006, 1.006) translateZ(2px)`;
+                a.style.transform = `scale3d(1.006, 1.006, 1.006)`;
                 
-                // Add a slight parallax shift to the cover content if present
                 const cover = a.querySelector('.classic-cover-host');
                 if (cover) {
-                    cover.style.transform = `scale(1.02) translateX(${ry * -0.15}px) translateY(${rx * 0.15}px)`;
+                    cover.style.transform = `scale(1.02)`;
                 }
             });
             a.addEventListener('mouseleave', () => { 
@@ -3693,6 +3686,16 @@
             scene.add(m);
             orbiters.push(m);
         }
+        const orbiterMatInfo = [];
+        orbiters.forEach(group => {
+            group.traverse(obj => {
+                if (!obj.isMesh || !obj.material) return;
+                const mat = obj.material;
+                const baseOp = mat.transparent ? (mat.opacity ?? 1) : 1;
+                mat.transparent = true;
+                orbiterMatInfo.push({ mat, baseOp });
+            });
+        });
 
         // Ribbon material info (collected after ribbons are built)
         const ribbonMatInfo = ribbons.map(wrap => {
@@ -3827,6 +3830,7 @@
         const orbitalLabSection = document.getElementById('orbital-lab');
         const retroVisionSection = document.getElementById('vision-lab');
         const clampF = (v, lo = 0, hi = 1) => Math.min(hi, Math.max(lo, v));
+        const smoothstepF = v => v * v * (3 - 2 * v);
 
         // Colors for DNA vs orbital lighting moods
         const dnaKeyColor = new THREE.Color(0x6ee7b7);
@@ -3848,28 +3852,23 @@
             const p = scrollY / docH; // 0..1
             syncScrollUI(p);
 
-            // DNA un-winding transition 
-            // Straighten and split smoothly as we enter the Direction section
-            let unwindProgress = 0;
-            if (impactSection) {
-                const impactRect = impactSection.getBoundingClientRect();
-                // When impact section approaches the middle of the screen
-                unwindProgress = clampF((innerHeight * 0.6 - impactRect.top) / (innerHeight * 0.4));
-            }
+            const heroHeight = Math.max(1, hero?.offsetHeight || innerHeight);
+            // Open it earlier and slower so we can see it before it fades
+            const openProgress = smoothstepF(clampF((scrollY - heroHeight * 0.05) / (heroHeight * 0.7)));
+            const fadeProgress = smoothstepF(clampF((scrollY - heroHeight * 0.62) / (heroHeight * 0.43)));
+            const helixAlpha = 1 - fadeProgress;
 
-            targetHelixTurns = HELIX_TURNS_BASE * (1 - unwindProgress);
-            targetSplit = 12 * unwindProgress;
+            targetHelixTurns = HELIX_TURNS_BASE * (1 - openProgress);
+            targetSplit = 16 * openProgress;
 
-            // Faster lerp so it feels snappier (0.12 vs 0.08)
-            currentHelixTurns += (targetHelixTurns - currentHelixTurns) * 0.12;
-            currentSplit += (targetSplit - currentSplit) * 0.12;
-
+            // Remove double-lerp to make it realtime and snappy based on smoothed scrollY
             if (Math.abs(currentHelixTurns - targetHelixTurns) > 0.001 || Math.abs(currentSplit - targetSplit) > 0.001) {
+                currentHelixTurns = targetHelixTurns;
+                currentSplit = targetSplit;
                 updateDNA(currentHelixTurns, currentSplit);
             }
 
-            // === Orbital-section morph: DNA → molecules ===
-            // DNA stays fully visible through RetroVision; only fades when Orbital is in view
+            // === Orbital-section morph: later molecule cluster ===
             if (orbitalLabSection) {
                 const orbRect = orbitalLabSection.getBoundingClientRect();
                 // Block fade while RetroVision is still prominent in viewport
@@ -3886,13 +3885,11 @@
                 currentOrbitalProgress += (rawOrb - currentOrbitalProgress) * 0.06;
             }
 
-            // Fade DNA out as orbital section approaches (skip if near-zero for perf)
+            // Fade the hero DNA/ribbons/orbiters out after the hero, and restore when backing up.
             const dnaAlpha = 1 - currentOrbitalProgress;
-            if (currentOrbitalProgress > 0.002) {
-                [...dnaMeshInfo, ...backboneMatInfo, ...ribbonMatInfo].forEach(({ mat, baseOp }) => {
-                    mat.opacity = baseOp * dnaAlpha;
-                });
-            }
+            [...dnaMeshInfo, ...backboneMatInfo, ...ribbonMatInfo, ...orbiterMatInfo].forEach(({ mat, baseOp }) => {
+                mat.opacity = baseOp * dnaAlpha * helixAlpha;
+            });
 
             // Fade + scale in the orbital molecule cluster via pre-cached material list
             const orbOpacity = currentOrbitalProgress * 0.92;
@@ -3900,7 +3897,7 @@
             orbMolGroup.scale.setScalar(0.05 + currentOrbitalProgress * 0.95);
             orbMolGroup.rotation.y = t * 0.22;
             orbMolGroup.position.x = Math.sin(t * 0.11) * 0.25;
-            orbMolGroup.position.y = -p * 1.5 + Math.cos(t * 0.08) * 0.15; // sticky with camera
+            orbMolGroup.position.y = Math.cos(t * 0.08) * 0.15; // sticky with camera
 
             // Shift scene lighting mood: DNA mint/purple → orbital deep green/cyan
             key.color.lerpColors(dnaKeyColor, orbKeyColor, currentOrbitalProgress);
@@ -3909,20 +3906,20 @@
 
             // Camera dolly + pan based on scroll
             camera.position.x = mouse.x * 0.6;
-            camera.position.y = -mouse.y * 0.4 - p * 2.5;
+            camera.position.y = -mouse.y * 0.4 - openProgress * 1.2;
             camera.position.z = 8 - p * 1.5;
-            camera.lookAt(0, -p * 1.5, 0);
+            camera.lookAt(0, -openProgress * 0.55, 0);
 
             // Interpolate spin down to 0 when splitting so they frame the screen left/right
-            const splitRatio = currentSplit / 12; // 0..1
+            const splitRatio = clampF(currentSplit / 16); // 0..1
             const spinAmount = 1.0 - splitRatio;
 
-            // DNA helix — slow spin, but stop spinning and face forward when split
-            heroGroup.rotation.y = (t * 0.22 + p * Math.PI * 0.6) * spinAmount;
-            heroGroup.rotation.x = (Math.sin(t * 0.18) * 0.08 + p * 0.4) * spinAmount;
-            heroGroup.position.x = -p * 2.0 * spinAmount;
-            // Sticky with the camera while visible
-            heroGroup.position.y = -p * 1.5;
+            // DNA helix — ambient spin in the hero, then open out and vanish.
+            heroGroup.rotation.y = (t * 0.22 + openProgress * Math.PI * 0.35) * spinAmount;
+            heroGroup.rotation.x = (Math.sin(t * 0.18) * 0.08 + openProgress * 0.18) * spinAmount;
+            heroGroup.position.x = 0;
+            heroGroup.position.y = -openProgress * 0.45;
+            heroGroup.scale.setScalar(1 + openProgress * 0.45);
             helixGroup.rotation.y = (t * 0.05) * spinAmount;
 
             // Protein ribbons swirl
@@ -3938,11 +3935,11 @@
                 const r = m.userData.r * (1 - currentOrbitalProgress * 0.38);
                 m.position.x = Math.cos(m.userData.theta) * r;
                 m.position.z = Math.sin(m.userData.theta) * r - 1;
-                m.position.y = Math.sin(t * 0.5 + m.userData.bobPhase) * m.userData.bobAmp + p * -1.2;
+                m.position.y = Math.sin(t * 0.5 + m.userData.bobPhase) * m.userData.bobAmp - openProgress * 0.7;
                 m.rotation.x += m.userData.rotSpeed.x;
                 m.rotation.y += m.userData.rotSpeed.y;
                 m.rotation.z += m.userData.rotSpeed.z;
-                m.scale.setScalar(1 + currentOrbitalProgress * 0.55);
+                m.scale.setScalar(1 + currentOrbitalProgress * 0.55 + openProgress * 0.35);
             });
 
             // Particles drift

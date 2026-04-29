@@ -1,6 +1,6 @@
 /* ─────────────────────────────────────────────────────────────
-   Vision Lab — simulator for the FreewayFrenzy hardware reused
-   as a real-world driver-assist vision stack.
+   RetroVision Lab — simulator for a real-world driver-assist
+   vision stack.
 
    Architecture mirrors the actual build:
      ESP32-C3 (sensor fusion)  →  UART  →  ESP32-S3 (render)
@@ -419,8 +419,8 @@ function makeDecision(detections, lidar, dt) {
 
   // Stop sign / red light → STOP only if sign is within the ego car's travel corridor
   const stopSignCorridorM = WORLD.carWidthM / 2 + 1.5; // shoulder signs outside this are ignored
-  const stopSign = detections.find(d => d.class === 'STOP_SIGN' && d.distM < 15 && Math.abs(d.xRelM) < stopSignCorridorM);
-  const redLight = detections.find(d => d.class === 'TRAFFIC_LIGHT' && d.prop.light === 'red' && d.distM < 18);
+  const stopSign = detections.find(d => d.class === 'STOP_SIGN' && d.distM < 24 && Math.abs(d.xRelM) < stopSignCorridorM);
+  const redLight = detections.find(d => d.class === 'TRAFFIC_LIGHT' && d.prop.light === 'red' && d.distM < 30);
   if (stopSign) return { state: 'STOP', reason: `Stop sign ahead · ${stopSign.distM.toFixed(1)} ft`, color: '#f43f5e' };
   if (redLight) return { state: 'STOP', reason: `Red signal ahead · ${redLight.distM.toFixed(1)} ft`, color: '#f43f5e' };
 
@@ -467,6 +467,7 @@ function decisionFromScenario(fallback) {
     STOP_SIGN_UNPROTECTED:   { PRE_STOP: 'APPROACH STOP', STOP: 'HELD · STOP', CREEP: 'CREEPING', INTERSECTION_CRUISE: 'CLEARING INT.' },
     TRAFFIC_LIGHT_PROTECTED: { APPROACH: 'APPROACH SIGNAL', STOP: 'HELD · RED', CRUISE: 'GREEN · GO' },
     EMERGENCY_PULL_OVER:     { APPROACH: 'EMER. APPROACH', SLOW_DOWN: 'EMER. SLOW', STANDBY: 'EMER. STANDBY' },
+    EMERGENCY_REROUTE:       { HOLD: 'PATH BLOCKED · HOLD', REVERSE: 'REVERSING', REPLAN: 'REPLANNING', NUDGE: 'NUDGE PASS' },
     YIELD_SIGN:              { SOFT_YIELD: 'YIELD' },
   };
   const state = (labelMap[s.id] && labelMap[s.id][s.stage]) || s.stage;
@@ -491,6 +492,10 @@ const REAL_DIMS = {
 
 function lerp(a, b, t) {
   return a + (b - a) * t;
+}
+
+function clamp(v, lo, hi) {
+  return Math.max(lo, Math.min(hi, v));
 }
 
 function mixHex(fg, bg, t) {
@@ -1038,303 +1043,69 @@ function drawHudRangeLadder(ctx, yNearM, yFarM) {
 }
 
 function drawHudEgoForeground(ctx, W, H) {
-  // Premium hand-crafted ego car — drawn as a modern sedan seen from
-  // a slightly elevated rear-¾ view, like Tesla's perception HUD.
-  
+  // Front-mounted-sensor HUD — the camera/LiDAR are bolted to the front
+  // bumper, so the perception view never contains the ego itself.  We
+  // only render a thin sensor-mount band, an aim reticle, and the active
+  // gear indicator (D / R / N) so the operator knows what direction is live.
+
   const cx = W / 2;
-  // Anchor the ego car flush with the bottom of the screen to create a solid "blind area"
-  const groundY = H + 24; 
-
-  // Use a fixed HUD-space size for the ego car icon.
-  // Projecting at the near-plane (yM=0.1) generates ~36 000 px — absurdly large.
-  // Instead anchor the visual size as a fraction of the canvas width, matching
-  // what Tesla's perception HUD actually shows.
-  const carW = Math.round(W * 0.21);
-  const carH = carW * 0.45;
-  const topY = groundY - carH;
-
-  const rearHalfW = carW / 2;
-  const hoodHalfW = rearHalfW * 0.76;
-  const roofHalfW = carW * 0.34;
-  const roofFrontHalfW = carW * 0.29;
-  const carLen    = carH; 
-
-  const bumperH = carH * 0.3;
-  const bodyH   = carH * 0.35;
-  const glassH  = carH * 0.25;
-  const hoodH   = carH * 0.1;
-
-  const bumperTop = groundY - bumperH;
-  const bodyTop   = bumperTop - bodyH;
-  const glassTop  = bodyTop - glassH;
-  const hoodTop   = glassTop - hoodH;
-
-  // Width at each vertical slice
-  const wAt = (y) => {
-    const t = (groundY - y) / carH;
-    return lerp(rearHalfW, hoodHalfW, Math.min(1, t));
-  };
+  const bandH = 18;
+  const groundY = H - 1;
+  const bandTop = groundY - bandH;
 
   ctx.save();
 
-  // ── Ground shadow ──
-  ctx.fillStyle = 'rgba(0,0,0,0.5)';
-  ctx.beginPath();
-  ctx.ellipse(cx, groundY + 4, rearHalfW * 0.85, 6, 0, 0, Math.PI * 2);
-  ctx.fill();
+  // ── Sensor mount band (matches the physical bumper edge) ──
+  const bandGrad = ctx.createLinearGradient(0, bandTop, 0, groundY);
+  bandGrad.addColorStop(0, 'rgba(15,23,42,0.0)');
+  bandGrad.addColorStop(0.4, 'rgba(15,23,42,0.55)');
+  bandGrad.addColorStop(1, 'rgba(15,23,42,0.92)');
+  ctx.fillStyle = bandGrad;
+  ctx.fillRect(0, bandTop, W, bandH);
 
-  // ── Body (lower panel) ──
-  const bodyGrad = ctx.createLinearGradient(cx - rearHalfW, 0, cx + rearHalfW, 0);
-  bodyGrad.addColorStop(0, '#065a82');
-  bodyGrad.addColorStop(0.15, '#0b7daa');
-  bodyGrad.addColorStop(0.5, '#0ea5e9');
-  bodyGrad.addColorStop(0.85, '#0b7daa');
-  bodyGrad.addColorStop(1, '#065a82');
-  ctx.fillStyle = bodyGrad;
-  ctx.shadowColor = '#0ea5e9';
-  ctx.shadowBlur = 16;
-  drawPoly(ctx, [
-    { x: cx - rearHalfW, y: groundY },
-    { x: cx + rearHalfW, y: groundY },
-    { x: cx + wAt(bodyTop), y: bodyTop },
-    { x: cx - wAt(bodyTop), y: bodyTop },
-  ]);
-  ctx.fill();
-  ctx.shadowBlur = 0;
-
-  // ── Bumper area (dark inset) ──
-  const bInset = rearHalfW * 0.06;
-  ctx.fillStyle = '#0c2d48';
-  drawPoly(ctx, [
-    { x: cx - rearHalfW + bInset, y: groundY - 2 },
-    { x: cx + rearHalfW - bInset, y: groundY - 2 },
-    { x: cx + rearHalfW - bInset * 1.5, y: bumperTop },
-    { x: cx - rearHalfW + bInset * 1.5, y: bumperTop },
-  ]);
-  ctx.fill();
-
-  // ── Taillights ──
-  const tlW = rearHalfW * 0.22;
-  const tlH = bumperH * 0.55;
-  const tlY = bumperTop + bumperH * 0.15;
-  ctx.shadowColor = '#ef4444';
-  ctx.shadowBlur = 12;
-  ctx.fillStyle = '#ef4444';
-  roundRect(ctx, cx - rearHalfW + bInset * 2, tlY, tlW, tlH, 3);
-  ctx.fill();
-  roundRect(ctx, cx + rearHalfW - bInset * 2 - tlW, tlY, tlW, tlH, 3);
-  ctx.fill();
-  ctx.shadowBlur = 0;
-  // Taillight inner detail
-  ctx.fillStyle = '#fca5a5';
-  ctx.fillRect(cx - rearHalfW + bInset * 2 + 3, tlY + 2, tlW - 6, 2);
-  ctx.fillRect(cx + rearHalfW - bInset * 2 - tlW + 3, tlY + 2, tlW - 6, 2);
-
-  // ── License plate ──
-  const plateW = rearHalfW * 0.28;
-  const plateH = bumperH * 0.42;
-  ctx.fillStyle = '#e2e8f0';
-  roundRect(ctx, cx - plateW / 2, bumperTop + bumperH * 0.28, plateW, plateH, 2);
-  ctx.fill();
-  ctx.fillStyle = '#64748b';
-  ctx.font = `bold ${Math.max(6, plateH * 0.6)}px ui-monospace, monospace`;
-  ctx.textAlign = 'center';
-  ctx.textBaseline = 'middle';
-  ctx.fillText('EGO', cx, bumperTop + bumperH * 0.28 + plateH / 2);
-
-  // ── Turn signals (amber) ──
-  ctx.fillStyle = '#fbbf24';
-  ctx.fillRect(cx - rearHalfW + bInset, groundY - 5, 6, 3);
-  ctx.fillRect(cx + rearHalfW - bInset - 6, groundY - 5, 6, 3);
-
-  // ── Body panel highlight (chrome strip) ──
-  ctx.strokeStyle = 'rgba(255,255,255,0.35)';
-  ctx.lineWidth = 1.2;
-  drawLine(ctx,
-    { x: cx - rearHalfW + 2, y: bumperTop },
-    { x: cx + rearHalfW - 2, y: bumperTop }
-  );
-
-  // ── Upper body / C-pillar transition ──
-  const ubGrad = ctx.createLinearGradient(cx - rearHalfW, 0, cx + rearHalfW, 0);
-  ubGrad.addColorStop(0, '#064e77');
-  ubGrad.addColorStop(0.2, '#0a8cc4');
-  ubGrad.addColorStop(0.5, '#0ea5e9');
-  ubGrad.addColorStop(0.8, '#0a8cc4');
-  ubGrad.addColorStop(1, '#064e77');
-  ctx.fillStyle = ubGrad;
-  const ubBotHW = wAt(bodyTop);
-  const ubTopHW = lerp(rearHalfW, roofHalfW, 0.58);
-  drawPoly(ctx, [
-    { x: cx - ubBotHW, y: bodyTop },
-    { x: cx + ubBotHW, y: bodyTop },
-    { x: cx + ubTopHW, y: glassTop },
-    { x: cx - ubTopHW, y: glassTop },
-  ]);
-  ctx.fill();
-
-  // ── Rear window (glass) ──
-  const glassInset = 4;
-  const gwBot = ubBotHW - glassInset;
-  const gwTop = ubTopHW - glassInset;
-  const glassGrad = ctx.createLinearGradient(0, bodyTop, 0, glassTop);
-  glassGrad.addColorStop(0, '#1e3a5f');
-  glassGrad.addColorStop(0.3, '#2a5a80');
-  glassGrad.addColorStop(0.6, '#3b82a8');
-  glassGrad.addColorStop(1, '#4a9ec0');
-  ctx.fillStyle = glassGrad;
-  drawPoly(ctx, [
-    { x: cx - gwBot, y: bodyTop - 3 },
-    { x: cx + gwBot, y: bodyTop - 3 },
-    { x: cx + gwTop, y: glassTop + 3 },
-    { x: cx - gwTop, y: glassTop + 3 },
-  ]);
-  ctx.fill();
-  // Glass reflection highlight
-  ctx.fillStyle = 'rgba(255,255,255,0.12)';
-  drawPoly(ctx, [
-    { x: cx - gwBot * 0.6, y: bodyTop - 2 },
-    { x: cx - gwBot * 0.15, y: bodyTop - 2 },
-    { x: cx - gwTop * 0.2, y: glassTop + 5 },
-    { x: cx - gwTop * 0.55, y: glassTop + 5 },
-  ]);
-  ctx.fill();
-  // Glass divider (center pillar)
-  ctx.strokeStyle = 'rgba(0,0,0,0.3)';
-  ctx.lineWidth = 1.5;
-  drawLine(ctx, { x: cx, y: bodyTop - 2 }, { x: cx, y: glassTop + 4 });
-
-  // ── Roof panel ──
-  const roofGrad = ctx.createLinearGradient(cx - roofHalfW, 0, cx + roofHalfW, 0);
-  roofGrad.addColorStop(0, '#053d5e');
-  roofGrad.addColorStop(0.3, '#0879a8');
-  roofGrad.addColorStop(0.5, '#0891b2');
-  roofGrad.addColorStop(0.7, '#0879a8');
-  roofGrad.addColorStop(1, '#053d5e');
-  ctx.fillStyle = roofGrad;
-  drawPoly(ctx, [
-    { x: cx - roofHalfW, y: glassTop },
-    { x: cx + roofHalfW, y: glassTop },
-    { x: cx + roofHalfW * 0.96, y: glassTop - hoodH * 0.18 },
-    { x: cx + roofFrontHalfW, y: hoodTop + hoodH * 0.35 },
-    { x: cx - roofFrontHalfW, y: hoodTop + hoodH * 0.35 },
-    { x: cx - roofHalfW * 0.96, y: glassTop - hoodH * 0.18 },
-  ]);
-  ctx.fill();
-
-  // ── Windshield (front glass visible over roof) ──
-  const wsInset = 3;
-  const wsBotHW = roofFrontHalfW - wsInset;
-  const wsTopHW = hoodHalfW * 0.52;
-  const wsBot = hoodTop + hoodH * 0.38;
-  const wsTop = hoodTop + hoodH * 0.08;
-  const wsGrad = ctx.createLinearGradient(0, wsBot, 0, wsTop);
-  wsGrad.addColorStop(0, '#2a6080');
-  wsGrad.addColorStop(0.5, '#4a9aba');
-  wsGrad.addColorStop(1, '#6bc0dc');
-  ctx.fillStyle = wsGrad;
-  drawPoly(ctx, [
-    { x: cx - wsBotHW, y: wsBot },
-    { x: cx + wsBotHW, y: wsBot },
-    { x: cx + wsTopHW, y: wsTop },
-    { x: cx - wsTopHW, y: wsTop },
-  ]);
-  ctx.fill();
-  // Windshield reflection
-  ctx.fillStyle = 'rgba(255,255,255,0.15)';
-  drawPoly(ctx, [
-    { x: cx + wsBotHW * 0.1, y: wsBot - 1 },
-    { x: cx + wsBotHW * 0.7, y: wsBot - 1 },
-    { x: cx + wsTopHW * 0.65, y: wsTop + 2 },
-    { x: cx + wsTopHW * 0.15, y: wsTop + 2 },
-  ]);
-  ctx.fill();
-
-  // ── Hood (front panel tapering forward) ──
-  const hoodGrad = ctx.createLinearGradient(0, glassTop, 0, hoodTop);
-  hoodGrad.addColorStop(0, '#0891b2');
-  hoodGrad.addColorStop(0.5, '#0ea5e9');
-  hoodGrad.addColorStop(1, '#38bdf8');
-  ctx.fillStyle = hoodGrad;
-  drawPoly(ctx, [
-    { x: cx - roofFrontHalfW - 6, y: hoodTop + hoodH * 0.35 },
-    { x: cx + roofFrontHalfW + 6, y: hoodTop + hoodH * 0.35 },
-    { x: cx + hoodHalfW * 0.65, y: hoodTop },
-    { x: cx - hoodHalfW * 0.65, y: hoodTop },
-  ]);
-  ctx.fill();
-
-  // ── Side mirrors ──
-  ctx.fillStyle = '#064e77';
-  const mirY = glassTop + glassH * 0.3;
-  const mirW = 8, mirH = 5;
-  roundRect(ctx, cx - ubTopHW - mirW - 1, mirY, mirW, mirH, 2);
-  ctx.fill();
-  roundRect(ctx, cx + ubTopHW + 1, mirY, mirW, mirH, 2);
-  ctx.fill();
-  // Mirror glass
-  ctx.fillStyle = '#4a9aba';
-  ctx.fillRect(cx - ubTopHW - mirW, mirY + 1, mirW - 2, mirH - 2);
-  ctx.fillRect(cx + ubTopHW + 2, mirY + 1, mirW - 2, mirH - 2);
-
-  // Rear POV: tires sit under the body — no visible wheel disks (avoids “floating” semicircles).
-  // Subtle lower sill / shadow only.
-  ctx.fillStyle = 'rgba(2,6,23,0.55)';
-  roundRect(
-    ctx,
-    cx - rearHalfW * 0.88,
-    groundY - 4,
-    rearHalfW * 1.76,
-    5,
-    2
-  );
-  ctx.fill();
-
-  // ── Sensor pod (roof mount) ──
-  const podW = 14, podH2 = 6;
-  const podY = glassTop - 2;
-  ctx.fillStyle = '#0f172a';
-  roundRect(ctx, cx - podW / 2, podY - podH2, podW, podH2, 3);
-  ctx.fill();
-  ctx.fillStyle = '#22d3ee';
-  ctx.shadowColor = '#22d3ee';
-  ctx.shadowBlur = 10;
-  ctx.beginPath();
-  ctx.arc(cx, podY - podH2 / 2, 2.5, 0, Math.PI * 2);
-  ctx.fill();
-  ctx.shadowBlur = 0;
-
-  // ── Outline / chrome trim ──
-  ctx.strokeStyle = 'rgba(255,255,255,0.22)';
+  // ── Cyan sensor-active hairline ──
+  ctx.strokeStyle = 'rgba(34,211,238,0.55)';
   ctx.lineWidth = 1;
-  // Body outline
-  drawPoly(ctx, [
-    { x: cx - rearHalfW, y: groundY },
-    { x: cx + rearHalfW, y: groundY },
-    { x: cx + hoodHalfW * 0.65, y: hoodTop },
-    { x: cx - hoodHalfW * 0.65, y: hoodTop },
-  ]);
+  ctx.beginPath();
+  ctx.moveTo(0, bandTop + 1);
+  ctx.lineTo(W, bandTop + 1);
   ctx.stroke();
-  // Side panel seam
-  ctx.strokeStyle = 'rgba(0,0,0,0.2)';
-  drawLine(ctx,
-    { x: cx - rearHalfW + bInset * 2 + tlW + 4, y: bumperTop + bumperH * 0.3 },
-    { x: cx - ubTopHW + 3, y: glassTop + 3 }
-  );
-  drawLine(ctx,
-    { x: cx + rearHalfW - bInset * 2 - tlW - 4, y: bumperTop + bumperH * 0.3 },
-    { x: cx + ubTopHW - 3, y: glassTop + 3 }
-  );
 
-  // ── Cyan glow strip under car ──
-  ctx.fillStyle = 'rgba(34,211,238,0.5)';
-  ctx.shadowColor = '#22d3ee';
-  ctx.shadowBlur = 12;
-  ctx.fillRect(cx - rearHalfW * 0.55, groundY + 6, rearHalfW * 1.1, 2);
+  // ── Center reticle (camera bore-sight) ──
+  const retY = bandTop - 8;
+  ctx.strokeStyle = 'rgba(34,211,238,0.7)';
+  ctx.lineWidth = 1.5;
+  ctx.beginPath();
+  ctx.moveTo(cx - 12, retY); ctx.lineTo(cx - 4, retY);
+  ctx.moveTo(cx + 4, retY);  ctx.lineTo(cx + 12, retY);
+  ctx.moveTo(cx, retY - 6);  ctx.lineTo(cx, retY - 1);
+  ctx.moveTo(cx, retY + 1);  ctx.lineTo(cx, retY + 6);
+  ctx.stroke();
+
+  // ── Gear / drive-direction indicator (D / R / N) ──
+  let gear = 'N', gearColor = '#94a3b8';
+  if (EGO.speedMps > 0.3)        { gear = 'D'; gearColor = '#22d3ee'; }
+  else if (EGO.speedMps < -0.05) { gear = 'R'; gearColor = '#f59e0b'; }
+  ctx.fillStyle = gearColor;
+  ctx.shadowColor = gearColor;
+  ctx.shadowBlur = 10;
+  ctx.font = `700 13px ui-monospace, 'SF Mono', Menlo, monospace`;
+  ctx.textAlign = 'left';
+  ctx.textBaseline = 'middle';
+  ctx.fillText(gear, 14, bandTop + bandH / 2);
   ctx.shadowBlur = 0;
+
+  // ── Sensor-mount labels (mirrors the actual hardware: front cam + LiDAR) ──
+  ctx.fillStyle = 'rgba(148,163,184,0.85)';
+  ctx.font = `9px ui-monospace, 'SF Mono', Menlo, monospace`;
+  ctx.textAlign = 'left';
+  ctx.fillText('FRONT CAM · LiDAR', 36, bandTop + bandH / 2);
+  ctx.textAlign = 'right';
+  ctx.fillText(`SPD ${(EGO.speedMps * 0.681818).toFixed(1)} mph`, W - 12, bandTop + bandH / 2);
 
   ctx.restore();
 }
+
 
 function hudNearestVisibleGroundM() {
   const bottomFromHorizon = Math.max(1, HUD_H - hudHorizonY());
@@ -2320,8 +2091,11 @@ document.querySelectorAll('.drive-btn[data-drive]').forEach(btn => {
   btn.addEventListener('pointerleave', deactivate);
 });
 
-/* Analog autonomy outputs (ft/s²-style dynamics; names kept for UART parity) */
-const AUTONOMY = { enabled: true, throttle: 0, steer: 0 };
+/* Analog autonomy outputs (ft/s²-style dynamics; names kept for UART parity).
+   reverseTarget — when non-null, an explicit reverse cruise speed (negative ft/s)
+                   set by the EMERGENCY_REROUTE scenario.
+   allowReverse  — opens the brake→reverse transition for free-form negative throttle. */
+const AUTONOMY = { enabled: true, throttle: 0, steer: 0, reverseTarget: null, allowReverse: false };
 
 function updateEgo(dt) {
   let throttleCmd;
@@ -2334,12 +2108,32 @@ function updateEgo(dt) {
     steerCmd = (driveKeys.right ? 1 : 0) - (driveKeys.left ? 1 : 0);
   }
 
-  if (throttleCmd > 0) {
+  // Reverse-aware longitudinal dynamics.
+  // Conventions:
+  //   throttleCmd  > 0  → drive forward (accelerate +Y)
+  //   throttleCmd  < 0  → brake to 0; if AUTONOMY.allowReverse, continue into reverse
+  //   AUTONOMY.reverseTarget  — explicit reverse cruise speed (negative ft/s, e.g. -2.0)
+  if (AUTONOMY.enabled && AUTONOMY.reverseTarget != null && AUTONOMY.reverseTarget < 0) {
+    // Closed-loop reverse: drive toward AUTONOMY.reverseTarget regardless of throttleCmd
+    const target = AUTONOMY.reverseTarget;
+    const dv = target - EGO.speedMps;
+    const a = (dv > 0 ? EGO.brakeMps2 : EGO.accelMps2 * 0.6); // softer reverse accel
+    EGO.speedMps = EGO.speedMps + Math.sign(dv) * Math.min(Math.abs(dv), a * dt);
+  } else if (throttleCmd > 0) {
     EGO.speedMps = Math.min(EGO.maxSpeedMps, EGO.speedMps + EGO.accelMps2 * throttleCmd * dt);
   } else if (throttleCmd < 0) {
-    EGO.speedMps = Math.max(0, EGO.speedMps + throttleCmd * EGO.brakeMps2 * dt);
+    // Brake then optionally reverse if explicitly allowed
+    if (EGO.speedMps > 0) {
+      EGO.speedMps = Math.max(0, EGO.speedMps + throttleCmd * EGO.brakeMps2 * dt);
+    } else if (AUTONOMY.allowReverse) {
+      EGO.speedMps = Math.max(-EGO.maxSpeedMps * 0.25, EGO.speedMps + throttleCmd * EGO.accelMps2 * 0.6 * dt);
+    } else {
+      EGO.speedMps = 0;
+    }
   } else {
-    EGO.speedMps = Math.max(0, EGO.speedMps - EGO.dragMps2 * dt);
+    // Drag pulls speed toward zero from either direction
+    if (EGO.speedMps > 0) EGO.speedMps = Math.max(0, EGO.speedMps - EGO.dragMps2 * dt);
+    else if (EGO.speedMps < 0) EGO.speedMps = Math.min(0, EGO.speedMps + EGO.dragMps2 * dt);
   }
 
   const steerBlend = Math.min(1, dt * EGO.steerResponse);
@@ -2413,9 +2207,9 @@ const AUTO = {
   proceduralSpawn: true,
   targetSpeedMps: 11.0,       // cruise (~7.5 mph) — ft/s internally
   laneCenterX: 0,
-  lookAheadM: 8.5,
-  pathRangeM: 38,
-  pathSteps: 76,
+  lookAheadM: 8.0,
+  pathRangeM: 56,
+  pathSteps: 112,
   plannedPath: [],
   routeThreat: null,
   activeThreats: new Set(), // IDs of obstacles currently being routed around
@@ -2426,7 +2220,11 @@ const AUTO = {
   _creepUntil: 0,
   _creepScheduled: false,
   _lastTargetX: 0,
-  _lastTargetY: 8.0
+  _lastTargetY: 8.0,
+  _lastTargetL: 0,
+  _lastTargetCost: Infinity,
+  _lastTargetChangedAt: performance.now(),
+  _prevSteerCmd: 0
 };
 
 function inCorridor(det, halfLaneFrac) {
@@ -2466,7 +2264,7 @@ function blockingPed(detections) {
    heuristic that is still far better than treating everything
    as static. */
 const PRED = {
-  horizonS: 2.0,          // 2-second prediction horizon
+  horizonS: 2.7,          // longer look-ahead makes intent decisions earlier
   _prevY: new Map(),       // id → previous yM for velocity estimation
 };
 
@@ -2490,11 +2288,14 @@ function predictObstacles(obs, dt) {
       halfW,
       halfL,
       vy,
-      // Collision envelope: half prop width + half ego width + minimal comfort margin.
-      // Tight enough that the car can squeeze past shoulder obstacles in a 16ft lane.
-      clearance: halfW + WORLD.carWidthM * 0.5 + 0.15,
-      longitudinalPad: halfL + 4.5,
-      predictedY: p.yM - vy * PRED.horizonS, // where it will be in 2 s
+      // Collision envelope: half prop width + half ego width + safety margin.
+      // 1.0 ft lateral edge-gap target: the planner aims for ~1 ft between
+      // the ego's outer edge and the obstacle's outer edge while passing.
+      clearance: halfW + WORLD.carWidthM * 0.5 + 1.0,
+      // Keep the lateral offset alongside the obstacle for longer so the rear
+      // bumper has cleared before the planner reels back toward center.
+      longitudinalPad: halfL + 6.0,
+      predictedY: p.yM - vy * PRED.horizonS, // where it will be near the planner horizon
     };
     entry.intent = classifyIntent(entry);
     // Cut-in obstacles deserve a wider keep-out envelope (Apollo: high-priority cost).
@@ -2695,6 +2496,10 @@ const SCENARIO_DEFS = {
   STOP_SIGN_UNPROTECTED:       { priority: 80, color: '#f43f5e', stages: ['PRE_STOP', 'STOP', 'CREEP', 'INTERSECTION_CRUISE'] },
   TRAFFIC_LIGHT_PROTECTED:     { priority: 70, color: '#facc15', stages: ['APPROACH', 'STOP', 'CRUISE'] },
   EMERGENCY_PULL_OVER:         { priority: 95, color: '#a78bfa', stages: ['APPROACH', 'SLOW_DOWN', 'STANDBY'] },
+  // EMERGENCY_REROUTE = "lane_borrow_path + fallback" idea: we couldn't find a
+  // collision-free trajectory at current ego pose, so back up, replan, and
+  // re-engage forward once an open path exists.
+  EMERGENCY_REROUTE:            { priority: 92, color: '#fb7185', stages: ['HOLD', 'REVERSE', 'REPLAN', 'NUDGE'] },
   YIELD_SIGN:                  { priority: 40, color: '#fb923c', stages: ['SOFT_YIELD'] },
 };
 
@@ -2719,13 +2524,27 @@ function scenarioEnter(id, stage) {
 }
 
 function selectScenario(detections, lidar) {
+  const cur = SCENARIO_MGR.active;
+
+  // Already inside EMERGENCY_REROUTE? Stay until its state machine exits.
+  if (cur.id === 'EMERGENCY_REROUTE') return { id: 'EMERGENCY_REROUTE' };
+
+  // No collision-free trajectory exists at current ego pose → request reroute.
+  // Mirrors Apollo's "open_space_fallback_decider": fall out of normal lane
+  // following into a recovery scenario that backs up & replans.
+  if (AUTO.pathBlocked) {
+    const lead = AUTO.routeThreat;
+    const tooClose = !lead || lead.yM < 6.5; // need to back up if obstacle is right on us
+    if (tooClose && EGO.speedMps < 0.5) return { id: 'EMERGENCY_REROUTE' };
+  }
+
   // EMERGENCY_PULL_OVER not user-triggered yet → reserved for future hook
   // (Apollo triggers from external_command; we leave stub.)
 
   const stopSignCorridorM = WORLD.carWidthM / 2 + 1.5;
-  const stopSign = detections.find(d => d.class === 'STOP_SIGN' && !SCENARIO_MGR._consumed.has(d.id) && d.distM < 22 && Math.abs(d.xRelM) < stopSignCorridorM);
-  const redLight = detections.find(d => d.class === 'TRAFFIC_LIGHT' && !SCENARIO_MGR._consumed.has(d.id) && d.prop.light === 'red' && d.distM < 30);
-  const yellowLight = detections.find(d => d.class === 'TRAFFIC_LIGHT' && !SCENARIO_MGR._consumed.has(d.id) && d.prop.light === 'yellow' && d.distM < 24);
+  const stopSign = detections.find(d => d.class === 'STOP_SIGN' && !SCENARIO_MGR._consumed.has(d.id) && d.distM < 30 && Math.abs(d.xRelM) < stopSignCorridorM);
+  const redLight = detections.find(d => d.class === 'TRAFFIC_LIGHT' && !SCENARIO_MGR._consumed.has(d.id) && d.prop.light === 'red' && d.distM < 38);
+  const yellowLight = detections.find(d => d.class === 'TRAFFIC_LIGHT' && !SCENARIO_MGR._consumed.has(d.id) && d.prop.light === 'yellow' && d.distM < 32);
 
   if (stopSign) return { id: 'STOP_SIGN_UNPROTECTED', refSign: stopSign };
   if (redLight || yellowLight) return { id: 'TRAFFIC_LIGHT_PROTECTED', refSign: redLight || yellowLight };
@@ -2795,6 +2614,53 @@ function updateScenario(detections, lidar) {
     return SCENARIO_MGR.active;
   }
 
+  // EMERGENCY_REROUTE — back up, replan, re-engage forward, or attempt a nudge.
+  if (sel.id === 'EMERGENCY_REROUTE') {
+    if (cur.id !== 'EMERGENCY_REROUTE') scenarioEnter('EMERGENCY_REROUTE', 'HOLD');
+
+    const lead = AUTO.routeThreat;
+    const leadY = lead ? lead.yM : Infinity;
+    const lateralLimit = drivableLateralLimit();
+
+    if (cur.stage === 'HOLD') {
+      // Brake to a stop first, then evaluate.  Once stopped, decide REVERSE vs NUDGE.
+      if (EGO.speedMps < 0.25) {
+        // If obstacle is right in front (<6 ft) we MUST reverse before any nudge can clear.
+        if (leadY < 6.5) scenarioEnter('EMERGENCY_REROUTE', 'REVERSE');
+        else scenarioEnter('EMERGENCY_REROUTE', 'REPLAN');
+      }
+      // Safety: never sit forever — escape after 3 s
+      if (sinceStage > 3.0) scenarioEnter('EMERGENCY_REROUTE', 'REVERSE');
+    } else if (cur.stage === 'REVERSE') {
+      // Back up until either (a) the path becomes clear or (b) we've gained
+      // ≥ 8 ft of buffer.  Apollo's open_space_pre_stop_decider does the same
+      // "create space first, plan second".
+      const lastReverseY = SCENARIO_MGR._reverseStartY ?? EGO.travelM;
+      SCENARIO_MGR._reverseStartY = SCENARIO_MGR._reverseStartY ?? EGO.travelM;
+      const gained = lastReverseY - EGO.travelM; // travelM decreases as we reverse
+
+      if (!AUTO.pathBlocked && gained > 1.5) scenarioEnter('EMERGENCY_REROUTE', 'REPLAN');
+      else if (gained > 8.0) scenarioEnter('EMERGENCY_REROUTE', 'REPLAN');
+      else if (sinceStage > 6.0) scenarioEnter('EMERGENCY_REROUTE', 'REPLAN'); // safety timeout
+    } else if (cur.stage === 'REPLAN') {
+      SCENARIO_MGR._reverseStartY = null;
+      // Path clear? → resume LANE_FOLLOW.  Still blocked? → try a NUDGE pass.
+      if (!AUTO.pathBlocked) {
+        if (sinceStage > 0.4) scenarioEnter('LANE_FOLLOW', 'CRUISE');
+      } else if (sinceStage > 1.2) {
+        scenarioEnter('EMERGENCY_REROUTE', 'NUDGE');
+      }
+    } else if (cur.stage === 'NUDGE') {
+      // Last resort: aggressively bias the lattice toward whichever shoulder has
+      // more clearance, even into the soft boundary zone.  If the path opens
+      // up, we recover; otherwise after 3 s we go back to HOLD.
+      if (!AUTO.pathBlocked) scenarioEnter('LANE_FOLLOW', 'CRUISE');
+      else if (sinceStage > 3.0) scenarioEnter('EMERGENCY_REROUTE', 'HOLD');
+    }
+
+    return SCENARIO_MGR.active;
+  }
+
   return SCENARIO_MGR.active;
 }
 
@@ -2809,6 +2675,7 @@ function updateScenario(detections, lidar) {
    lateral displacement. */
 function planPath(dt) {
   const lateralLimit = drivableLateralLimit();
+  const now = performance.now();
 
   // ── Perception: gather obstacles (include recently-passed ones for proper guard logic) ──
   const obs = props.filter(p =>
@@ -2816,11 +2683,6 @@ function planPath(dt) {
     p.yM > -14.0 && p.yM < AUTO.pathRangeM + 10 &&
     Math.abs(p.xM - EGO.xM) < WORLD.roadHalfM + 6.0
   );
-
-  // Nearest ahead obstacle = primary route threat (for display / speed control)
-  AUTO.routeThreat = obs
-    .filter(p => p.yM > 1)
-    .sort((a, b) => a.yM - b.yM)[0] || null;
 
   // ── Multi-threat tracking ──
   // Prune obstacles that have fully cleared (rear edge > 8 ft behind ego front)
@@ -2840,8 +2702,59 @@ function planPath(dt) {
   const predicted = predictObstacles(obs, dt || 0.016);
   AUTO._predicted = predicted; // expose for planSpeedProfile in autoDrive
 
+  // Pick the threat that matters soonest, not merely the closest sprite.
+  // Predicted range plus lateral relevance gives quicker, smarter decisions
+  // while ignoring parked cars that are safely outside the travel envelope.
+  const rankedThreats = predicted
+    .filter(o => o.p.yM > -2.0 && Math.min(o.p.yM, o.predictedY) < AUTO.pathRangeM + 4)
+    .map(o => {
+      // Evaluate lateral overlap vs ego center line instead of current position
+      // effectively reducing "fleeing" from perfectly straight lanes early
+      const lateralOverlap = Math.max(0, o.clearance + 0.5 - Math.abs(o.p.xM - AUTO.laneCenterX));
+      const timeToReach = Math.max(0.1, Math.min(o.p.yM, o.predictedY)) / Math.max(1, EGO.speedMps);
+      const urgency = (lateralOverlap * 5) - timeToReach;
+      return { o, urgency };
+    })
+    .sort((a, b) => b.urgency - a.urgency || a.o.p.yM - b.o.p.yM);
+  const candidateThreat = rankedThreats[0]?.o || null;
+  AUTO.routeThreat = candidateThreat ? candidateThreat.p : null;
+  const urgentThreat = !!candidateThreat &&
+    Math.min(candidateThreat.p.yM, candidateThreat.predictedY) < Math.max(14, EGO.speedMps * 2.1);
+
+  const buildTrajectory = (L_target) => {
+    const path = [];
+    const lateralDelta = Math.abs(L_target - EGO.xM);
+    // Shorter blend windows so it waits longer before deciding to switch lanes
+    const swerveLeadM = Math.max(8.0, lateralDelta * 1.5 + EGO.speedMps * 0.5);
+    const blendStart = candidateThreat
+      ? Math.max(0, candidateThreat.p.yM - swerveLeadM)
+      : 0;
+    const minBlend = urgentThreat ? 6.0 : 12.0; // make the actual swerve take longer longitudinally
+    const blendEnd = candidateThreat
+      ? Math.max(blendStart + minBlend, candidateThreat.p.yM - 1.5)
+      : Math.max(14.0, lateralDelta * 4.0);
+
+    for (let i = 0; i < AUTO.pathSteps; i++) {
+      const s = (i / (AUTO.pathSteps - 1)) * AUTO.pathRangeM;
+      let smoothT;
+      if (s <= blendStart) {
+        smoothT = 0;
+      } else if (s < blendEnd) {
+        const t = (s - blendStart) / (blendEnd - blendStart);
+        smoothT = 0.5 - 0.5 * Math.cos(Math.PI * t);
+      } else {
+        smoothT = 1;
+      }
+      const l = clamp(EGO.xM * (1 - smoothT) + L_target * smoothT, -lateralLimit, lateralLimit);
+      path.push({ xM: l, yM: s });
+    }
+    return path;
+  };
+
   // ── Candidate lateral targets (L_target in Frenet frame) ──
-  const step = 1.0; // tighter granularity
+  // 0.25 ft step lets the planner land near the obstacle's clearance
+  // boundary instead of overshooting by a full step's worth of margin.
+  const step = 0.25;
   const candidates = [];
   for (let L = -lateralLimit; L <= lateralLimit; L += step) {
     candidates.push(L);
@@ -2849,28 +2762,35 @@ function planPath(dt) {
   // Ensure we can use the absolute edges of the drivable space if needed
   candidates.push(-lateralLimit);
   candidates.push(lateralLimit);
-  // Always include exact lane center and current position
+  // Always include exact lane center, current position, and current committed target.
   candidates.push(AUTO.laneCenterX);
   candidates.push(EGO.xM);
+  candidates.push(AUTO._lastTargetL ?? AUTO.laneCenterX);
   // Deduplicate close values
   candidates.sort((a, b) => a - b);
 
   let bestPath = null;
   let minCost = Infinity;
   let bestTarget = AUTO.laneCenterX;
+  let chosenCost = Infinity;
+  let prevCandidate = null;
 
   // ── Cost weights (tuned for passenger comfort) ──
-  const W_LANE    = 1.2;   // lane-center deviation
-  const W_SMOOTH  = 2.5;   // penalize large lateral jumps from previous target
-  const W_RISK    = 12.0;  // soft proximity risk
-  const W_BOUNDARY = 8.0;  // penalty for nearing road boundary
+  // NUDGE stage relaxes lane / boundary penalties so the planner can squeeze
+  // through narrow gaps that normal cruise wouldn't accept.
+  // W_RISK is intentionally low — the 1 ft buffer is already baked into
+  // o.clearance, so the planner should pick the smallest feasible offset
+  // rather than fleeing further.
+  const inNudge = SCENARIO_MGR.active.id === 'EMERGENCY_REROUTE' && SCENARIO_MGR.active.stage === 'NUDGE';
+  const W_LANE    = inNudge ? 0.2 : 1.2;   // lane-center deviation
+  const W_SMOOTH  = inNudge ? 0.8 : 5.5;   // penalize large lateral target jumps
+  const W_RISK    = 1.5;                   // soft proximity risk (tiny — clearance already includes buffer)
+  const W_BOUNDARY = inNudge ? 1.5 : 4.0;  // penalty for nearing road boundary
+  const prevLat = clamp(AUTO._lastTargetL ?? AUTO.laneCenterX, -lateralLimit, lateralLimit);
 
-  for (const L_target of candidates) {
-    if (Math.abs(L_target) > lateralLimit) continue;
-
-    const path = [];
+  const scoreTarget = (L_target) => {
+    const path = buildTrajectory(L_target);
     let cost = 0;
-    let collision = false;
 
     // Lane deviation cost (quadratic — matches Apollo EM planner)
     cost += W_LANE * (L_target - AUTO.laneCenterX) ** 2 / (lateralLimit ** 2 + 1);
@@ -2886,27 +2806,21 @@ function planPath(dt) {
       cost += W_BOUNDARY * (1 - boundaryDist / 3.0);
     }
 
-    // ── Generate S-L polynomial trajectory ──
-    // Smoother swerves (longer blend distance) to prevent running into the car it's passing
-    const blendDist = Math.max(16.0, Math.abs(L_target - EGO.xM) * 3.5);
-
-    for (let i = 0; i < AUTO.pathSteps; i++) {
-      const s = (i / (AUTO.pathSteps - 1)) * AUTO.pathRangeM;
-
-      // Cosine interpolation (approximates quintic polynomial curvature)
-      const t = Math.min(1, s / blendDist);
-      const smoothT = 0.5 - 0.5 * Math.cos(Math.PI * t);
-
-      let l = EGO.xM * (1 - smoothT) + L_target * smoothT;
-      l = Math.max(-lateralLimit, Math.min(lateralLimit, l));
-
-      path.push({ xM: l, yM: s });
-
+    for (const point of path) {
+      const { xM: l, yM: s } = point;
       // ── Obstacle cost evaluation at this S station ──
+      // Also account for obstacles the ego is CURRENTLY passing (yM near 0
+      // or slightly behind) — these still constrain the lateral position
+      // because the rear quarter is still alongside until ~6 ft behind.
       for (const o of predicted) {
-        // Use predicted position for dynamic obstacles, current for static
-        const obsY = (o.p.parked || o.p.type === 'ped') ? o.p.yM : o.predictedY;
-        if (Math.abs(s - obsY) > o.longitudinalPad) continue;
+        // Use time-interpolated position for dynamic obstacles, so the box covers
+        // the obstacle realistically over the path
+        const t = EGO.speedMps > 1.0 ? s / EGO.speedMps : 0;
+        const obsY = (o.p.parked || o.p.type === 'ped') ? o.p.yM : (o.p.yM - o.vy * t);
+        
+        // extra pad while currently passing to avoid clipping
+        const passingPad = (o.p.yM > -20 && o.p.yM < 8) ? 4.0 : 0;
+        if (Math.abs(s - obsY) > o.longitudinalPad + passingPad) continue;
 
         const latDist = Math.abs(l - o.p.xM);
 
@@ -2916,55 +2830,91 @@ function planPath(dt) {
           // still picks the trajectory that gets out of the box the fastest.
           const overlap = o.clearance - latDist;
           cost += 10000 + overlap * 5000;
-        } else if (latDist < o.clearance + 3.5) {
-          // Soft risk — inverse-distance cost (Apollo-style repulsive potential)
+        } else if (latDist < o.clearance + 0.15) {
+          // Tiny soft zone so the planner picks the smallest feasible
+          // lateral offset (= ~1 ft edge gap) rather than fleeing further.
           const gap = latDist - o.clearance;
-          cost += W_RISK / (gap + 0.15);
+          cost += W_RISK * 0.2 / (gap + 0.4);
         }
       }
     }
 
-    if (cost < minCost) {
-      minCost = cost;
-      bestPath = path;
+    return { path, cost };
+  };
+
+  for (const L_target of candidates) {
+    if (Math.abs(L_target) > lateralLimit) continue;
+    const scored = scoreTarget(L_target);
+    if (Math.abs(L_target - prevLat) < step * 0.75) prevCandidate = { ...scored, target: L_target };
+
+    if (scored.cost < minCost) {
+      minCost = scored.cost;
+      bestPath = scored.path;
       bestTarget = L_target;
+    }
+  }
+  chosenCost = minCost;
+
+  // ── Target hysteresis ──
+  // Avoid lane-choice flicker: keep the previous lateral target unless the
+  // new path is materially better or the threat is close enough to require it.
+  if (prevCandidate && Math.abs(bestTarget - prevLat) > 0.35 && !urgentThreat) {
+    const gain = prevCandidate.cost - minCost;
+    const heldLongEnough = now - (AUTO._lastTargetChangedAt || 0) > 420;
+    if (gain < 1.15 || !heldLongEnough) {
+      bestTarget = prevLat;
+      bestPath = prevCandidate.path;
+      chosenCost = prevCandidate.cost;
+    }
+  }
+
+  // Slew-limit the committed target.  The planner may decide early, but the
+  // physical lane-change command ramps so the car does not dart sideways.
+  if (chosenCost < 9500 && Math.abs(bestTarget - prevLat) > 0.02) {
+    const maxTargetRate = urgentThreat ? 3.0 : (inNudge ? 2.5 : 1.25); // ft/s — slow it down so it won't snap
+    const limitedTarget = prevLat + clamp(bestTarget - prevLat, -maxTargetRate * (dt || 0.016), maxTargetRate * (dt || 0.016));
+    if (Math.abs(limitedTarget - bestTarget) > 0.02) {
+      const limited = scoreTarget(limitedTarget);
+      bestTarget = limitedTarget;
+      bestPath = limited.path;
+      chosenCost = limited.cost;
     }
   }
 
   // ── Multi-threat pass-guard ──
-  // Don't return toward center while ANY active threat hasn't fully cleared.
-  // This prevents premature lane-merge when still alongside or behind an obstacle.
-  const prevLat    = AUTO._lastTargetL ?? AUTO.laneCenterX;
-  const prevOffset = Math.abs(prevLat - AUTO.laneCenterX);
+  // While ANY obstacle is alongside or just ahead of the ego (rear hasn't
+  // cleared by 16 ft), do NOT reduce the lateral offset.  This keeps the rear
+  // quarter from cutting into the obstacle's right side as the planner reels
+  // back toward center.
   const newOffset  = Math.abs(bestTarget - AUTO.laneCenterX);
-  if (prevOffset > 1.5 && newOffset < prevOffset - 0.8) {
-    const anyUnclear = [...AUTO.activeThreats].some(id => {
-      const o = obs.find(p => p.id === id);
-      if (!o) return false;
-      const dims = REAL_DIMS[o.type] || { l: 12, w: 6 };
-      const halfL = (dims.l || dims.w || 2) / 2;
-      return (o.yM - halfL) > -5.0; // rear hasn't cleared ego by 5 ft yet
-    });
-    if (anyUnclear) {
-      bestTarget = prevLat;
-      const lockedBlend = Math.max(16.0, Math.abs(bestTarget - EGO.xM) * 3.5);
-      bestPath = [];
-      for (let i = 0; i < AUTO.pathSteps; i++) {
-        const s = (i / (AUTO.pathSteps - 1)) * AUTO.pathRangeM;
-        const t = Math.min(1, s / lockedBlend);
-        const smoothT = 0.5 - 0.5 * Math.cos(Math.PI * t);
-        let l = EGO.xM * (1 - smoothT) + bestTarget * smoothT;
-        l = Math.max(-lateralLimit, Math.min(lateralLimit, l));
-        bestPath.push({ xM: l, yM: s });
-      }
-    }
+  const prevOffset = Math.abs(prevLat - AUTO.laneCenterX);
+  const stillAlongside = [...AUTO.activeThreats].some(id => {
+    const o = obs.find(p => p.id === id);
+    if (!o) return false;
+    const dims = REAL_DIMS[o.type] || { l: 12, w: 6 };
+    const halfL = (dims.l || dims.w || 2) / 2;
+    // Treat as "still alongside" when the obstacle's rear is still within
+    // 16 ft (covering ego length) of the ego front bumper OR the obstacle is laterally close.
+    const lateralGap = Math.abs(o.xM - EGO.xM) - (dims.w || 6) / 2 - WORLD.carWidthM / 2;
+    const longitudinallyClose = (o.yM - halfL) > -18.0; // Wait longer before tucking in
+    return longitudinallyClose && lateralGap < 1.7; // Wider lateral trigger
+  });
+  if (stillAlongside && newOffset < prevOffset - 0.15) { // more sensitive to returning to center
+    bestTarget = prevLat;
+    const locked = scoreTarget(bestTarget);
+    bestPath = locked.path;
+    chosenCost = locked.cost;
   }
 
+  if (Math.abs(bestTarget - (AUTO._lastTargetL ?? AUTO.laneCenterX)) > 0.25) {
+    AUTO._lastTargetChangedAt = now;
+  }
+  AUTO._lastTargetCost = chosenCost;
   AUTO._lastTargetL = bestTarget;
 
   // ── Blocked detection: no collision-free path exists → signal stop ──
   // Cost >= 9500 means even the best candidate has a collision overlap.
-  AUTO.pathBlocked = (minCost >= 9500);
+  AUTO.pathBlocked = (chosenCost >= 9500);
 
   // ── Fallback: if every candidate collides, hold current path or go straight ──
   if (!bestPath) {
@@ -3018,8 +2968,8 @@ function autoDrive(detections, lidar, dt) {
   AUTO.decisionOverride = null;
 
   const stopSignCorridorM = WORLD.carWidthM / 2 + 1.5;
-  const stopSign = detections.find(d => d.class === 'STOP_SIGN' && d.distM < 26 && Math.abs(d.xRelM) < stopSignCorridorM);
-  const redLight = detections.find(d => d.class === 'TRAFFIC_LIGHT' && d.prop.light === 'red' && d.distM < 30);
+  const stopSign = detections.find(d => d.class === 'STOP_SIGN' && d.distM < 32 && Math.abs(d.xRelM) < stopSignCorridorM);
+  const redLight = detections.find(d => d.class === 'TRAFFIC_LIGHT' && d.prop.light === 'red' && d.distM < 38);
   const stopAhead = stopSign || redLight;
   const pedBlock = blockingPed(detections);
   const carLead = primaryLeadCar(detections);
@@ -3050,7 +3000,7 @@ function autoDrive(detections, lidar, dt) {
   if (AUTO.routeThreat && !AUTO.pathBlocked) {
     const threat = AUTO.routeThreat;
     const threatDims = REAL_DIMS[threat.type] || { w: 6.5, l: 12 };
-    const safePassSep = WORLD.carWidthM / 2 + (threatDims.w || 6.5) / 2 + 0.15;
+    const safePassSep = WORLD.carWidthM / 2 + (threatDims.w || 6.5) / 2 + 1.0;
     const laterallyCleared = Math.abs(EGO.xM - threat.xM) >= safePassSep;
 
     if (!laterallyCleared && threat.yM > 0) {
@@ -3080,6 +3030,9 @@ function autoDrive(detections, lidar, dt) {
 
   // Apollo scenario-stage controls stop-sign + traffic-light dwell behaviour.
   const scen = SCENARIO_MGR.active;
+  // Default: standard forward gear with no explicit reverse target.
+  AUTONOMY.allowReverse = false;
+  AUTONOMY.reverseTarget = null;
   if (scen.id === 'STOP_SIGN_UNPROTECTED') {
     if (scen.stage === 'STOP') vCmd = 0;
     else if (scen.stage === 'CREEP') vCmd = Math.min(vCmd, 1.85);
@@ -3087,6 +3040,19 @@ function autoDrive(detections, lidar, dt) {
     vCmd = 0;
   } else if (scen.id === 'EMERGENCY_PULL_OVER') {
     vCmd = scen.stage === 'STANDBY' ? 0 : Math.min(vCmd, 2.5);
+  } else if (scen.id === 'EMERGENCY_REROUTE') {
+    if (scen.stage === 'HOLD') {
+      vCmd = 0;
+    } else if (scen.stage === 'REVERSE') {
+      // Closed-loop reverse cruise at -2 ft/s; updateEgo follows reverseTarget directly.
+      AUTONOMY.allowReverse = true;
+      AUTONOMY.reverseTarget = -2.0;
+      vCmd = 0; // forward command zero so the legacy throttle path doesn't fight us
+    } else if (scen.stage === 'REPLAN') {
+      vCmd = 0;
+    } else if (scen.stage === 'NUDGE') {
+      vCmd = Math.min(vCmd, 2.0);
+    }
   }
 
   const lidarIsRelevant = lidar.distM != null && (!lidar.hit || lidar.corridorHit);
@@ -3207,20 +3173,41 @@ function autoDrive(detections, lidar, dt) {
     const near = sampleAt(nearLook);
     const far  = sampleAt(farLook);
 
-    // Blend: 70% near target, 30% far target for anticipation
-    targetX = near.xM * 0.7 + far.xM * 0.3;
-    targetYM = near.yM * 0.7 + far.yM * 0.3;
+    // While an obstacle is right beside us, weight the FAR sample more so the
+    // steering doesn't reel back toward center until the rear bumper clears.
+    // Apollo's pure-pursuit module does the same "look-ahead biasing while
+    // overtaking" via the reference-line projection.
+    const obs = props.find(p =>
+      (p.type === 'car' || p.type === 'ped') &&
+      Math.abs(p.yM) < 6.0 &&
+      Math.abs(p.xM - EGO.xM) < 8.0
+    );
+    if (obs) {
+      targetX = near.xM * 0.35 + far.xM * 0.65;
+      targetYM = near.yM * 0.35 + far.yM * 0.65;
+    } else {
+      targetX = near.xM * 0.7 + far.xM * 0.3;
+      targetYM = near.yM * 0.7 + far.yM * 0.3;
+    }
   }
   AUTO._lastTargetX = targetX;
   AUTO._lastTargetY = targetYM;
 
-  // Proportional + derivative-like steering for crisp response
+  // Proportional + derivative-like steering with a rate limiter.  Decisions
+  // can update immediately, but steering ramps like a real actuator.
   const dx = targetX - EGO.xM;
-  const steerP = dx * 1.8;
-  // Damping: resist rapid steering oscillation
-  const steerD = (dx - (AUTO._prevDx || 0)) * 0.6;
+  const steerP = dx * 1.35;
+  // Damping: resist rapid steering oscillation without kicking the wheel.
+  const steerD = (dx - (AUTO._prevDx || 0)) * 0.25;
   AUTO._prevDx = dx;
-  AUTONOMY.steer = Math.max(-1, Math.min(1, steerP + steerD));
+  const rawSteer = clamp(steerP + steerD, -1, 1);
+  const maxSteerDelta = (SCENARIO_MGR.active.stage === 'NUDGE' ? 2.4 : 1.45) * (dt || 0.016);
+  AUTONOMY.steer = clamp(
+    (AUTO._prevSteerCmd || 0) + clamp(rawSteer - (AUTO._prevSteerCmd || 0), -maxSteerDelta, maxSteerDelta),
+    -1,
+    1
+  );
+  AUTO._prevSteerCmd = AUTONOMY.steer;
 
   setDriveControl('up', false);
   setDriveControl('down', false);
@@ -3491,10 +3478,18 @@ function loop(now) {
 
   pushDist(lidar.distM);
 
-  // Decision priority: scenario state > hazard decision > lattice override.
+  // Decision priority:
+  //   1. Emergency scenarios (REROUTE / PULL_OVER) always win — the operator
+  //      needs to see them even mid-BRAKE.
+  //   2. Other scenarios shown only when hazard decision isn't critical.
+  //   3. Lattice override > hazard fallback.
   const scenDecision = decisionFromScenario(null);
+  const isEmergencyScen = SCENARIO_MGR.active.id === 'EMERGENCY_REROUTE' ||
+                          SCENARIO_MGR.active.id === 'EMERGENCY_PULL_OVER';
   let displayDecision;
-  if (scenDecision && !['STOP', 'BRAKE', 'YIELD'].includes(decision.state)) {
+  if (isEmergencyScen && scenDecision) {
+    displayDecision = scenDecision;
+  } else if (scenDecision && !['STOP', 'BRAKE', 'YIELD'].includes(decision.state)) {
     displayDecision = scenDecision;
   } else if (
     AUTO.decisionOverride &&
