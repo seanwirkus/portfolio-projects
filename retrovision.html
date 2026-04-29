@@ -79,24 +79,26 @@
                 </article>
             </div>
 
-            <div class="project-frame-shell project-frame-shell--preview retrovision-desktop-frame" style="--frame-height:720px; --frame-ratio:1024 / 680;">
-                <iframe
-                    class="project-frame"
-                    src="embeds/preview-shell.html?src=/freeway-frenzy-app/vision-lab.html%3Funits%3Dft%26chromeless%3D1&amp;width=1024&amp;height=680&amp;accent=22d3ee&amp;allow=autoplay"
-                    title="RetroVision Lab"
-                    loading="eager"
-                    scrolling="no"
-                ></iframe>
-            </div>
-            <div class="project-frame-shell retrovision-mobile-frame" style="aspect-ratio: 9 / 16; max-height: 82vh;">
-                <iframe
-                    class="project-frame"
-                    src="freeway-frenzy-app/vision-lab.html?units=ft"
-                    title="RetroVision Lab mobile"
-                    loading="eager"
-                    allow="autoplay"
-                    style="width:100%; height:100%; border:none; border-radius: 0 0 12px 12px;"
-                ></iframe>
+            <div class="retrovision-frames-container">
+                <div class="project-frame-shell project-frame-shell--preview retrovision-desktop-frame" style="--frame-height:720px; --frame-ratio:1024 / 680;">
+                    <iframe
+                        class="project-frame"
+                        src="embeds/preview-shell.html?src=/freeway-frenzy-app/vision-lab.html%3Funits%3Dft%26chromeless%3D1&amp;width=1024&amp;height=680&amp;accent=22d3ee&amp;allow=autoplay"
+                        title="RetroVision Lab"
+                        loading="eager"
+                        scrolling="no"
+                    ></iframe>
+                </div>
+                <div class="project-frame-shell retrovision-mobile-frame" style="aspect-ratio: 9 / 16; max-height: 82vh;">
+                    <iframe
+                        class="project-frame"
+                        src="freeway-frenzy-app/vision-lab.html?units=ft"
+                        title="RetroVision Lab mobile"
+                        loading="eager"
+                        allow="autoplay"
+                        style="width:100%; height:100%; border:none; border-radius: 0 0 12px 12px;"
+                    ></iframe>
+                </div>
             </div>
             <div class="project-stage-note">
                 This page is focused on RetroVision only. The older driving game remains separate.
@@ -148,8 +150,28 @@
         </section>
 
         <style>
+            .retrovision-page {
+                background:
+                    radial-gradient(900px 600px at 5% 0%, rgba(34, 211, 238, 0.06), transparent 45%),
+                    radial-gradient(800px 500px at 95% 20%, rgba(167, 139, 250, 0.05), transparent 50%),
+                    linear-gradient(180deg, rgba(15, 23, 37, 0.95) 0%, rgba(10, 15, 25, 0.92) 100%);
+                background-attachment: fixed;
+            }
+
             .retrovision-page .project-page-header {
                 max-width: 980px;
+            }
+
+            .retrovision-page .project-stage-card {
+                display: flex;
+                flex-direction: column;
+                gap: 1.5rem;
+            }
+
+            @media (max-width: 768px) {
+                .retrovision-page .project-stage-card {
+                    gap: 1.25rem;
+                }
             }
 
             .retrovision-intro {
@@ -198,17 +220,80 @@
                 font-weight: 600;
             }
 
+            .retrovision-frames-container {
+                display: flex;
+                flex-direction: row;
+                gap: clamp(24px, 3vw, 48px);
+                align-items: flex-start;
+                margin: 0 0 1.25rem 0;
+            }
+
+            .retrovision-frames-container .project-frame-shell {
+                margin: 0 !important;
+                border-radius: 16px;
+                overflow: hidden;
+            }
+
+            .retrovision-desktop-frame {
+                flex: 0 1 66.66%;
+                max-width: 720px;
+                aspect-ratio: 1024 / 680;
+                height: auto;
+            }
+
             .retrovision-mobile-frame {
                 display: none;
             }
 
-            @media (pointer: coarse) {
+            /* Tablet: square aspect ratio, constrained width */
+            @media (max-width: 1024px) {
+                .retrovision-frames-container {
+                    flex-direction: row;
+                }
+
+                .retrovision-desktop-frame {
+                    flex: 0 1 65%;
+                    max-width: 600px;
+                    aspect-ratio: 1 / 1;
+                    height: auto;
+                }
+            }
+
+            /* Mobile: switch to column layout with mobile-optimized frame */
+            @media (max-width: 768px) {
+                .retrovision-frames-container {
+                    flex-direction: column;
+                    align-items: center;
+                }
+
                 .retrovision-desktop-frame {
                     display: none !important;
                 }
 
                 .retrovision-mobile-frame {
                     display: block !important;
+                    width: min(100%, 500px);
+                    aspect-ratio: 9 / 16;
+                    max-height: 80vh;
+                }
+            }
+
+            /* Touch device fallback */
+            @media (pointer: coarse) {
+                .retrovision-frames-container {
+                    flex-direction: column;
+                    align-items: center;
+                }
+
+                .retrovision-desktop-frame {
+                    display: none !important;
+                }
+
+                .retrovision-mobile-frame {
+                    display: block !important;
+                    width: min(100%, 500px);
+                    aspect-ratio: 9 / 16;
+                    max-height: 80vh;
                 }
             }
         </style>

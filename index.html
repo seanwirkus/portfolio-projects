@@ -738,7 +738,7 @@
             position: relative;
             z-index: 2;
             display: grid;
-            grid-template-columns: minmax(280px, 0.85fr) minmax(0, 1.4fr);
+            grid-template-columns: minmax(320px, 0.85fr) minmax(0, 1.4fr);
             gap: clamp(28px, 4vw, 60px);
             align-items: center;
             margin-bottom: 28px;
@@ -1043,16 +1043,41 @@
             .rv-grid {
                 display: flex;
                 flex-direction: column;
+                align-items: stretch;
                 gap: 32px;
             }
-            .rv-features { grid-template-columns: 1fr; }
-            .rv-editor-shell-body { padding: 20px 14px 28px; }
+            .rv-features { grid-template-columns: 1fr; padding: 0 4vw; }
+            .rv-editor-shell-body { padding: 20px 0 28px; }
+            .rv-copy { padding: 0 4vw; }
+            .rv-window--embed {
+                width: calc(100% - 8vw);
+                margin: 0 4vw;
+                border-radius: clamp(12px, 2.4vw, 16px);
+                border-left: none;
+                border-right: none;
+            }
+            .rv-window--embed .rv-window-iframe { border-radius: inherit; }
         }
         @media (max-width: 700px) {
-            .rv { padding: 60px 4vw 80px; }
+            .rv { padding: 25vh 0; }
+            .rv-editor-shell {
+                border: none;
+                border-radius: 0;
+                background: transparent;
+                box-shadow: none;
+            }
+            .rv-editor-shell > .rv-window-bar { display: none; }
+            .rv-editor-shell-body { padding: 0; }
+            .rv-window--embed {
+                width: calc(100% - 8vw);
+                margin: 0 4vw;
+            }
             .rv-window-iframe,
             .rv-editor-shell .rv-window--embed .rv-window-iframe {
-                height: clamp(360px, 80vw, 520px);
+                width: 100%;
+                height: auto;
+                aspect-ratio: 1 / 2;
+                border-radius: clamp(12px, 3.2vw, 16px);
             }
         }
 
@@ -1065,7 +1090,7 @@
             background:
                 radial-gradient(900px 500px at 10% 25%, rgba(16, 185, 129, 0.07), transparent 58%),
                 radial-gradient(800px 520px at 92% 78%, rgba(59, 130, 246, 0.06), transparent 55%),
-                linear-gradient(180deg, rgba(2, 8, 6, 0.88) 0%, rgba(5, 18, 16, 0.85) 45%, rgba(3, 8, 6, 0.88) 100%);
+                linear-gradient(180deg, rgba(2, 8, 6, 0.26) 0%, rgba(5, 18, 16, 0.22) 45%, rgba(3, 8, 6, 0.26) 100%);
             overflow: hidden;
             border-top: 1px solid var(--line);
             border-bottom: 1px solid var(--line);
@@ -1096,7 +1121,7 @@
             border-radius: 18px;
             border: 1px solid rgba(52, 211, 153, 0.22);
             overflow: hidden;
-            background: linear-gradient(180deg, rgba(4, 18, 14, 0.75) 0%, rgba(3, 14, 11, 0.75) 100%);
+            background: linear-gradient(180deg, rgba(4, 18, 14, 0.34) 0%, rgba(3, 14, 11, 0.34) 100%);
             box-shadow:
                 0 28px 88px rgba(0, 0, 0, 0.42),
                 0 0 0 1px rgba(52, 211, 153, 0.08),
@@ -1149,7 +1174,7 @@
             position: relative;
             z-index: 2;
             display: grid;
-            grid-template-columns: minmax(280px, 0.85fr) minmax(0, 1.4fr);
+            grid-template-columns: minmax(320px, 0.85fr) minmax(0, 1.4fr);
             gap: clamp(28px, 4vw, 56px);
             align-items: center;
             margin-bottom: 0;
@@ -1248,7 +1273,7 @@
             position: relative;
             border-radius: 14px;
             border: 1px solid rgba(255, 255, 255, 0.08);
-            background: #030806;
+            background: rgba(6, 20, 16, 0.28);
             overflow: hidden;
             box-shadow:
                 0 36px 100px rgba(0, 0, 0, 0.55),
@@ -1333,7 +1358,7 @@
             width: 100%;
             height: clamp(420px, 38vw, 580px);
             border: none;
-            background: #020806;
+            background: transparent;
         }
         .orb-window--embed {
             border-radius: 14px;
@@ -1412,15 +1437,45 @@
         }
 
         @media (max-width: 1100px) {
-            .orb-grid { display: flex; flex-direction: column; gap: 36px; }
-            .orb-cards { grid-template-columns: 1fr; }
-            .orb-editor-shell-body { padding: 20px 14px 28px; }
+            .orb-grid {
+                display: flex;
+                flex-direction: column;
+                align-items: stretch;
+                gap: 36px;
+            }
+            .orb-cards { grid-template-columns: 1fr; padding: 0 4vw; }
+            .orb-editor-shell-body { padding: 20px 0 28px; }
+            .orb-copy { padding: 0 4vw; }
+            .orb-window--embed {
+                width: calc(100% - 8vw);
+                margin: 0 4vw;
+                border-radius: clamp(12px, 2.4vw, 16px);
+                border-left: none;
+                border-right: none;
+                border-top: 1px solid rgba(52, 211, 153, 0.22);
+                border-bottom: 1px solid rgba(52, 211, 153, 0.22);
+            }
+            .orb-window--embed .orb-window-iframe { border-radius: inherit; }
         }
         @media (max-width: 700px) {
-            .orb { padding: 56px 4vw 72px; }
+            .orb { padding: 25vh 0; }
+            .orb-editor-shell {
+                border: none;
+                border-radius: 0;
+                background: transparent;
+                box-shadow: none;
+            }
+            .orb-editor-shell > .orb-window-bar { display: none; }
+            .orb-editor-shell-body { padding: 0; }
+            .orb-window--embed {
+                width: calc(100% - 8vw);
+                margin: 0 4vw;
+            }
             .orb-window-iframe,
             .orb-editor-shell .orb-window--embed .orb-window-iframe {
-                height: clamp(360px, 80vw, 520px);
+                width: 100%;
+                height: clamp(380px, 90vw, 560px);
+                border-radius: clamp(12px, 3.2vw, 16px);
             }
         }
 
@@ -2370,11 +2425,7 @@
             }, { threshold: 0.62 });
             io.observe(section);
 
-            /* ── True scroll parallax + mouse-driven 3D tilt ─────
-               Background layers translate at FRACTIONS of the actual
-               scroll distance, so they "lag" behind the page (depth
-               illusion). Foreground content slightly overshoots the
-               scroll (rushes past the camera).                       */
+            /* Keep section content static while scrolling; only update cursor spotlight vars. */
             const glowEl    = section.querySelector('.rv-glow');
             const streaksEl = section.querySelector('.rv-streaks');
             const carsEl    = section.querySelector('.rv-cars');
@@ -2383,87 +2434,22 @@
             const windowEl  = section.querySelector('.rv-window');
             const featuresEl = section.querySelector('.rv-features');
 
-            // Parallax tuning — values are factors multiplied into "section scroll offset".
-            // Positive = drag in scroll direction (background lag). Negative = oppose scroll
-            // direction (rushes ahead, foreground feel).
-            const PX = {
-                glow:     0.35,     // strongest lag — feels distant
-                streaks:  0.45,     // even more lag — deepest layer
-                cars:     0.25,
-                title:   -0.10,     // slight foreground rush
-                copy:    -0.06,
-                window:  -0.14,     // strongest foreground rush
-                features: -0.04,
-            };
+            [glowEl, streaksEl, carsEl, titleEl, copyEl, windowEl, featuresEl].forEach((el) => {
+                if (el) el.style.transform = '';
+            });
 
-            let mouseNX = 0, mouseNY = 0;
-            let mouseInside = false;
-            let parallaxRaf = null;
-            let sectionOffset = 0;   // px: how far the section top is below viewport top
-                                     //  (positive = section is fully above)
-
-            function compute() {
-                const rect = section.getBoundingClientRect();
-                const vh  = window.innerHeight;
-                // Range we want parallax active: from "section is one viewport below"
-                // to "section is one viewport above". Reference point = top of section.
-                // We use rect.top directly — it goes from +vh (just below viewport)
-                // through 0 (at top) down to -rect.height (fully past).
-                // Negate so positive means scrolled-down (typical convention).
-                sectionOffset = -rect.top;
-            }
-
-            function applyParallax() {
-                parallaxRaf = null;
-                if (reduced) return;
-
-                const o = sectionOffset;
-
-                // Background — lag (translate in same direction as scroll, so net
-                // motion in viewport is less).
-                if (glowEl)    glowEl.style.transform    = `translate3d(0, ${o * PX.glow}px, 0)`;
-                if (streaksEl) streaksEl.style.transform = `translate3d(0, ${o * PX.streaks}px, 0)`;
-                if (carsEl)    carsEl.style.transform    = `translate3d(0, ${o * PX.cars}px, 0)`;
-
-                // Foreground — slight overshoot (translate against scroll).
-                if (copyEl)     copyEl.style.transform     = `translate3d(0, ${o * PX.copy}px, 0)`;
-                if (featuresEl) featuresEl.style.transform = `translate3d(0, ${o * PX.features}px, 0)`;
-
-                if (titleEl) {
-                    const mx = mouseInside ? mouseNX * 6 : 0;
-                    titleEl.style.transform = `translate3d(${mx}px, ${o * PX.title}px, 0)`;
-                }
-
-                if (windowEl) {
-                    windowEl.style.transform = `translate3d(0, ${o * PX.window}px, 0)`;
-                }
-
-                section.style.setProperty('--rv-spot', mouseInside ? '1' : '0');
-            }
-
-            function schedule() {
-                if (parallaxRaf) return;
-                parallaxRaf = requestAnimationFrame(applyParallax);
-            }
-
-            window.addEventListener('scroll', () => { compute(); schedule(); }, { passive: true });
-            window.addEventListener('resize', () => { compute(); schedule(); });
-            section.addEventListener('mouseenter', () => { mouseInside = true; });
+            section.addEventListener('mouseenter', () => {
+                section.style.setProperty('--rv-spot', '1');
+            });
             section.addEventListener('mouseleave', () => {
-                mouseInside = false;
-                mouseNX = mouseNY = 0;
-                schedule();
+                section.style.setProperty('--rv-spot', '0');
             });
             section.addEventListener('mousemove', (ev) => {
                 const rect = section.getBoundingClientRect();
-                mouseNX = ((ev.clientX - rect.left) / rect.width  - 0.5) * 2;
-                mouseNY = ((ev.clientY - rect.top)  / rect.height - 0.5) * 2;
                 section.style.setProperty('--rv-mx', `${ev.clientX - rect.left}px`);
                 section.style.setProperty('--rv-my', `${ev.clientY - rect.top}px`);
-                schedule();
             });
-            compute();
-            schedule();
+            section.style.setProperty('--rv-spot', '0');
         })();
         </script>
 

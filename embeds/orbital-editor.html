@@ -109,12 +109,12 @@
         /* ===== Canvas (Ketcher iframe) ===== */
         .canvas-wrap {
             position: fixed;
-            top: 56px; left: 16px; right: 16px; bottom: 16px;
-            border-radius: 22px;
+            top: 0; left: 0; right: 0; bottom: 0;
+            border-radius: 0;
             overflow: hidden;
-            border: 1px solid var(--border);
+            border: none;
             background: #fff;
-            box-shadow: 0 24px 60px rgba(0,0,0,0.32);
+            box-shadow: none;
         }
         iframe#ketcher {
             width: 100%; height: 100%; border: 0; display: block;
@@ -366,9 +366,8 @@
 
         /* ===== Mobile ===== */
         @media (max-width: 720px) {
-            .canvas-wrap { left: 8px; right: 8px; bottom: 8px; top: 52px; border-radius: 16px; }
+            .canvas-wrap { left: 0; right: 0; bottom: 0; top: 0; border-radius: 0; }
             .dock { right: 8px; bottom: 8px; left: 8px; width: auto; max-height: 50vh; }
-            .topbar { padding: 0 12px; height: 52px; }
         }
     </style>
 </head>
@@ -383,25 +382,7 @@
             } catch (e) {}
         })();
     </script>
-    <header class="topbar">
-        <div class="brand">
-            <div class="brand-mark">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">
-                    <circle cx="12" cy="12" r="2.5"/>
-                    <ellipse cx="12" cy="12" rx="9" ry="3.5"/>
-                    <ellipse cx="12" cy="12" rx="9" ry="3.5" transform="rotate(60 12 12)"/>
-                    <ellipse cx="12" cy="12" rx="9" ry="3.5" transform="rotate(-60 12 12)"/>
-                </svg>
-            </div>
-            <div class="brand-text">
-                <div class="brand-name">Orbital</div>
-                <div class="brand-sub">Synthesis Planner</div>
-            </div>
-        </div>
-        <div class="top-actions">
-            <div class="badge" id="status"><span class="badge-dot"></span><span id="status-text">Loading…</span></div>
-        </div>
-    </header>
+
 
     <main class="canvas-wrap">
         <iframe id="ketcher" src="../Orbital/ketcher/index.html" title="Orbital structure editor"></iframe>
