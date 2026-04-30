@@ -73,6 +73,19 @@
             pointer-events: none;
         }
         .topbar > * { pointer-events: auto; }
+        .status-badge {
+            font-size: 0.75rem;
+            color: var(--muted);
+            letter-spacing: 0.05em;
+            text-transform: uppercase;
+            padding: 6px 12px;
+            border-radius: 6px;
+            transition: all .2s ease;
+        }
+        .status-badge.active {
+            background: var(--accent-soft);
+            color: var(--accent);
+        }
         .brand {
             display: flex; align-items: center; gap: 12px;
         }
@@ -109,12 +122,13 @@
         /* ===== Canvas (Ketcher iframe) ===== */
         .canvas-wrap {
             position: fixed;
-            top: 0; left: 0; right: 0; bottom: 0;
+            top: 56px; left: 0; right: 0; bottom: 0;
             border-radius: 0;
             overflow: hidden;
             border: none;
             background: #fff;
             box-shadow: none;
+            z-index: 10;
         }
         iframe#ketcher {
             width: 100%; height: 100%; border: 0; display: block;
@@ -363,6 +377,12 @@
         body.orbital-hide-settings #settings-panel {
             display: none !important;
         }
+        body.orbital-hide-settings .topbar {
+            display: none !important;
+        }
+        body.orbital-hide-settings .canvas-wrap {
+            top: 0;
+        }
 
         /* ===== Mobile ===== */
         @media (max-width: 720px) {
@@ -383,6 +403,25 @@
         })();
     </script>
 
+
+    <div class="topbar">
+        <div class="brand">
+            <div class="brand-mark">
+                <svg viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="12" r="2"/><circle cx="19" cy="5" r="2"/><circle cx="5" cy="19" r="2"/><line x1="12" y1="12" x2="19" y2="5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/><line x1="12" y1="12" x2="5" y2="19" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+            </div>
+            <div class="brand-text">
+                <div class="brand-name">Orbital</div>
+                <div class="brand-sub">Editor</div>
+            </div>
+        </div>
+        <div class="top-actions">
+            <span class="badge">
+                <span class="badge-dot"></span>
+                Live editor
+            </span>
+            <div class="status-badge" id="status-text">Ready</div>
+        </div>
+    </div>
 
     <main class="canvas-wrap">
         <iframe id="ketcher" src="../Orbital/ketcher/index.html" title="Orbital structure editor"></iframe>
@@ -536,11 +575,16 @@
             catch (e) { return null; }
         }
 
+        // Cached last-known SMILES for synchronous access (e.g., from `copy` events
+        // and from a keydown handler where awaiting getSmiles() is too slow).
+        let lastSmiles = '';
+
         async function refresh() {
             const k = ketcher();
             if (!k) return;
             try {
                 const smi = await k.getSmiles();
+                lastSmiles = smi || '';
                 smilesEl.textContent = smi || '—';
                 const struct = k.editor && k.editor.struct ? k.editor.struct() : null;
                 if (struct) {
@@ -608,6 +652,225 @@
                 document.body.removeChild(a);
                 URL.revokeObjectURL(url);
             } catch (e) {}
+        });
+
+        // ===== Clipboard helpers =====
+
+        function showStatus(msg) {
+            statusText.textContent = msg;
+            statusText.classList.add('active');
+            setTimeout(() => {
+                statusText.textContent = 'Ready';
+                statusText.classList.remove('active');
+            }, 1400);
+        }
+
+        // Synchronous copy via hidden textarea + execCommand. Works during a user-
+        // triggered keydown event regardless of whether the iframe or parent has focus,
+        // because focusing the textarea (which lives in the parent doc) gives the parent
+        // doc focus for just long enough to perform the copy.
+        function copyViaTextarea(text) {
+            if (!text) return false;
+            const ta = document.createElement('textarea');
+            ta.value = text;
+            ta.style.cssText = 'position:fixed;left:0;top:0;width:1px;height:1px;opacity:0;pointer-events:none;';
+            document.body.appendChild(ta);
+            const prevActive = document.activeElement;
+            ta.focus();
+            ta.select();
+            ta.setSelectionRange(0, text.length);
+            let ok = false;
+            try { ok = document.execCommand('copy'); } catch (e) {}
+            document.body.removeChild(ta);
+            try { if (prevActive && prevActive.focus) prevActive.focus(); } catch (e) {}
+            return ok;
+        }
+
+        async function pasteSmiles(text) {
+            const k = ketcher();
+            if (!k || !text || !text.trim()) return;
+            const trimmed = text.trim();
+            try {
+                // Prefer addFragment() — adds to the canvas without replacing existing
+                // structure (matches typical paste UX). Falls back to setMolecule() on
+                // builds where addFragment isn't exposed.
+                if (typeof k.addFragment === 'function') {
+                    await k.addFragment(trimmed);
+                } else if (typeof k.addStructure === 'function') {
+                    await k.addStructure(trimmed);
+                } else {
+                    await k.setMolecule(trimmed);
+                }
+                refresh();
+                showStatus('Structure pasted');
+            } catch (err) {
+                // If addFragment failed (e.g., bad SMILES), try setMolecule as a last resort
+                try {
+                    await k.setMolecule(trimmed);
+                    refresh();
+                    showStatus('Structure pasted');
+                } catch (err2) {
+                    showStatus('Paste failed');
+                    console.error('[Orbital] pasteSmiles error:', err, err2);
+                }
+            }
+        }
+
+        // Read the system clipboard via a temporary textarea + execCommand('paste').
+        // Works inside a user-initiated keydown event even when focus is in the iframe,
+        // because focusing the textarea moves focus into the parent doc.
+        function relayPaste() {
+            const ta = document.createElement('textarea');
+            ta.style.cssText = 'position:fixed;left:0;top:0;width:1px;height:1px;opacity:0;';
+            document.body.appendChild(ta);
+            const prevActive = document.activeElement;
+            ta.focus();
+
+            const cleanup = () => {
+                if (ta.parentNode) ta.parentNode.removeChild(ta);
+                try { if (prevActive && prevActive.focus) prevActive.focus(); } catch (e) {}
+            };
+
+            // Strategy 1: modern Clipboard API (now that the parent doc has focus)
+            if (navigator.clipboard && navigator.clipboard.readText) {
+                navigator.clipboard.readText().then(text => {
+                    cleanup();
+                    if (text && text.trim()) pasteSmiles(text);
+                }).catch(() => {
+                    // Strategy 2: execCommand('paste') into the textarea
+                    try {
+                        document.execCommand('paste');
+                        const text = ta.value;
+                        cleanup();
+                        if (text && text.trim()) pasteSmiles(text);
+                        else showStatus('Clipboard empty');
+                    } catch (e) {
+                        cleanup();
+                        showStatus('Paste failed');
+                    }
+                });
+            } else {
+                try {
+                    document.execCommand('paste');
+                    const text = ta.value;
+                    cleanup();
+                    if (text && text.trim()) pasteSmiles(text);
+                    else showStatus('Clipboard empty');
+                } catch (e) {
+                    cleanup();
+                    showStatus('Paste failed');
+                }
+            }
+        }
+
+        // ===== Multi-strategy event wiring =====
+        // We attach handlers for THREE event types on as many event targets as possible,
+        // because Ketcher's own keyboard handling makes it unclear which strategy will
+        // actually reach us:
+        //   1. keydown   — primary, intercepts Ctrl+C / Ctrl+V before Ketcher acts
+        //   2. copy      — fires during the browser's native copy lifecycle
+        //   3. paste     — fires during the browser's native paste lifecycle
+
+        const isCmd = (e) => (e.ctrlKey || e.metaKey) && !e.shiftKey && !e.altKey;
+
+        const handleKeydown = (e) => {
+            if (!isCmd(e)) return;
+            // Use both `code` and `key` so caps-lock / different layouts still match.
+            const isC = e.code === 'KeyC' || e.key === 'c' || e.key === 'C';
+            const isV = e.code === 'KeyV' || e.key === 'v' || e.key === 'V';
+            if (!isC && !isV) return;
+
+            console.log('[Orbital] keydown intercepted:', e.code, 'on', e.currentTarget && (e.currentTarget.constructor.name || 'target'));
+
+            e.preventDefault();
+            e.stopImmediatePropagation();
+
+            if (isC) {
+                if (lastSmiles) {
+                    const ok = copyViaTextarea(lastSmiles);
+                    showStatus(ok ? 'SMILES copied' : 'Copy failed');
+                } else {
+                    showStatus('Nothing to copy');
+                }
+            } else if (isV) {
+                relayPaste();
+            }
+        };
+
+        const handleCopyEvent = (e) => {
+            console.log('[Orbital] copy event fired');
+            if (!lastSmiles || !e.clipboardData) return;
+            e.preventDefault();
+            e.stopImmediatePropagation();
+            try {
+                e.clipboardData.setData('text/plain', lastSmiles);
+                showStatus('SMILES copied');
+            } catch (err) {
+                console.error('[Orbital] copy event error:', err);
+            }
+        };
+
+        const handlePasteEvent = (e) => {
+            console.log('[Orbital] paste event fired');
+            const text = e.clipboardData && e.clipboardData.getData('text/plain');
+            if (!text || !text.trim()) return;
+            e.preventDefault();
+            e.stopImmediatePropagation();
+            pasteSmiles(text.trim());
+        };
+
+        function attachAllOn(target) {
+            if (!target || target.__orbitalAttached) return;
+            try {
+                target.addEventListener('keydown', handleKeydown,    { capture: true });
+                target.addEventListener('copy',    handleCopyEvent,  { capture: true });
+                target.addEventListener('paste',   handlePasteEvent, { capture: true });
+                target.__orbitalAttached = true;
+            } catch (e) {}
+        }
+
+        function attachEverywhere() {
+            // Parent context
+            attachAllOn(window);
+            attachAllOn(document);
+            attachAllOn(document.body);
+            attachAllOn(document.documentElement);
+            // Iframe context
+            try {
+                const iWin = iframe.contentWindow;
+                const iDoc = iframe.contentDocument || (iWin && iWin.document);
+                attachAllOn(iWin);
+                attachAllOn(iDoc);
+                if (iDoc) {
+                    attachAllOn(iDoc.body);
+                    attachAllOn(iDoc.documentElement);
+                }
+                if (iWin && iWin.document && iWin.document.body) {
+                    console.log('[Orbital] listeners attached to iframe contexts');
+                }
+            } catch (e) {
+                console.warn('[Orbital] could not attach iframe listeners:', e);
+            }
+        }
+
+        attachEverywhere();
+        setTimeout(attachEverywhere, 200);
+        setTimeout(attachEverywhere, 600);
+        setTimeout(attachEverywhere, 1500);
+        setTimeout(attachEverywhere, 3000);
+        iframe.addEventListener('load', () => {
+            // After navigation, the iframe's window/document objects are replaced,
+            // so we clear any stale "already attached" markers and re-attach.
+            try {
+                const iWin = iframe.contentWindow;
+                const iDoc = iframe.contentDocument || (iWin && iWin.document);
+                [iWin, iDoc, iDoc && iDoc.body, iDoc && iDoc.documentElement]
+                    .filter(Boolean)
+                    .forEach(t => { try { t.__orbitalAttached = false; } catch (_) {} });
+            } catch (e) {}
+            setTimeout(attachEverywhere, 50);
+            setTimeout(attachEverywhere, 400);
+            setTimeout(attachEverywhere, 1500);
         });
     </script>
 </body>
